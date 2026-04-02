@@ -1,0 +1,2 @@
+on_file_created
+on_file_deleted

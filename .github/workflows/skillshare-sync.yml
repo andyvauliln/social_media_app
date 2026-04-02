@@ -1,0 +1,14 @@
+name: Skillshare Sync
+
+on:
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: runkids/setup-skillshare@v1
+        with:
+          source: ./skills
+      - run: skillshare sync
