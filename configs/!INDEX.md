@@ -1,0 +1,3 @@
+accounts_schema
+hooks_schema
+symlink_schema
