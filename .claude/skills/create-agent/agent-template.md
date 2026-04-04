@@ -3,15 +3,15 @@
 ```md
 `agents/{agent-name}/`
 ├── `CLAUDE.md`                      # Main project memory (team-shared, in git)
-├── CLAUDE.local.md                  # Personal overrides (gitignored)
-├── scripts.agent.{agent-name}/
-│   └── index.js                     # any python,js, sh or
-├── docs.agent.{agent-name}/
-│   └── EXAMPLES.md                  # all working prompts and flows
-│   └── db.scheme.{agent-name}.symlink.md                    # structure of documentation
+├── `CLAUDE.local.md`                  # Personal overrides (gitignored)
+├── `scripts.agent.{agent-name}/`
+│   └──` index.js`             # any python,js, sh or
+├── `docs.agent.{agent-name}/`
+│   └── `examples.jsonc`               # all working prompts and flows
+│   └── db-scheme.{agent-name}.symlink.md                    # structure of documentation
 │   └── !INDEX.md                    # structure of documentation
 └── db.{agent-name}.db               # Agent db
-└── db.scheme.{agent-name}.db        # Shema for db
+└── db-scheme.{agent-name}.db        # Shema for db
 ├── .mcp.json                        # MCP server config (GitHub, JIRA, DBs)
 ├── config.{agent-name}.jsonc        # Agent Config
 └── .claude/
@@ -34,48 +34,14 @@
 
 ---
 
-## CLAUDE.md — agent global memory (ll go to every ai request)
+## CLAUDE `CLAUDE.md` — agent global memory (ll go to every ai request)
 
 ```md
 # Purpose of this agent
 ```
 
----
 
-## `.claude/settings.json`
-
-```json
-{
-  "permissions": {
-    "allow": [
-      "Read", "Edit", "Write", "Glob", "Grep"
-      "Bash(pnpm build:*)",
-      "Bash(pnpm test:*)",
-      "Bash(git status:*)",
-      "Bash(git diff:*)"
-    ],
-    "ask": [
-      "Bash(git commit:*)",
-      "Bash(pnpm install:*)",
-      "Bash(docker:*)"
-    ],
-    "deny": [
-      "Read(.env)",
-      "Read(.env.*)",
-      "Read(node_modules/**)",
-      "Bash(rm -rf:*)",
-      "Bash(git push --force:*)"
-    ]
-  },
-  "hooks": {
-   
-  }
-}
-```
-
----
-
-## `~/.claude/settings.json` — global security (full)
+## SETTINGS `~/.claude/settings.json` — global security (full)
 
 Deny wins over project `allow`.
 
@@ -96,9 +62,9 @@ Deny wins over project `allow`.
 
 ---
 
-## `.claude/rules/code-style.md` (short)
+## RULE `.claude/rules/code-style.md` (short)
 
-```text
+```yaml
 ---
 description: TypeScript/JS coding rules
 globs: "*.ts,*.tsx,*.js,*.jsx"
@@ -110,24 +76,44 @@ globs: "*.ts,*.tsx,*.js,*.jsx"
 
 ---
 
-## `.claude/skills/implement/SKILL.md` (short)
+## SKILL `.claude/skills/implement/SKILL.md`
 
-```text
+```yaml
 ---
-name: implement
-description: Use for build/feature work or phase plans
+  name: deploy
+  description: Deploy the app to production. Use when deploying, releasing, or pushing to prod.
+  argument-hint: "[environment] [version]"
+  disable-model-invocation: true
+  user-invocable: true
+  allowed-tools: Bash(gh *) Bash(npm *) Read
+  model: claude-sonnet-4-6
+  effort: high
+  context: fork
+  agent: Explore
+  paths:
+    - "src/**/*.ts"
+    - "*.config.js"
+  shell: bash
+  hooks:
+    PreToolUse:
+      - matcher: "Bash"
+        hooks:
+          - type: command
+            command: "./scripts/safety-check.sh"
 ---
 
-# Implement
-1. Read spec → 2. Read plan → 3. One phase at a time + type-check each phase
-4. Minor discovery: proceed + changelog · Major: pause + spec update + approval
+  Deploy $ARGUMENTS to production:
+
+  1. Run `npm test`
+  2. Run `npm run build`
+  3. Run `gh release create $0`
 ```
 
 ---
 
-## `.claude/commands/commit.md` (short)
+## COMMAND `.claude/commands/commit.md`
 
-```text
+```yaml
 ---
 name: commit
 description: Stage all and conventional commit
@@ -141,7 +127,7 @@ Run `git diff --staged` + `git status`, draft Conventional Commits message, stag
 
 ## `.claude/agents/code-reviewer.md` (short)
 
-```text
+```yaml
 ---
 name: code-reviewer
 description: Proactive reviewer — types, security, dead code, errors
