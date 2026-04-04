@@ -89,15 +89,6 @@
         }
       ],
       "PostToolUse": [
-        // {
-        //   "matcher": "Write|Edit",
-        //   "hooks": [
-        //     {
-        //       "type": "prompt",
-        //       "prompt": "If more than 3 TypeScript files were edited since last type-check, remind the user to run pnpm typecheck."
-        //     }
-        //   ]
-        // }
       ],
       "Stop": [
         {

@@ -3,11 +3,11 @@
 ```md
 `agents/{agent-name}/`
 ├── `CLAUDE.md`                      # Main project memory (team-shared, in git)
-├── `CLAUDE.local.md`                  # Personal overrides (gitignored)
+├── `CLAUDE.local.md`                # Personal overrides (gitignored)
 ├── `scripts.agent.{agent-name}/`
-│   └──` index.js`             # any python,js, sh or
+│   └──` index.js`                   # any python,js, sh or
 ├── `docs.agent.{agent-name}/`
-│   └── `examples.jsonc`               # all working prompts and flows
+│   └── `examples.jsonc`             # all working prompts and flows
 │   └── db-scheme.{agent-name}.symlink.md                    # structure of documentation
 │   └── !INDEX.md                    # structure of documentation
 └── db.{agent-name}.db               # Agent db
@@ -115,14 +115,14 @@ globs: "*.ts,*.tsx,*.js,*.jsx"
 
 ```yaml
 ---
-name: commit
-description: Stage all and conventional commit
+name: template
+description: Deploy the app to production. Use when deploying or releasing.
+argument-hint: "[environment]"
+disable-model-invocation: true
+allowed-tools: Bash(gh *) Bash(npm *)
+context: fork
 ---
-
-# Commit
-Run `git diff --staged` + `git status`, draft Conventional Commits message, stage all, show message, then commit.
-```
-
+BODY
 ---
 
 ## `.claude/agents/code-reviewer.md` (short)

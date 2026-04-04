@@ -1,1 +1,0 @@
-# Folder to list all apps for what what is api and another valued informatioins about projects. Here also will be apps that need to be running or used from github or etc. Should be updated after

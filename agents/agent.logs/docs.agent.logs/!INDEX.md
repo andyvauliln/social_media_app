@@ -5,14 +5,14 @@ Runtime and agent output is split by area. Files are plain text; rotate or archi
 
 LOGS_LEVEL = 1,2,3 (1 no logs, 2 main logs, 3 dev verbose logs)
 
-## Last two sessions
+## Last sessions
 
 | File | Purpose |
 |------|---------|
-| `last-two-sessions-dev-agent.log` | Recent dev-agent session tail (last two sessions). |
-| `last-two-sessions-content-agent.log` | Recent content-factory session tail. |
-| `last-two-sessions-api.log` | Recent API process session tail. |
-| `last-two-sessions-ai.log` | Recent AI/LLM integration session tail. |
+| `last-sessions-dev-agent.log` | Recent dev-agent session tail (last sessions). |
+| `last-sessions-content-agent.log` | Recent content-factory session tail. |
+| `last-sessions-api.log` | Recent API process session tail. |
+| `last-sessions-ai.log` | Recent AI/LLM integration session tail. |
 
 ## Error-only streams (`errors.*.log`)
 
@@ -30,7 +30,7 @@ One file per subsystem for stack traces and error lines only, for quick grepping
 | `errors.tools-content-agent.log` | Content-agent tools |
 | `errors.tools-dev-agent.log` | Dev-agent tools |
 
-## Full streams (`*.log` without `errors.` or `last-two-sessions-`)
+## Full streams (`*.log` without `errors.` or `last-sessions-`)
 
 Broader logging (info, warnings, debug) per area, not limited to errors.
 
@@ -73,7 +73,7 @@ Broader logging (info, warnings, debug) per area, not limited to errors.
   "model": "",
    "token_usage": {"prompt": 1200, "completion": 280, "total": 1480, "cost": ""},
   "steps": [
-    {"name": "analyze_request", "input": "", output: "", "status": "done"},
+    {"name": "analyze_request", "input": "", "output": "", "status": "done"},
     {"name": "fetch_context", "status": "done"}
   ],
 }]
@@ -84,3 +84,5 @@ Broader logging (info, warnings, debug) per area, not limited to errors.
 - DB : `logs.db`
 ## SHEMA
 
+
+/

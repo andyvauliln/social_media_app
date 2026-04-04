@@ -1,8 +1,8 @@
 ---
-name: skillshare-sync
-description: Manage AI agent skills across tools with skillshare CLI. Use when the user asks to sync skills, install shared skills, audit skill safety, configure target modes, or set up project-level skill workflows.
+name: sync-agent-providors
+description: SHOULD.
 
-AI_TODO: `Turned to a skill that can sync claude to all another platform like cursor and etc, search first in internet`
+
 
 ---
 # GITHUB 
