@@ -44,7 +44,7 @@ ENV/
 
 # ---- Claude / local AI memory ----
 CLAUDE.local.md
-.claude/
+# .claude/
 
 # ---- OS / editor ----
 .DS_Store
@@ -54,3 +54,8 @@ CLAUDE.local.md
 
 # ---- Personal / local ----
 mine/
+
+# Local GitHub clones / checkouts (not part of this repo)
+github-projects/
+
+*symlink*

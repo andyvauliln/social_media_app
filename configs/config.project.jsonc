@@ -1,0 +1,45 @@
+{   
+    "available_hooks": [
+        {
+            "name": "on_file_created",
+            "description": "Add ai metadata to file",
+            "enabled": true,
+            "supported-platforms": [ 
+                {"platform": "claude", "name": "real name on platform"}, 
+                {"platform": "cursor", "name": "real name on platform"}
+            ],
+            "commands": [ "/add_ai_metadata_to_file" ] //commands or skills that ll be run on this hook
+        },
+        {
+            "name": "before-commit",
+            "description": "Run before commit to update related files",
+            "enabled": true,
+            "commands": [ "/update-related-files" ]
+        }
+    ],
+    "cron_tasks": [
+        {
+            "name": "update-related-files",
+            "description": "run every 10 minutes to get files changed files and ",
+            "schedule": "0 0 * * *",
+            "enabled": true,
+            "commands": [ "/update-related-files" ]
+        }
+    ],
+    "symlink_config": [
+        {
+            "name": "symlink_config",
+            "path": "./agents/{agent_name}.agent.docsconfigs.jsonc",
+            "target": "./agents/agent.configs/configs.jsonc"
+        }
+    ],
+    "ai_file_metadata_template": {
+        "path": "./configs/project.configs.jsonc",
+        "description": "Configurations for all project's configs",
+        "auto_update_settings": {"on_hook": {"name":"on_file_updated", "commands": ["/update-files-metadatas"]}},
+        "tags": ["coniguration", "agent"],
+        "main-subjects": ["available_hooks", "ai_file_metadata_template", "symlink_config"],
+        "developer_notes": [""], //any notes for another developers
+        "notes_for_ai": [""] //any notes for ai to action 
+    }
+}

@@ -1,0 +1,14 @@
+// SUMMARY OF ALL SCRIPTS, FOR WHAT AND HOW TO USE,
+[
+    {
+        "name": "",
+        "description": "",
+        "what_can_do": "",
+        "path": "",
+        "help": "",
+        "run": "bash ./scripts/script.configure.sh --no-sync",
+        "test": ""
+
+    }
+]
+

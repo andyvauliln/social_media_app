@@ -1,0 +1,150 @@
+{
+    "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  
+    "model": "claude-sonnet-4-6",
+    "language": "english",
+    "outputStyle": "Explanatory",
+    "effortLevel": "medium",
+    "alwaysThinkingEnabled": false,
+    "autoUpdatesChannel": "stable",
+  
+    "permissions": {
+      "defaultMode": "acceptEdits",
+      "allow": [
+        "Read",
+        "Edit",
+        "Bash(pnpm run *)",
+        "Bash(pnpm test *)",
+        "Bash(pnpm build *)",
+        "Bash(pnpm lint *)",
+        "Bash(pnpm typecheck *)",
+        "Bash(git status)",
+        "Bash(git diff *)",
+        "Bash(git log *)",
+        "Bash(git add *)",
+        "Bash(git stash *)",
+        "WebFetch(domain:api.github.com)",
+        "WebFetch(domain:registry.npmjs.org)"
+      ],
+      "ask": [
+        "Bash(git commit *)",
+        "Bash(git push *)",
+        "Bash(pnpm install *)",
+        "Bash(docker *)",
+        "WebFetch"
+      ],
+      "deny": [
+        "Read(./.env)",
+        "Read(./.env.*)",
+        "Read(./secrets/**)",
+        "Read(~/.ssh/**)",
+        "Read(~/.aws/**)",
+        "Bash(rm -rf *)",
+        "Bash(git push --force *)",
+        "Bash(sudo *)",
+        "Bash(curl *)",
+        "Bash(wget *)"
+      ],
+      "additionalDirectories": [],
+      "disableBypassPermissionsMode": "disable",
+      "skipDangerousModePermissionPrompt": false
+    },
+  
+    "sandbox": {
+      "enabled": false,
+      "failIfUnavailable": false,
+      "autoAllowBashIfSandboxed": true,
+      "excludedCommands": [
+        "docker *",
+        "colima *"
+      ],
+      "filesystem": {
+        "allowWrite": ["/tmp", "./dist", "./.next"],
+        "denyWrite": ["/etc", "/usr/local/bin"],
+        "denyRead": ["~/.aws/credentials", "~/.ssh/id_rsa"],
+        "allowRead": ["."]
+      },
+      "network": {
+        "allowedDomains": [
+          "github.com",
+          "*.npmjs.org",
+          "api.anthropic.com"
+        ],
+        "allowUnixSockets": ["/var/run/docker.sock"],
+        "allowLocalBinding": true,
+        "allowAllUnixSockets": false
+      }
+    },
+  
+    "hooks": {
+      "PreToolUse": [
+        {
+          "matcher": "Bash(git commit *)",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "pnpm lint-fix && pnpm typecheck"
+            }
+          ]
+        }
+      ],
+      "PostToolUse": [
+        // {
+        //   "matcher": "Write|Edit",
+        //   "hooks": [
+        //     {
+        //       "type": "prompt",
+        //       "prompt": "If more than 3 TypeScript files were edited since last type-check, remind the user to run pnpm typecheck."
+        //     }
+        //   ]
+        // }
+      ],
+      "Stop": [
+        {
+          "matcher": "*",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo 'Claude done'"
+            }
+          ]
+        }
+      ]
+    },
+  
+    "disableAllHooks": false,
+    "allowedHttpHookUrls": [],
+    "httpHookAllowedEnvVars": [],
+  
+    "worktree": {
+      "symlinkDirectories": [
+        "node_modules",
+        ".cache"
+      ],
+      "sparsePaths": []
+    },
+  
+    "plansDirectory": "./plans",
+    "includeGitInstructions": true,
+    "respectGitignore": true,
+    "claudeMdExcludes": [],
+  
+    "env": {
+      "NODE_ENV": "development",
+      "CLAUDE_CODE_ENABLE_TASKS": "false"
+    },
+  
+    "prefersReducedMotion": false,
+    "spinnerTipsEnabled": true,
+    "showClearContextOnPlanAccept": true,
+    "showThinkingSummaries": false,
+    "feedbackSurveyRate": 0,
+    "cleanupPeriodDays": 30,
+  
+    "attribution": {
+      "commit": "🤖 Generated with Claude Code\n\nCo-Authored-By: Claude <[email protected]>",
+      "pr": ""
+    },
+  
+    "availableModels": ["claude-opus-4-6", "claude-sonnet-4-6", "claude-haiku-4-6"]
+  }
