@@ -1,2 +1,2 @@
 # CLONE GITHUB PROJECT TO github-projects-folder 
-# AI_TODO: "Add"
+# AI_TODO: "Make script"

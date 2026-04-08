@@ -1,0 +1,12 @@
+[
+    {
+        "name": "update-related-files",
+        "description": "run every 10 minutes to get files changed and update related ",
+        "schedule": "0 0 * * *",
+        "enabled": true,
+        "production": true,
+        "development": true,
+        "scope": "main", //application name, agent-name
+        "commands": [ "/update-related-files" ]
+    }
+]

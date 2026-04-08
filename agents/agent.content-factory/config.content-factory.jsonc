@@ -1,0 +1,11 @@
+{
+    "name": "content-factory",
+    "enabled": "true",
+    "telegram_bot": "@content_factory_bmd_bot",
+    "telegram_token": "@1233123",
+    "telegram_pull_time": "1", //minute
+    "allowed_groups": [],
+    "agent_commands_to_telegram": []
+
+
+}
