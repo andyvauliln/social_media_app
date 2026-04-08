@@ -1,6 +1,7 @@
 ---
-name: list-task-main
-description:  [NATIVE PROGECT] [Skill]  List tasks from tasks/tasks.index.jsonc with tag filters and AI recommendation on what to pick. Use when a developer wants to see what to work on.
+name: list-task
+description: handling any requests about tasks from file tasks/tasks.index.jsonc with tag filters and AI recommendation on what to pick. Use when a developer wants to see what to work on.
+argument-hint: prompt @tags
 ---
 
 # list-task
@@ -14,14 +15,14 @@ Reads `tasks/tasks.index.jsonc` and displays filtered tasks with a pick recommen
 ```
 
 Known Filters but could be any:
-- `@top5priority` — top 5 by priority (urgent > high > medium > low)
+- `@top5` — top 5 by priority (urgent > high > medium > low)
 - `@today` — tasks with `when: "@today"` or `when: "@now"`
 - `@week` — tasks with `when: "@week"`, `"@today"`, or `"@now"`
 - `@project <name>` — tasks matching `scope: "<name>"`
 - `@short` — tasks with `estimated_time` ≤ 2h
 - `@pending` — status is `"pending"`
 - `@blocked` — status is `"blocked"`
-- `@mine` — `assigned_user` matches current user from `agents/agent.manager/docs.agent.manager/team.jsonc`
+- `@mine` — `assigned_user` matched current github email`
 
 Multiple tags combine with AND logic: `/list-task @today @short`
 
@@ -33,7 +34,8 @@ Multiple tags combine with AND logic: `/list-task @today @short`
 
 ```bash
 ROOT=$(git rev-parse --show-toplevel)
-TASKS_FILE="$ROOT/tasks/tasks.index.jsonc"
+TASKS_FILE="$ROOT/agents/agent.research/tasks/tasks.index.jsonc"
+CONFIG_PATH="$ROOT/agents/agent.manager/config.manager.jsonc"
 ```
 
 If file does not exist, print:
@@ -75,7 +77,7 @@ Always exclude `status` of `"done"`, `"canceled"`, `"merged"` unless explicitly 
     status: pending | assigned: —
 
 #2  [HIGH]   Add push notification opt-in       (#9)
-    scope: app.mobile | when: @week | est: 2h
+    scope: app.mobile | when: @today | est: 2h
     status: pending | assigned: Andrei
 
 ─────────────────────────────────────────────

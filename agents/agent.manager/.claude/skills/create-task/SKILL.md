@@ -1,22 +1,12 @@
 ---
-name: create-task-main
-description:  [NATIVE PROGECT] [Skill]  Create a new task with sub-tasks and save it to tasks/tasks.index.jsonc. Use when starting new work or capturing an idea.
+name: create-task
+description: Create a new task with sub-tasks and save it to tasks/tasks.index.jsonc. Use when starting new work or capturing an idea.
+argument-hint: "[prompt] [@user_name, @ai optional] [@when optional] [@priority optional] [@type optional] [@scope optional]
 ---
 
 # create-task
 
 Creates a structured task entry in `tasks/tasks.index.jsonc` from a natural language prompt.
-
-## Invocation
-
-```
-/create-task-main {prompt}. {task configurations} @ai
-```
-
-Examples:
-```
-/create-task Add user profile photo upload with compression and S3 storage
-```
 
 ---
 
@@ -26,17 +16,11 @@ Examples:
 
 ```bash
 ROOT=$(git rev-parse --show-toplevel)
-TASKS_FILE="$ROOT/tasks/tasks.index.jsonc"
-TEAM_FILE="$ROOT/agents/agent.manager/docs.agent.manager/team.jsonc"
+TASKS_FILE="$ROOT/agents/agent.research/tasks/tasks.index.jsonc"
+CONFIG_PATH="$ROOT/agents/agent.manager/config.manager.jsonc"
 ```
 
-Read `team.jsonc` to know valid `assigned_user` values.
-
-If `tasks/tasks.index.jsonc` does not exist, create it as `[]`.
-
-### 2. Determine next github_issue_id
-
-create github issue and get new id
+read CONFIG team to know valid `assigned_user` values.
 
 ### 3. Analyze the prompt
 
@@ -47,12 +31,13 @@ From the user's `{prompt}`, derive:
 - **type** — one of: `research`, `bug`, `feature`, `enhancement`, `idea`
 - **scope** — best matching scope: `main`, a project name, app name, or agent name (e.g. `app.dashboard`, `agent.manager`)
 - **priority** — `low`, `medium`, `high`, or `urgent` based on context clues
-- **when** — `@now`, `@today`, `@tomorrow`, `@week`, `@month`, or `@next_phase`
+- **when** — `@now`, `@today`, `@tomorrow`, `@week`, `@month`, or `@next_phase` or `@23.02.2026 specific date` 
 - **estimated_time** — AI estimate as a string: `"2h"`, `"30m"`, `"1d"`
 - **tags** — 2-5 relevant tags (e.g. `["upload", "s3", "media"]`)
 - **branch_name** — `{type}/{github_issue_id}-{slug}` (e.g. `feature/12-user-profile-photo`)
-- **sub_tasks** — break work into 2-5 logical sub-tasks (see below)
+- **sub_tasks** — break work into 2-5 logical sub-tasks
 
+# IF YOU HAVE QEUSTION OR NOT SURE ASK USER QUESTIONS TO MAKE TASK CORRECTLY
 ### 4. Build sub-tasks
 
 For each sub-task:
@@ -70,7 +55,7 @@ For **research**: research → report
 
 ```jsonc
 {
-    "github_issue_id": <next_id>,
+    "github_issue_id": <github-id>,
     "title": "<derived>",
     "description": "<derived>",
     "branch_name": "<type>/<id>-<slug>",
@@ -100,28 +85,40 @@ For **research**: research → report
     "is_passed_test": false,
     "run_test_command": "",
     "assigned_user": "",
+    "notes": "",
     "ai_agents": "claude",
     "created_at": "<YYYY-MM-DD>",
     "created_by": "ai",
     "updated_at": "<YYYY-MM-DD>"
 }
+Use today's date from `currentDate` in context for `created_at` and `updated_at`.
 ```
 
-Use today's date from `currentDate` in context for `created_at` and `updated_at`.
+### 6. Create Github Issue and past all needed information
+- create github issue
+- Read the existing array, append the new task object, write back. Preserve JSONC formatting. inlcude github id
 
-### 6. Append to tasks.index.jsonc
+### 7 Commit updated file tasks.index.jsonc to main if it's task with tag @ai that no need any human interaction and
 
-Read the existing array, append the new task object, write back. Preserve JSONC formatting.
-
-### 7. Confirm output
+```bash 
+git add agents/agent.manager/tasks/tasks.index.jsonc
+git commit -m "added task update tasks index"
+git push origin HEAD:main
+```
+### 8 Output Example
 
 ```
 ✓ Task #12 created
   title:    Add user profile photo upload
   type:     feature | priority: high | when: @week
-  scope:    app.mobile | est: 4h
+  scope:    app.dashboard | est: 4h
   branch:   feature/12-user-profile-photo
-  sub-tasks: 4
+  tags:     
+  sub-tasks:
+    1. [ID: 1]  Plan implementation steps          (type: plan)
+    2. [ID: 2]  Build upload UI and backend logic  (type: build)
+    3. [ID: 3]  Research secure storage options    (type: research)
+    4. [ID: 4]  Test and report results            (type: report)
 
   Next: /start-task 12
 ```
@@ -130,17 +127,14 @@ Read the existing array, append the new task object, write back. Preserve JSONC 
 
 ## Rules
 
-- Never assign `assigned_user` — leave it `""`
-- `github_issue_id` must be unique and incremental
-- Always create at least 2 sub-tasks
+- if not need any user and not user provided with a prompt or provided ai than assign to ai
 - `branch_name` must be git-safe (lowercase, hyphens, no spaces)
-- Do not create GitHub issues or git branches — only write to the local file
-- Strip `//` JSONC comments before parsing; preserve structure when writing back
+- Don't remove comments if they exist it's .jsonc file which allow comments
 
 ```json
 { "ai_file_metadata": {
     "path": ".claude/skills/create-task/SKILL.md",
     "description": "Skill: create a structured task entry in tasks/tasks.index.jsonc from a natural language prompt.",
-    "tags": ["skill", "tasks", "create", "planning"],
+    "tags": ["skill", "tasks", "create"],
 } }
 ```

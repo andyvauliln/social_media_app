@@ -1,23 +1,13 @@
 ---
-name: start-task-main
-description: [NATIVE PROGECT] [Skill] Start working on a task by creating a git branch, setting assigned_user, and generating a plan. Use when a developer picks a task to work on.
+name: start-task
+description: Starting task by it id or sub id
+argument-hint: {id} {sub-task-id optional}
 ---
 
-# start-task
-
-Activates a task: assigns it, creates a git branch, builds a work plan, and sets up the task folder.
-
-## Invocation
-
+# Example:
 ```
-/start-task {id}
+/start-task 12 2
 ```
-
-Example:
-```
-/start-task 12
-```
-
 ---
 
 ## Steps
@@ -26,11 +16,11 @@ Example:
 
 ```bash
 ROOT=$(git rev-parse --show-toplevel)
-TASKS_FILE="$ROOT/tasks/tasks.index.jsonc"
-TEAM_FILE="$ROOT/agents/agent.manager/docs.agent.manager/team.jsonc"
+TASKS_FILE="$ROOT/agents/agent.research/tasks/tasks.index.jsonc"
+CONFIG_PATH="$ROOT/agents/agent.manager/config.manager.jsonc"
 ```
 
-Find the task in `tasks/tasks.index.jsonc` where `github_issue_id` equals `{id}`.
+Find the task in `tasks.index.jsonc` where `github_issue_id` equals `{id}`.
 
 If not found, print:
 ```
@@ -42,18 +32,13 @@ If task `status` is `"done"` or `"canceled"`, warn the user and ask to confirm b
 
 ### 2. Determine current user
 
-Read `team.jsonc`. If only one team member exists, use them. If multiple exist, ask the user which one they are (show names from team.jsonc).
+Read `team` CONFIG_PATH. use that current gihub emale matched .
 
 ### 3. Create git branch
 
 Check current git status — if there are uncommitted changes, warn the user.
 
-Create and switch to the task branch:
-
-```bash
-git checkout -b {branch_name}
-```
-
+Create and switch to the task branch from main:
 Where `{branch_name}` comes from the task object (e.g. `feature/12-user-profile-photo`).
 
 If branch already exists:
@@ -70,20 +55,20 @@ Print:
 
 Update the task object:
 - `status` → `"scheduled"`
-- `assigned_user` → current user name from team.jsonc
+- `assigned_user` → compare githubemail and  team.jsonc
 - `updated_at` → today's date (YYYY-MM-DD)
 
 Write back to `tasks/tasks.index.jsonc`.
 
-### 5. Create task folder
+### 5. Create task folder 
 
 ```bash
-mkdir -p "$ROOT/tasks/{github_issue_id}"
+mkdir -p "$ROOT/agents/agent.research/tasks/in_progress/{task-id}.{scope}.{type}/"
 ```
 
-Create `tasks/{github_issue_id}/plan.md` with the plan (see step 6).
+Create `$ROOT/agents/agent.research/tasks/in_progress/{task-id}-{sub-task-id}.{scope}.{type}.plan.md` with the plan 
 
-### 6. Generate plan.md
+### 6. Generate ...plan.md
 
 Build a focused work plan based on the task's `title`, `description`, `type`, and `sub_tasks`.
 

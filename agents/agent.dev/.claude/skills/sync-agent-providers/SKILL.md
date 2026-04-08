@@ -1,5 +1,5 @@
 ---
-name: sync-agent-providors
+name: sync-agent-providers
 description: SHOULD.
 
 
