@@ -1,6 +1,6 @@
 ---
-name: start-task
-description: Start working on a task by creating a git branch, setting assigned_user, and generating a plan. Use when a developer picks a task to work on.
+name: start-task-main
+description: [NATIVE PROGECT] [Skill] Start working on a task by creating a git branch, setting assigned_user, and generating a plan. Use when a developer picks a task to work on.
 ---
 
 # start-task

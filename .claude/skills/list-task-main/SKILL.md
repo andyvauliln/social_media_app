@@ -1,6 +1,6 @@
 ---
-name: list-task
-description: List tasks from tasks/tasks.index.jsonc with tag filters and AI recommendation on what to pick. Use when a developer wants to see what to work on.
+name: list-task-main
+description:  [NATIVE PROGECT] [Skill]  List tasks from tasks/tasks.index.jsonc with tag filters and AI recommendation on what to pick. Use when a developer wants to see what to work on.
 ---
 
 # list-task
@@ -13,7 +13,7 @@ Reads `tasks/tasks.index.jsonc` and displays filtered tasks with a pick recommen
 /list-task [tags...]
 ```
 
-Supported tag filters:
+Known Filters but could be any:
 - `@top5priority` — top 5 by priority (urgent > high > medium > low)
 - `@today` — tasks with `when: "@today"` or `when: "@now"`
 - `@week` — tasks with `when: "@week"`, `"@today"`, or `"@now"`

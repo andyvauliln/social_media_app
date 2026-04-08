@@ -1,6 +1,6 @@
 ---
-name: create-task
-description: Create a new task with sub-tasks and save it to tasks/tasks.index.jsonc. Use when starting new work or capturing an idea.
+name: create-task-main
+description:  [NATIVE PROGECT] [Skill]  Create a new task with sub-tasks and save it to tasks/tasks.index.jsonc. Use when starting new work or capturing an idea.
 ---
 
 # create-task
@@ -10,14 +10,12 @@ Creates a structured task entry in `tasks/tasks.index.jsonc` from a natural lang
 ## Invocation
 
 ```
-/create-task {prompt}
+/create-task-main {prompt}. {task configurations} @ai
 ```
 
 Examples:
 ```
 /create-task Add user profile photo upload with compression and S3 storage
-/create-task Fix crash when opening notification with no internet connection
-/create-task Research best push notification providers for React Native
 ```
 
 ---
@@ -38,7 +36,7 @@ If `tasks/tasks.index.jsonc` does not exist, create it as `[]`.
 
 ### 2. Determine next github_issue_id
 
-Read existing tasks array. Find the highest `github_issue_id` and increment by 1. If array is empty, start at 1.
+create github issue and get new id
 
 ### 3. Analyze the prompt
 
@@ -47,7 +45,7 @@ From the user's `{prompt}`, derive:
 - **title** — concise task title (≤ 80 chars)
 - **description** — 2-4 sentence description of what needs to be done and why
 - **type** — one of: `research`, `bug`, `feature`, `enhancement`, `idea`
-- **scope** — best matching scope: `main`, a project name, app name, or agent name (e.g. `app.mobile`, `agent.manager`)
+- **scope** — best matching scope: `main`, a project name, app name, or agent name (e.g. `app.dashboard`, `agent.manager`)
 - **priority** — `low`, `medium`, `high`, or `urgent` based on context clues
 - **when** — `@now`, `@today`, `@tomorrow`, `@week`, `@month`, or `@next_phase`
 - **estimated_time** — AI estimate as a string: `"2h"`, `"30m"`, `"1d"`
@@ -144,6 +142,5 @@ Read the existing array, append the new task object, write back. Preserve JSONC 
     "path": ".claude/skills/create-task/SKILL.md",
     "description": "Skill: create a structured task entry in tasks/tasks.index.jsonc from a natural language prompt.",
     "tags": ["skill", "tasks", "create", "planning"],
-    "notes_for_ai": ["Do not create GitHub issues. Only write to tasks/tasks.index.jsonc. Always generate sub-tasks."]
 } }
 ```
