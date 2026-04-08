@@ -1,7 +1,7 @@
 ---
 name: create-task
-description: Deploy the app to production. Use when deploying or releasing.
-argument-hint: "[optional custome prompt]"
-disable-model-invocation: true
-context: fork
+description: Create a new task with sub-tasks from a natural language prompt and save to tasks/tasks.index.jsonc.
+argument-hint: "{prompt describing the task}"
 ---
+
+Run the create-task skill.

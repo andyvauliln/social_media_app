@@ -9,10 +9,11 @@
     "autoUpdatesChannel": "stable",
   
     "permissions": {
-      "defaultMode": "acceptEdits",
+      "defaultMode": "bypassPermissions",
       "allow": [
         "Read",
         "Edit",
+        "Write",
         "Bash(pnpm run *)",
         "Bash(pnpm test *)",
         "Bash(pnpm build *)",
@@ -46,8 +47,7 @@
         "Bash(wget *)"
       ],
       "additionalDirectories": [],
-      "disableBypassPermissionsMode": "disable",
-      "skipDangerousModePermissionPrompt": false
+      "skipDangerousModePermissionPrompt": true
     },
   
     "sandbox": {
