@@ -13,5 +13,19 @@ hooks: {}
 ---
 
 # sync-tasks
+collect all AI_TODO: "task" from the proejct files and make tasks for them
+if @not_context don't attach source files to the task attach file path as param @context  
+should be run every 1h by cron job
+Update github-issues base on tasks.index.json object data
+sync task folder between branch and main
 
-Define the workflow here; invoked from `.claude/commands/manager/sync-tasks.manager.md`.
+
+### 8. Commit updated file tasks.index.jsonc to main if it's task with tag @ai that no need any human interaction and
+
+```bash 
+git add agents/agent.manager/tasks/tasks.index.jsonc
+# If @plan scaffolding added files:
+git add agents/agent.manager/tasks/in_plan 2>/dev/null || true
+git commit -m "added task update tasks index"
+git push origin HEAD:main
+```

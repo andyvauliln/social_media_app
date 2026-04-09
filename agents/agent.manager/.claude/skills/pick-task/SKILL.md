@@ -1,6 +1,6 @@
 ---
-name: list-task
-description: handling any requests about tasks from file tasks/tasks.index.jsonc with tag filters and AI recommendation on what to pick. Use when a developer wants to see what to work on.
+name: pick-task
+description: handling any requests about tasks from file tasks/tasks.index.jsonc with tag filters and AI recommendation on what to pick. Use when a developer wants to pick what to work on.
 argument-hint: prompt @tags
 user-invocable: true
 model: claude-haiku-4-6
@@ -12,14 +12,14 @@ shell: bash
 hooks: {}
 ---
 
-# list-task
+# Pick a task
 
 Reads `tasks/tasks.index.jsonc` and displays filtered tasks with a pick recommendation.
 
 ## Invocation
 
 ```
-/list-task [tags...]
+/pick-task [tags...]
 ```
 
 Known Filters but could be any:
@@ -32,7 +32,7 @@ Known Filters but could be any:
 - `@blocked` — status is `"blocked"`
 - `@mine` — `assigned_user` matched current github email`
 
-Multiple tags combine with AND logic: `/list-task @today @short`
+Multiple tags combine with AND logic: `/pick-task @today @short`
 
 ---
 
@@ -42,7 +42,7 @@ Multiple tags combine with AND logic: `/list-task @today @short`
 
 ```bash
 ROOT=$(git rev-parse --show-toplevel)
-TASKS_FILE="$ROOT/agents/agent.research/tasks/tasks.index.jsonc"
+TASKS_FILE="$ROOT/agents/agent.manager/tasks/tasks.index.jsonc"
 CONFIG_PATH="$ROOT/agents/agent.manager/config.manager.jsonc"
 ```
 
@@ -119,9 +119,9 @@ Base on: priority, `when` vs today, unassigned preferred, shortest task as tiebr
 
 ```json
 { "ai_file_metadata": {
-    "path": ".claude/skills/list-task/SKILL.md",
-    "description": "Skill: list and filter tasks from tasks/tasks.index.jsonc with AI pick recommendation.",
-    "tags": ["skill", "tasks", "list", "planning"],
+    "path": ".claude/skills/pick-task/SKILL.md",
+    "description": "Skill: filter tasks from tasks/tasks.index.jsonc and recommend what to pick.",
+    "tags": ["skill", "tasks", "pick", "planning"],
     "notes_for_ai": ["Strip JSONC comments before parsing. Always add recommendation block."]
 } }
 ```

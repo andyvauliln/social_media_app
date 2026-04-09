@@ -4,7 +4,8 @@
             "name": "Andrei",
             "email": "andy.vaulin@gmail.com",
             "telegram": "@johnnypitt",
-            "role": "main developer and manager for the project"
+            "role": "main developer and manager for the project",
+            "current_focus": "1)finish agent.manager 2)agent.logs 3)dev.agent"
         }
     ]
 }    

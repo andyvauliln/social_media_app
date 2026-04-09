@@ -9,8 +9,8 @@
 
 
 ### Task skill and command
-`/list-task` {tags} # @top5priority @today/week/ @project @short basicly what ever 
-- list task for today and recommendation what to pick
+`/pick-task` {tags} # @top5priority @today/week/ @project @short basicly what ever 
+- pick a task for today and recommendation what to work on
 /create-task {prompt}
 - ll create task and subtask and put it in a tasks.index.jsonc
 /start-task {id}

@@ -1,7 +1,7 @@
 ---
 name: create-task
 description: Create a new task with sub-tasks and save it to tasks/tasks.index.jsonc. Use when starting new work or capturing an idea.
-argument-hint: "[prompt] [@user_name, @ai optional] [@when optional] [@priority optional] [@type optional] [@scope optional] [@no_plan optional] [@context optional] ./path.md
+argument-hint: "[prompt] [@user_name, @ai optional] [@when optional] [@priority optional] [@type optional] [@scope optional] [@no_plan optional]
 user-invocable: true
 model: haiku
 effort: low
@@ -19,7 +19,7 @@ Creates a structured task entry in `tasks/tasks.index.jsonc` from a natural lang
 # Examples:
 ```
 /create-task "I need create skill for the merging @andrei @week @dev.agent" 
-/create-task "Create sync with a main for tasks @ai @today @context ./agents/agent.manager/index.md" 
+/create-task "Create sync with a main for tasks @ai @today" 
 /create-task 12
 ```
 
@@ -76,7 +76,6 @@ From the user's `{prompt}`
     "when": "<derived>",
     "tags": ["<tag1>", "<tag2>"],
     "type": "<derived>",
-    "context": "<path1>, <path2>",
     "user input": "<prompt>", // user orinianl prompt or text from AI_TODO 
     "sub_tasks": [
         { //  always create only one task for plan another will be made after plan

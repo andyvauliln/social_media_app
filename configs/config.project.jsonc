@@ -15,6 +15,12 @@
             "description": "Run before commit to update related files",
             "enabled": true,
             "commands": [ "/update-related-files" ]
+        },
+        {
+            "name": "before-commit",
+            "description": "Run before commit to update related files",
+            "enabled": true,
+            "commands": [ "/remove-sensitive-data" ]
         }
     ],
     "ai_file_metadata_template": {
