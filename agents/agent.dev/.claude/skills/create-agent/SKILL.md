@@ -1,6 +1,15 @@
 ---
 name: create-agent
 description: Scaffold a new agent folder with all default files and structure.
+argument-hint: ""
+user-invocable: true
+model: claude-haiku-4-6
+effort: low
+context: fork
+agent: ""
+paths: []
+shell: bash
+hooks: {}
 ---
 
 # create-agent
@@ -75,6 +84,15 @@ If `find "$AGENT_DIR/.claude/skills" -name SKILL.md` finds nothing, run `mkdir -
 ---
 name: {name}-defaults
 description: Placeholder skill for agents/agent.{name}. Add more folders under .claude/skills/<skill-name>/SKILL.md.
+argument-hint: ""
+user-invocable: true
+model: claude-haiku-4-6
+effort: low
+context: fork
+agent: ""
+paths: []
+shell: bash
+hooks: {}
 ---
 
 # Skills — {name}

@@ -11,41 +11,30 @@
     "permissions": {
       "defaultMode": "bypassPermissions",
       "allow": [
-        "Read",
+        "Agent",
+        "Bash",
         "Edit",
-        "Write",
-        "Bash(pnpm run *)",
-        "Bash(pnpm test *)",
-        "Bash(pnpm build *)",
-        "Bash(pnpm lint *)",
-        "Bash(pnpm typecheck *)",
-        "Bash(git status)",
-        "Bash(git diff *)",
-        "Bash(git log *)",
-        "Bash(git add *)",
-        "Bash(git stash *)",
-        "WebFetch(domain:api.github.com)",
-        "WebFetch(domain:registry.npmjs.org)"
+        "Glob",
+        "Grep",
+        "KillShell",
+        "LSP",
+        "NotebookEdit",
+        "Read",
+        "Skill",
+        "TaskCreate",
+        "TaskGet",
+        "TaskList",
+        "TaskOutput",
+        "TaskStop",
+        "TaskUpdate",
+        "TodoWrite",
+        "ToolSearch",
+        "WebFetch",
+        "WebSearch",
+        "Write"
       ],
-      "ask": [
-        "Bash(git commit *)",
-        "Bash(git push *)",
-        "Bash(pnpm install *)",
-        "Bash(docker *)",
-        "WebFetch"
-      ],
-      "deny": [
-        "Read(./.env)",
-        "Read(./.env.*)",
-        "Read(./secrets/**)",
-        "Read(~/.ssh/**)",
-        "Read(~/.aws/**)",
-        "Bash(rm -rf *)",
-        "Bash(git push --force *)",
-        "Bash(sudo *)",
-        "Bash(curl *)",
-        "Bash(wget *)"
-      ],
+      "ask": [],
+      "deny": [],
       "additionalDirectories": [],
       "skipDangerousModePermissionPrompt": true
     },
@@ -122,7 +111,9 @@
   
     "env": {
       "NODE_ENV": "development",
-      "CLAUDE_CODE_ENABLE_TASKS": "false"
+      "CLAUDE_CODE_ENABLE_TASKS": "false",
+      "CLAUDE_CODE_DEBUG_LOG_LEVEL": "verbose",
+      "CLAUDE_CODE_DEBUG_LOGS_DIR": "./agents/agent.logs/claude-debug.log"
     },
   
     "prefersReducedMotion": false,
@@ -137,5 +128,13 @@
       "pr": ""
     },
   
-    "availableModels": ["claude-opus-4-6", "claude-sonnet-4-6", "claude-haiku-4-6"]
+    "availableModels": [
+      "best",
+      "sonnet",
+      "opus",
+      "haiku",
+      "sonnet[1m]",
+      "opus[1m]",
+      "opusplan"
+    ]
   }

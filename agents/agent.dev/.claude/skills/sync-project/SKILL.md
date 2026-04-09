@@ -6,12 +6,10 @@ user-invocable: true
 model: claude-haiku-4-6
 effort: low
 context: fork
-agent: Explore
-paths:
-  - "./"
+agent: ""
+paths: []
 shell: bash
-hooks:
-
+hooks: {}
 ---
 
 SYMLINKS

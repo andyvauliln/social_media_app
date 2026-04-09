@@ -2,6 +2,14 @@
 name: start-task
 description: Starting task by it id or sub id
 argument-hint: {id} {sub-task-id optional}
+user-invocable: true
+model: claude-haiku-4-6
+effort: low
+context: fork
+agent: ""
+paths: []
+shell: bash
+hooks: {}
 ---
 
 # Example:

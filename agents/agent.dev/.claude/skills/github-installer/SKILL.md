@@ -1,16 +1,15 @@
 ---
-name: make-symlinks
+name: github-installer
 description: create delete or update symlinks for project.
 argument-hint: ""
 user-invocable: true
 model: claude-haiku-4-6
 effort: low
 context: fork
-agent: Explore
-paths:
-  - "./"
+agent: ""
+paths: []
 shell: bash
-hooks:
+hooks: {}
 ---
 
 1) check folders that represent collections in ./github-projects

@@ -1,6 +1,7 @@
 ---
 name: create-skill.dev
-description: Creating skill for agent
+description: Create skill for specific agent
+argument-hint: '"[prompt]" [@agent-name]'
 ---
 
 Run this skill in agents/agent.dev/.claude/skills/create-skill/SKILL.md

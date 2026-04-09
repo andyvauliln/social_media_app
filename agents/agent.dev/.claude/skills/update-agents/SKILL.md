@@ -1,6 +1,15 @@
 ---
 name: update-agents
 description: Audit all existing agents against the standard template and add any missing files, folders, symlinks, or ALL_AGENTS.md entries. Use when syncing agents, checking agent structure, or ensuring all agents are up to date with the template.
+argument-hint: ""
+user-invocable: true
+model: claude-haiku-4-6
+effort: low
+context: fork
+agent: ""
+paths: []
+shell: bash
+hooks: {}
 ---
 
 # update-agents
@@ -138,6 +147,15 @@ For each agent `{name}`:
 ---
 name: {name}-defaults
 description: Placeholder skill for agents/agent.{name}. Add more folders under .claude/skills/<skill-name>/SKILL.md.
+argument-hint: ""
+user-invocable: true
+model: claude-haiku-4-6
+effort: low
+context: fork
+agent: ""
+paths: []
+shell: bash
+hooks: {}
 ---
 
 # Skills — {name}

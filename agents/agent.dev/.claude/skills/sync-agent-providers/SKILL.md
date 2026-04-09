@@ -1,11 +1,18 @@
 ---
 name: sync-agent-providers
-description: SHOULD.
-
-
-
+description: Set up, sync, or maintain skillshare and related agent providers. Use when configuring skillshare or shared skills.
+argument-hint: ""
+user-invocable: true
+model: claude-haiku-4-6
+effort: low
+context: fork
+agent: ""
+paths: []
+shell: bash
+hooks: {}
 ---
-# GITHUB 
+
+# GITHUB
 if not installed you can install from source
 The GitHub repo is `github.com/runkids/skillshare`. or
 `brew install runkids/tap/skillshare`

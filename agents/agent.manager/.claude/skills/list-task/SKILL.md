@@ -2,6 +2,14 @@
 name: list-task
 description: handling any requests about tasks from file tasks/tasks.index.jsonc with tag filters and AI recommendation on what to pick. Use when a developer wants to see what to work on.
 argument-hint: prompt @tags
+user-invocable: true
+model: claude-haiku-4-6
+effort: low
+context: fork
+agent: ""
+paths: []
+shell: bash
+hooks: {}
 ---
 
 # list-task
