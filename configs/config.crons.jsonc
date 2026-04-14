@@ -1,52 +1,94 @@
-[
-    {
-        "name": "update-related-files",
-        "description": "run every 10 minutes to get files changed and update related ",
-        "schedule": "0 0 * * *",
-        "enabled": true,
-        "production": true,
-        "development": true,
-        "scope": "dev", //application name, agent-name
-        "commands": [ "/update-related-files" ] //should run dev agent with a skill update-related-files
+{
+    // One object: optional "supervisor" (only "timezone" needed) + "crons"[].
+    // Logs (fixed path): logs/crons/<cron-name>.log, logs/crons/supervisor.log, logs/crons/errors.log
+    // Each cron declares HOW it runs via "run" (no shared scopes table).
+    // run.type: "claude" = Claude Code print mode in run.cwd | "shell" = sh -c in run.cwd
+    // runLocation: "supervisor" = local cron-supervisor | "github_actions" = not run locally (use workflows)
+    // githubActions: optional. "enabled": false skips the GitHub workflow step (no Claude run → no push).
+    // Top-level "enabled": false on the cron also skips GitHub. Supervisor still ignores runLocation github_actions locally.
+    "supervisor": {
+        "timezone": "Asia/Makassar"
     },
-    {
-        "name": "sync-project",
-        "description": "run every 10 minutes to check if it's any updates in a main branch and merge it to the project",
-        "schedule": "0 0 * * *",
-        "enabled": true,
-        "production": false,
-        "development": true,
-        "scope": "dev", //application name, agent-name
-        "commands": [ "/sync-project" ] //should run dev agent with a skill sync-project
-    },
-    {
-        "name": "collect-inline-tasks",
-        "description": "run every 10 minutes to collect all inline tasks from files and put them in a system",
-        "schedule": "0 0 * * *",
-        "enabled": true,
-        "production": true,
-        "development": true,
-        "scope": "manager", //application name, agent-name
-        "commands": [ "/collect-inline-tasks" ] //should run manager agent with a skill collect-inline-tasks
-    },
-    {
-        "name": "make-today-plan",
-        "description": "run every day at 7.00 Bali Time to make a plan for today",
-        "schedule": "0 0 * * *",
-        "enabled": true,
-        "production": false,
-        "development": true,
-        "scope": "manager", //application name, agent-name
-        "commands": [ "/make-today-plan" ] //should run dev agent with a skill make-today-plan
-    },
-    {
-        "name": "make-week-plan",
-        "description": "run every week at 7.00 Bali Time to make a plan for week",
-        "schedule": "0 0 * * *",
-        "enabled": true,
-        "production": false,
-        "development": true,
-        "scope": "manger", //application name, agent-name
-        "commands": [ "/make-week-plan" ] //should run dev agent with a skill make-week-plan
-    }
-]
+    "crons": [
+        {
+            "name": "update-related-files",
+            "description": "run every 10 minutes to get files changed and update related ",
+            "schedule": "0 0 * * *",
+            "enabled": true,
+            "production": true,
+            "development": true,
+            "runLocation": "supervisor",
+            "run": {
+                "type": "claude",
+                "cwd": "agents/agent.dev",
+                "prompt": "/update-related-files"
+            }
+        },
+        {
+            "name": "sync-project",
+            "description": "run every 10 minutes to check if it's any updates in a main branch and merge it to the project",
+            "schedule": "0 0 * * *",
+            "enabled": true,
+            "production": false,
+            "development": true,
+            "runLocation": "supervisor",
+            "run": {
+                "type": "claude",
+                "cwd": "agents/agent.dev",
+                "prompt": "/sync-project"
+            }
+        },
+        {
+            "name": "collect-inline-tasks",
+            "description": "run every 10 minutes to collect all inline tasks from files and put them in a system",
+            "schedule": "0 0 * * *",
+            "enabled": true,
+            "production": true,
+            "development": true,
+            "runLocation": "supervisor",
+            "run": {
+                "type": "claude",
+                "cwd": "agents/agent.manager",
+                "prompt": "/collect-inline-tasks"
+            }
+        },
+        {
+            "name": "make-today-plan",
+            "description": "every day at 07:00 Bali (WITA); GitHub: 23:00 UTC previous calendar day",
+            "schedule": "0 0 * * *",
+            "enabled": true,
+            "production": false,
+            "development": true,
+            "runLocation": "github_actions",
+            "run": {
+                "type": "claude",
+                "cwd": "agents/agent.manager",
+                "prompt": "/make-today-plan"
+            },
+            "githubActions": {
+                "enabled": true,
+                "workflowFile": ".github/workflows/cron-make-today-plan.yml",
+                "pushToDefaultBranch": true
+            }
+        },
+        {
+            "name": "make-week-plan",
+            "description": "weekly plan 07:00 Bali; GitHub: Sunday 23:00 UTC ≈ Monday 07:00 WITA",
+            "schedule": "0 0 * * *",
+            "enabled": true,
+            "production": false,
+            "development": true,
+            "runLocation": "github_actions",
+            "run": {
+                "type": "claude",
+                "cwd": "agents/agent.manager",
+                "prompt": "/make-week-plan"
+            },
+            "githubActions": {
+                "enabled": true,
+                "workflowFile": ".github/workflows/cron-make-week-plan.yml",
+                "pushToDefaultBranch": true
+            }
+        }
+    ]
+}

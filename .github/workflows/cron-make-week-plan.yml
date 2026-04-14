@@ -1,0 +1,48 @@
+# Matches configs/config.crons.jsonc entry "make-week-plan" (runLocation: github_actions).
+# Sunday 23:00 UTC ≈ Monday 07:00 Asia/Makassar. Adjust cron if you change day/time.
+name: Cron make-week-plan
+
+on:
+  schedule:
+    - cron: '0 23 * * 0'
+  workflow_dispatch:
+
+jobs:
+  make-week-plan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node (for config gate)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install deps for JSONC parse
+        run: npm ci
+        working-directory: apps/cron-supervisor
+
+      - name: Check configs/config.crons.jsonc allows this run
+        id: gate
+        run: node apps/cron-supervisor/scripts/gh-cron-enabled.mjs make-week-plan
+
+      - name: Skip notice (cron disabled in config)
+        if: steps.gate.outputs.enabled != 'true'
+        run: 'echo "Skipping Claude step — reason=${{ steps.gate.outputs.reason }}"'
+
+      - name: Run manager week plan
+        if: steps.gate.outputs.enabled == 'true'
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            Treat `agents/agent.manager` as the primary project: respect its CLAUDE.md, skills, and slash commands.
+            Execute: /make-week-plan
+          claude_args: |
+            --add-dir agents/agent.manager

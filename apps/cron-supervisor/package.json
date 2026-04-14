@@ -1,0 +1,13 @@
+{
+  "name": "cron-supervisor",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node index.mjs"
+  },
+  "dependencies": {
+    "chokidar": "^4.0.3",
+    "cron": "^3.5.0",
+    "jsonc-parser": "^3.3.1"
+  }
+}

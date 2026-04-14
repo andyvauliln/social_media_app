@@ -1,0 +1,16 @@
+{
+  "applications": [
+    {
+      "name": "cron-supervisor",
+      "enabled": true,
+      "path": "apps/cron-supervisor",
+      "command": "npm start"
+    },
+    {
+      "name": "telegram-bot",
+      "enabled": true,
+      "path": "apps/telegram-bot",
+      "command": "python3 main.py"
+    }
+  ]
+}

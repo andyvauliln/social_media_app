@@ -16,3 +16,4 @@ hooks: {}
 2) install project to folder ./github-projects/collection
 3) install dependencies and if it's project that runnning not an package or some collection of something try to run and and check if it's works
 4) base on the result and additional research add project to !index.jsonc
+5) add entrace in a start.config.jsonc (disabled by default)
