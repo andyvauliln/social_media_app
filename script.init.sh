@@ -6,6 +6,11 @@ if ! command -v bun >/dev/null 2>&1; then
   exit 1
 fi
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || true
+if [[ -z "${ROOT:-}" ]]; then
+  echo "error: run from inside the git repository (git rev-parse failed)" >&2
+  exit 1
+fi
+
 export START_ROOT="$ROOT"
 exec bun "$ROOT/scripts/init-apps.mjs"

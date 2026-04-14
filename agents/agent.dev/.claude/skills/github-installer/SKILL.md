@@ -17,3 +17,4 @@ hooks: {}
 3) install dependencies and if it's project that runnning not an package or some collection of something try to run and and check if it's works
 4) base on the result and additional research add project to !index.jsonc
 5) add entrace in a start.config.jsonc (disabled by default)
+6) say user if he need add envs and if yes than say how to add them and what to fill in

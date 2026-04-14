@@ -4,13 +4,21 @@
       "name": "cron-supervisor",
       "enabled": true,
       "path": "apps/cron-supervisor",
-      "command": "npm start"
+      "install_command": "bun install",
+      "command": "bun run start"
     },
     {
       "name": "telegram-bot",
-      "enabled": true,
+      "enabled": false,
       "path": "apps/telegram-bot",
       "command": "python3 main.py"
+    },
+    {
+      "name": "open-screen",
+      "enabled": false,
+      "path": "github-projects/content-factory/openscreen",
+      "install_command": "bun install",
+      "command": "bun run dev"
     }
   ]
 }
