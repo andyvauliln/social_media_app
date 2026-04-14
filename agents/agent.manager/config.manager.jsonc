@@ -5,7 +5,9 @@
             "email": "andy.vaulin@gmail.com",
             "telegram": "@johnnypitt",
             "role": "main developer and manager for the project",
-            "current_focus": "1)finish agent.manager 2)agent.logs 3)dev.agent"
+            "platforms": "claude, cursor", // claude should be always present it's default and additonally poosible another
+            "current_focus": "1)finish agent.manager 2)agent.logs 3)dev.agent", // for better task assignement
+            "ai_manger_notes": [""]
         }
     ]
 }    

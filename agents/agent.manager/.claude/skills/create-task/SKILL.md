@@ -54,10 +54,13 @@ From the user's `{prompt}`
 - **branch_name** — `{type}/{github_issue_id}-{slug}` (e.g. `feature/12-user-profile-photo`)
 - **sub_tasks** — 1 sub ask on task on creation to make plan another will be made after that
 
+- **status** — `pending`, `today`, `week`, `need_confirmation`, `need_human_to_finish`, `done`, `blocked`, `cancelled`, `issues, "pull_requested", "in_main"`
+- **sub_tasks_status** — `pending`,  `in_progress`, `need_confirmation`, `need_human_to_finish`, `done`, `blocked`, `cancelled`, `issues`
+
 # IF YOU HAVE QUESTION OR NOT SURE ASK USER QUESTIONS TO MAKE TASK CORRECTLY
 
 
-### 5. Construct task object
+### 4. Construct task object
 
 ```jsonc
 {
@@ -85,29 +88,33 @@ From the user's `{prompt}`
             "session_id": "",
             "title": "Plan and tests for the build",
             "type": "plan",
+            "model": "haiku",
+            "platform": "claude",
             "changed_files_relative_paths": [],
-            "is_need_human": true,
-            "status": "pending"
+            "is_need_human_confirmation": false, // false if assigned to ai
+            "notes": "", // any notes to inform manager or user
+            "status": "pending" // 
         }
     ],
-    "is_passed_test": false,
-    "run_test_command": "",
-    "assigned_user": "",
+    "is_passed_tests": false,
+    "run_test_command": "", // comand to run test "node ./test.js" "claude /check-task"
+    "assigned_user": "andrei", // base on param or team user current_focus
+    "is_need_human_confirmation": false, // false if not assigned to ai
     "notes": "",
-    "ai_agents": "claude",
+    "platform": "claude", // for now only claude
     "created_at": "<YYYY-MM-DD>",
-    "created_by": "ai",
+    "created_by": "andrei", // base on team object
     "updated_at": "<YYYY-MM-DD>"
 }
 Use today's date from `currentDate` in context for `created_at` and `updated_at`.
 ```
 
-### 6. Create Github Issue and paste all needed information
+### 5. Create Github Issue and paste all needed information
 
 - Create github issue with all available information for now
-- Read the existing array, append the new task object on top of the queany. Preserve JSONC formatting. Include github id
 
-### 7. Add task to plan
+
+### 6. Add task to plan if task has time @now or @today or @tomorrow or @week or this is @ai task
 
  Let `SLUG="{github_issue_id}.{scope}.{type}"` 
 
@@ -125,6 +132,14 @@ Create file and insert there task object
 Create a plan by running skill /create-plan {task-id} with a new session and cleared context
 
 
+7. ## Insert task object to tasks.index.jsonc
+
+
+7. ## Insert task object to tasks.index.jsonc
+- Read the existing array, append the new task object on top of the queany. Preserve JSONC formatting. 
+- Include github id 
+- set subtask 1 status need_confirmation if not assigned to ai
+- set subtask 1 status need_human_to_finish if exist several questions to clarify before make plan
 
 
 ### 9. Output example

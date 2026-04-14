@@ -4,22 +4,11 @@
     "body": ["# AI_TODO: `$1`"],
     "description": "Use Command Palette → Insert Snippet when no scoped snippet matches"
   },
-  "AI_RESEARCH (default # — any language via Insert Snippet)": {
-    "prefix": "aires!",
-    "body": ["# AI_RESEARCH: `$1`"],
-    "description": "Use Command Palette → Insert Snippet when no scoped snippet matches"
-  },
   "AI_TODO (markdown)": {
     "scope": "markdown",
     "prefix": "AI",
     "body": ["## AI_TODO: `$1`"],
     "description": "_TODO"
-  },
-  "AI_RESEARCH (markdown)": {
-    "scope": "markdown",
-    "prefix": "AI",
-    "body": ["## AI_RESEARCH: `$1`"],
-    "description": "_RESEARCH"
   },
   "AI_TODO (# comment)": {
     "scope": "python,shellscript,yaml,dockerfile,makefile,ruby",
@@ -27,35 +16,17 @@
     "body": ["# AI_TODO: `$1`"],
     "description": "AI_TODO marker (hash line comment)"
   },
-  "AI_RESEARCH (# comment)": {
-    "scope": "python,shellscript,yaml,dockerfile,makefile,ruby",
-    "prefix": "aires",
-    "body": ["# AI_RESEARCH: `$1`"],
-    "description": "AI_RESEARCH marker (hash line comment)"
-  },
   "AI_TODO (// comment)": {
     "scope": "javascript,typescript,javascriptreact,typescriptreact,c,cpp,java,go,rust,csharp,swift,kotlin,scss,css,less",
     "prefix": "aitodo",
     "body": ["// AI_TODO: `$1`"],
     "description": "AI_TODO marker (C-style line comment)"
   },
-  "AI_RESEARCH (// comment)": {
-    "scope": "javascript,typescript,javascriptreact,typescriptreact,c,cpp,java,go,rust,csharp,swift,kotlin,scss,css,less",
-    "prefix": "aires",
-    "body": ["// AI_RESEARCH: `$1`"],
-    "description": "AI_RESEARCH marker (C-style line comment)"
-  },
   "AI_TODO (HTML comment)": {
     "scope": "html,xml,vue",
     "prefix": "aitodo",
     "body": ["<!-- AI_TODO: $1 -->"],
     "description": "AI_TODO marker (HTML/XML comment)"
-  },
-  "AI_RESEARCH (HTML comment)": {
-    "scope": "html,xml,vue",
-    "prefix": "aires",
-    "body": ["<!-- AI_RESEARCH: $1 -->"],
-    "description": "AI_RESEARCH marker (HTML/XML comment)"
   },
   "ai_file_metadata (fenced JSON)": {
     "prefix": "aimeta",

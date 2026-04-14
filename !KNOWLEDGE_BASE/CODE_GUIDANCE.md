@@ -10,7 +10,6 @@ IN CODE TASKS
 ## AI_TODO: `Update all files with new template @month`
 ## {NAME}_TODO: `Check this code`:
 IN CODE RESEARCH
-## AI_RESEARCH: `Find examples for agent @now`
 
 
 DEV GOALS
@@ -27,7 +26,6 @@ DEV GOALS
 
 ```text
 ## AI_TODO: `Rename legacy helper @week`
-## AI_RESEARCH: `Compare ORM options for batch inserts @month`
 ```
 
 ```json
@@ -37,7 +35,7 @@ DEV GOALS
     "auto_update_settings": { "on_command": { "name": "" }, "task_is_done": true },
     "tags": ["knowledge", "guidance"],
     "developer_notes": [""],
-    "notes_for_ai": ["Preserve AI_TODO and AI_RESEARCH conventions when editing code comments."]
+    "notes_for_ai": ["Preserve AI_TODO conventions when editing code comments."]
 } }
 ```
 

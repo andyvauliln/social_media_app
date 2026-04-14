@@ -1,0 +1,269 @@
+// SASHA_INTRO: 
+// Отвечая на твой вопрос, наверное в целом да опишу пока тут что я вообще бы хотел
+// -- Те ролики с инстаграм про связанные ноды это только фронт для поэтапного создания, фронт будет но потом
+// в целом я видел уже на гитгабе проекты с такими же фронтами для редактирования, ии редактирования, и ноды.
+// мы это сделам короче потом если вообще надо будет. 
+//-- Сейчас в целом я хочу
+// 1. Создать Agent Swarm   
+// Project tree 
+{
+  ".claude": {
+    "commands": {
+      "dev": {
+        "create-agent.dev.md": "",
+        "create-root-command-for-skill.md": "",
+        "create-skill.dev.md": "",
+        "github-installer.dev.md": "",
+        "merge-main.dev.md": "",
+        "sync-agent-providers.dev.md": "",
+        "sync-project.dev.md": "",
+        "update-agents.dev.md": "",
+        "update-files-with-metadata.dev.md": "",
+        "update-index-lists.dev.md": "",
+        "update-realated-files.dev.md": "",
+        "validate-skills-metadata.dev.md": ""
+      },
+      "manager": {
+        "collect-notes.manager.md": "",
+        "create-plan.manager.md": "",
+        "create-task.manager.md": "",
+        "pick-task.manager.md": "",
+        "start-task.manager.md": "",
+        "sync-tasks.manager.md": ""
+      }
+    },
+    "output-styles": {
+      "breaker.md": "",
+      "challenger.md": "",
+      "concise.md": "",
+      "minimal.md": "",
+      "opinionated.md": "",
+      "paranoid.md": "",
+      "performance.md": "",
+      "roast.md": "",
+      "ship-it.md": "",
+      "simple.md": "",
+      "socratic.md": "",
+      "tdd.md": "",
+      "think-aloud.md": ""
+    },
+    "settings.json": "",
+    "settings.local.json": ""
+  },
+  "agents": {
+    "agent.content-factory": {
+      "content": {
+        "collections": {
+          "audio": {
+            "collection_name": {
+              "id_name.symlink.mp3": ""
+            }
+          },
+          "pictures": {
+            "collection_name": {
+              "content_id.symlink.png": ""
+            }
+          },
+          "sessions": {
+            "session_id": {
+              "content_id.png": ""
+            }
+          },
+          "video": {
+            "collection_name": {
+              "content_id.symlink.mp4": ""
+            }
+          }
+        },
+        "sessions": { // all sessions data and artifacts
+          "session_id": {
+            "content_id.png": ""
+          }
+        }
+      },
+      "docs.agent.content-factory": {
+        "!INDEX.md": ""
+      },
+      "scripts.agent.content-factory": {
+        "generate-nanobanano-2.test.ts": "",
+        "generate-nanobanano-2.ts": "",
+        "get-voice.py": "",
+        "get.voice.test.py": ""
+      },
+      ".env": "",
+      "CLAUDE.md": "",
+      "config.content-factory.jsonc": "",
+      "db-shema.content-factory.md": "",
+      "db.content-factory.db": ""
+    },
+    "agent.instagram": {
+      ".claude": {
+        "skills": {
+          "create-account": "Create new account for instagram",
+          "configure-channel": "Configure channel for instagram",
+          "post-to-instagram": "Post to instagram",
+          "dowload-instagram-reels": "Dowload instagram reels"
+        }
+      },
+      "posts": {
+        "social_media.channel.post_id": {
+          "post.metadata.jsonc": "metadata for the post",
+          "content_id.symlink.png": ""
+        }
+      },
+      "scripts.agent.instagram": "scripts for instagram agent",
+      "docs.agent.instagram": "docs for instagram agent",
+      ".CLAUDE.md": "",
+      "config.intstagram.jsonc": "configs for instagram agent",
+      "db.intstagram.db": "db for instagram agent"
+    },
+    "agent.manager": {
+      ".claude": {
+        "skills": {
+          "collect-notes": "Collect notes for project",
+          "create-plan": "Create plan for project",
+          "create-task": "Create task for project",
+          "make-pan-for-week": "Make plan for week for project",
+          "make-plan-for-today": "Make plan for today for project",
+          "pick-task": "Pick task for project",
+          "start-task": "Start task for project",
+          "sync-tasks": "Sync tasks for project",
+          "sync-with-notion-db": "Sync with notion db for project",
+        }
+      },
+      "docs.agent.manager": {
+        "!index.md": "",
+      },
+      "script.agent.manager": "scripts for manager agent",
+      "tasks": {
+        "done": "done tasks folder",
+        "in_plan": { // task for the current week
+          "#123.dev.agent.feature.andrei": {
+            "plan.md": "",
+            "#2.report.md": "report for sub-task 2",
+            "report.md":" total report for the task",
+            "sessions": {
+              "session_id": "sessions logs and artifacts"
+          }
+        },
+        "tasks.index.jsonc": "index of all tasks"
+      },
+      "config.manager.jsonc": "configs for manager agent"
+    },
+    "agent.research": {
+      "docs.agent.research": "docs for research agent",
+      "researches": "researches folder",
+      },
+      "CLAUDE.md": ""
+    },
+    "agent.dev": {
+      ".claude": {
+        "skills": {
+          "create-agent": "Create new agent for project", 
+          "create-skill": "Create new skill for agent",
+          "github-installer": "Install github repository for project",
+          "improve-skill": "Improve skill for agent",
+          "merge-main": "Merge main branch for project",
+          "remove-sensitive-data": "Remove sensitive data from project",
+          "sync-agent-providers": "Sync agent providers for project",
+          "sync-db": "Sync db for project",
+          "sync-project": "Sync project for project",
+          "update-agents": "Update agents for project",
+          "update-files-with-metadata": "Update files with metadata for project",
+          "update-related-files": "Update related files for project",
+          "validate-skills-metadata ": "Validate skills metadata for project",
+        }
+      },
+      "CLAUDE.md": "",
+      "config.agent.dev.jsonc": "configs for dev agent"
+    },
+    "agent.knowledge-base": { // knowledge base agent for project
+      "knowledge-base.symlink": "symlink to knowledge base",
+      "CLAUDE.md": ""
+    },
+    "agent.db": { // collections of all dbs and attached agent to it
+      "CLAUDE.md": ""
+    },
+    "agent.logs": { // collections of all logs and attached agent to it
+      "CLAUDE.md": ""
+    }
+  },
+  "apps": {
+    "app.dashboard_v2": "dashboard app for project",
+    "telegram-bot": "telegram bot for project",
+    "!index.jsonc": "list of all apps"
+  },
+  "configs": { // collections of all configs for project
+    "agents": { // collections of all agents configs
+      "config.content-factory.symlink.jsonc": ""
+    },
+    "global-claude.symlink -> /Users/hallojohnnypitt/.claude": "symlink to global claude config",
+    "global-cursor.symlink -> /Users/hallojohnnypitt/.cursor": "symlink to global cursor config",
+    "!index.jsonc": "list of all configs",
+    "config.crons.jsonc": "configs for crons",
+    "config.project.jsonc": "configs for project"
+  },
+  "envs": { // collections of all envs for project
+    "root.symlink.env": ""
+  },
+  "github-projects": {
+    "coding-terminals": { // collection of all opensourced coding terminals projects
+      "claude-code": "",
+      "hermes-agent": "",
+      "pi-mono": "",
+    },
+    "content-factory": {
+      "openscreen": "good ui for video editing and self editing videos for research and integration"
+    },
+    "!index.jsonc": "list of all github projects"
+  },
+  "mine": "Folder excluded from git to keep personal notes and temp files ",
+  "scripts": { // collections of all scripts project, agents, apps
+    "script.agent.content-factory.symlink": {
+      "create-video-sora2.py": ""
+    },
+    "!index.jsonc": "", // list of all scripts
+    "script.clone-github-projects.sh": "",
+    "script.configure.sh": "",
+    "script.init.sh": "",
+    "script.start.sh": ""
+  },
+  "!KNOWLEDGE_BASE": { // full knowledge base of the project for knowledge base agent
+    "all-agents.md": "",
+    "all-skills.md": "",
+    "all-commads.md": "",
+    "all-mcp.md": "",
+    "all-apps.md": "",
+    "all-scripts.md": "",
+    "all-crons.md": "",
+    "docs": {
+      "docs.agent.cotnent-factory.symlink": "",
+      "docs.agent.db.symlink": "",
+      "docs.agent.knowledge-base": "",
+      "docs.agent.logs.symlink": "",
+      "docs.agent.research.symlink": "",
+      "docs.dashboard.symlink": "",
+      "docs.telegram.symlink": ""
+    },
+    "models": {
+      "index.jsoc": ""
+    },
+    "researches.symlink": "",
+    "!index.jsonc": "",
+    "AGENTS_ARCHITECTURE.md": "",
+    "CRONS.md": "",
+    "CURRENT_COST.md": "",
+    "EXAMPLES.md": "",
+    "PRICSES.md": "",
+    "SASHA_INTRO.md": ""
+  },
+  "tasks.symlink": "Symlink of all tasks from manager agent (For fast access)",
+  ".gitignore": "",
+  "CLAUDE.local.md": "",
+  "CLAUDE.md": "",
+  "README.md": "",
+  "package.json": "",
+  "script.code.sh": "script to run claude or another from the root folder",
+  "script.init.symlink.sh": "init script for project",
+  "script.start.symlink.sh": "start all configure applications for project"
+}
