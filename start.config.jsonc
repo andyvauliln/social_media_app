@@ -1,0 +1,40 @@
+{
+  "services": [
+    {
+      "name": "cron-supervisor",
+      "description": "Scheduled GitHub Actions and periodic tasks",
+      "type": "app",
+      "enabled": true,
+      "path": "apps/cron-supervisor",
+      "init": "bun install",
+      "start": "bun run start"
+    },
+    {
+      "name": "telegram-bot",
+      "description": "Telegram bot for notifications and commands",
+      "type": "app",
+      "enabled": false,
+      "path": "apps/telegram-bot",
+      "init": "pip install -r requirements.txt",
+      "start": "python3 main.py"
+    },
+    {
+      "name": "open-screen",
+      "description": "OpenScreen content factory UI",
+      "type": "github-project",
+      "enabled": false,
+      "path": "github-projects/content-factory/openscreen",
+      "init": "bun install",
+      "start": "bun run dev"
+    },
+    {
+      "name": "content-factory",
+      "description": "Content generation and publishing agent",
+      "type": "agent",
+      "enabled": true,
+      "path": "agents/agent.content-factory",
+      "init": "bun install"
+      // agents are never auto-started -- run independently from their folder, "enabled": true, means it need to be installed
+    }
+  ]
+}

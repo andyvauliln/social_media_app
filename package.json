@@ -1,0 +1,8 @@
+{
+  "name": "social-media-app",
+  "private": true,
+  "scripts": {
+    "init": "./init.sh",
+    "start": "./start.sh"
+  }
+}

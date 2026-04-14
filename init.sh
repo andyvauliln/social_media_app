@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+CONFIG="$ROOT/start.config.jsonc"
+
+if [[ ! -f "$CONFIG" ]]; then
+  echo "[init] error: $CONFIG not found" >&2
+  exit 1
+fi
+
+parse_config() {
+  python3 -c "
+import json, re, sys
+
+raw = open(sys.argv[1]).read()
+raw = re.sub(r'//.*', '', raw)
+raw = re.sub(r'/\*.*?\*/', '', raw, flags=re.DOTALL)
+config = json.loads(raw)
+
+for s in config.get('services', []):
+    print('\t'.join([
+        s.get('name', ''),
+        s.get('type', ''),
+        str(s.get('enabled', False)).lower(),
+        s.get('path', ''),
+        s.get('init', ''),
+        s.get('start', ''),
+    ]))
+" "$1"
+}
+
+failed=0
+
+while IFS=$'\t' read -r name type enabled svc_path init_cmd start_cmd; do
+  [[ "$enabled" != "true" ]] && continue
+  [[ -z "$init_cmd" ]] && continue
+
+  cwd="$ROOT/$svc_path"
+  if [[ ! -d "$cwd" ]]; then
+    echo "[init] skip $name: directory $cwd not found" >&2
+    continue
+  fi
+
+  echo "[init] $name: $init_cmd"
+  if ! (cd "$cwd" && eval "$init_cmd"); then
+    echo "[init] FAILED: $name" >&2
+    failed=1
+  fi
+done < <(parse_config "$CONFIG")
+
+if [[ "$failed" -eq 1 ]]; then
+  echo "[init] completed with errors" >&2
+  exit 1
+fi
+
+echo "[init] done"
