@@ -104,7 +104,8 @@ From the user's `{prompt}`
     "platform": "claude", // for now only claude
     "created_at": "<YYYY-MM-DD>",
     "created_by": "andrei", // base on team object
-    "updated_at": "<YYYY-MM-DD>"
+    "updated_at": "<YYYY-MM-DD>",
+    "closed_at": "<YYYY-MM-DD>"
 }
 Use today's date from `currentDate` in context for `created_at` and `updated_at`.
 ```

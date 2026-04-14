@@ -6,17 +6,47 @@
         "enabled": true,
         "production": true,
         "development": true,
-        "scope": "main", //application name, agent-name
-        "commands": [ "/update-related-files" ]
+        "scope": "dev", //application name, agent-name
+        "commands": [ "/update-related-files" ] //should run dev agent with a skill update-related-files
     },
     {
-        "name": "sync-with-main-branch",
-        "description": "run every 1h to check if it's any updates in a main branch and merge it to the project",
+        "name": "sync-project",
+        "description": "run every 10 minutes to check if it's any updates in a main branch and merge it to the project",
+        "schedule": "0 0 * * *",
+        "enabled": true,
+        "production": false,
+        "development": true,
+        "scope": "dev", //application name, agent-name
+        "commands": [ "/sync-project" ] //should run dev agent with a skill sync-project
+    },
+    {
+        "name": "collect-inline-tasks",
+        "description": "run every 10 minutes to collect all inline tasks from files and put them in a system",
         "schedule": "0 0 * * *",
         "enabled": true,
         "production": true,
         "development": true,
-        "scope": "main", //application name, agent-name
-        "commands": [ "/sync-with-main-branch" ]
+        "scope": "manager", //application name, agent-name
+        "commands": [ "/collect-inline-tasks" ] //should run manager agent with a skill collect-inline-tasks
+    },
+    {
+        "name": "make-today-plan",
+        "description": "run every day at 7.00 Bali Time to make a plan for today",
+        "schedule": "0 0 * * *",
+        "enabled": true,
+        "production": false,
+        "development": true,
+        "scope": "manager", //application name, agent-name
+        "commands": [ "/make-today-plan" ] //should run dev agent with a skill make-today-plan
+    },
+    {
+        "name": "make-week-plan",
+        "description": "run every week at 7.00 Bali Time to make a plan for week",
+        "schedule": "0 0 * * *",
+        "enabled": true,
+        "production": false,
+        "development": true,
+        "scope": "manger", //application name, agent-name
+        "commands": [ "/make-week-plan" ] //should run dev agent with a skill make-week-plan
     }
 ]

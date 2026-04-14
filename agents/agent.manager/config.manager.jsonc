@@ -9,5 +9,11 @@
             "current_focus": "1)finish agent.manager 2)agent.logs 3)dev.agent", // for better task assignement
             "ai_manger_notes": [""]
         }
-    ]
+    ],
+    "telegram_enabled": true,
+    "telegram_bot": "@manager_bmd_bot",
+    "telegram_token": "@1233123",
+    "telegram_pull_time": "1", //minute
+    "allowed_groups": [],
+    "agent_commands_to_telegram": []
 }    
