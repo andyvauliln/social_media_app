@@ -1,8 +1,9 @@
 {
   "name": "social-media-app",
   "private": true,
+  "workspaces": ["apps/*", "agents/*", "packages/*"],
   "scripts": {
-    "init": "./init.sh",
+    "init": "./script.init.sh",
     "start": "./start.sh"
   }
 }

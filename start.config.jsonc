@@ -1,4 +1,17 @@
 {
+  "common": [
+    {
+      "name": "python-common",
+      "path": ".",
+      "init": "uv sync"
+      // installs all uv workspace members (packages/python.common + any agent with pyproject.toml)
+    },
+    {
+      "name": "node-common",
+      "path": "packages/node.common",
+      "init": "bun install"
+    }
+  ],
   "services": [
     {
       "name": "cron-supervisor",
