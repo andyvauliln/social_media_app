@@ -1,7 +1,7 @@
 ---
 name: start-task
 description: Starting task by it id or sub id
-argument-hint: "{id} {sub-task-id optional} {prompt optional}"
+argument-hint: "{task-id} {sub-task-id optional} {prompt optional} @context @ai"
 user-invocable: true
 model: claude-haiku-4-6
 effort: low
@@ -12,204 +12,134 @@ shell: bash
 hooks: {}
 ---
 
-# Examples:
-```
-/start-task 12 2
-/start-task 12 2 Lets' try do instead....
+# EXAMPLES
+```javascript
 /start-task 12
+/start-task 12 2
+/start-task 12 2 "Let's try do instead of..."
+/start-task 12 2 Let's try do instead of...
+/start-task 12 @ai // execute without confirmation if was marked need-human
+/start-task 12 @context or @c login.tsx @logout.tsx  
 ```
+
 ---
+# CONTEXT
 
-## Steps
-
-### 1. Read task
+## Path Setup
 
 ```bash
-ROOT=$(git rev-parse --show-toplevel)
-TASKS_FILE="$ROOT/agents/agent.manager/tasks/tasks.index.jsonc"
-CONFIG_PATH="$ROOT/agents/agent.manager/config.manager.jsonc"
-MANAGER_TASKS="$ROOT/agents/agent.manager/tasks"
+!ROOT_PROJECT_PATH="$(pwd)" && \
+export ROOT_PROJECT_PATH && \
+export ALL_TASKS_PATH="$ROOT_PROJECT_PATH/agents/agent.manager/tasks" && \
+export TASK_LIST_PATH="$ALL_TASKS_PATH/tasks.index.jsonc" && \
+export AGENT_CONFIG_PATH="$ROOT_PROJECT_PATH/agents/agent.manager/config.manager.jsonc" && \
+export DOCS_AGENT_MANAGER_PATH="$ROOT_PROJECT_PATH/agents/agent.manager/docs.agent.manager/!index.md" && \
+echo "ROOT_PROJECT_PATH=$ROOT_PROJECT_PATH" && \
+echo "ALL_TASKS_PATH=$ALL_TASKS_PATH" && \
+echo "TASK_LIST_PATH=$TASK_LIST_PATH" && \
+echo "AGENT_CONFIG_PATH=$AGENT_CONFIG_PATH"
+echo "AGENT_CONFIG_CONTENT=$(cat "$AGENT_CONFIG_PATH")"
+echo "MAIN_DOCUMENTATION_FILE=$(cat "$DOCS_AGENT_MANAGER_PATH")"
 ```
-
-Find the task in `tasks.index.jsonc` where `github_issue_id` equals `{id}`.
-
-If not found, print:
-```
-Task #{id} not found. Run /pick-task to see available tasks.
-```
-and stop.
-
-If task `status` is `"done"` or `"cancelled"`, warn the user and ask to confirm before proceeding.
-
-### 2. Resolve planning directory (`in_plan` vs `done`)
-
-Let `ASSIGNED` be `assigned_user` if non-empty, else `unassigned`.
-
-**Slug** (matches `mine/I_WANT.md`):
-
-`SLUG="{github_issue_id}.{scope}.{type}.{ASSIGNED}"`
-
-- If `tags` contains `"@plan"` **or** `in_plan/$SLUG/` already exists on disk → **planning root** is  
-  `PLAN_ROOT="$MANAGER_TASKS/in_plan/$SLUG"`
-- Else → **planning root** is  
-  `PLAN_ROOT="$MANAGER_TASKS/done/$SLUG"`
-
-If `PLAN_ROOT` does not exist but `in_plan/{id}.{scope}.{type}.unassigned` exists and `ASSIGNED` is now a real user (not `unassigned`), **rename** that directory to `PLAN_ROOT` so the planning session’s files stay attached to the task.
+## Task Context
 
 ```bash
-mkdir -p "$PLAN_ROOT/sessions"
+!echo "=== TASK CONTEXT ===" && \
+node -e "
+const fs = require('fs');
+const path = require('path');
+const { execSync } = require('child_process');
+const taskId = process.argv[1];
+const tasksFile = process.env.TASK_LIST_PATH;
+if (!tasksFile) { console.error('TASK_LIST_PATH unset — run the path setup ! block in this shell first'); process.exit(1); }
+if (fs.existsSync(tasksFile)) {
+  const raw = fs.readFileSync(tasksFile, 'utf8').replace(/\/\/[^\n]*/g, '').replace(/\/\*[\s\S]*?\*\//g, '');
+  try {
+    const gitUserEmail = execSync('git config --get user.email', { encoding: 'utf8' }).trim();
+    const gitUserName = execSync('git config --get user.name', { encoding: 'utf8' }).trim();
+    const githubNameFromEmail = (gitUserEmail.split('@')[0] || '').trim();
+    const githubName = githubNameFromEmail || gitUserName || 'unknown';
+    console.log('CURENT DEV USER GITHUB NAME:', githubName);
+    console.log('CURENT DEV USER EMAIL:', gitUserEmail || 'unknown');
+    console.log('');
+
+    const tasks = JSON.parse(raw);
+    const task = tasks.find(t => String(t.id) === String(taskId));
+    console.log('Current Task:');
+    console.log(task ? JSON.stringify(task, null, 2) : 'Task ' + taskId + ' not found');
+    if (!task) process.exit(0);
+
+    console.log('');
+    console.log('=== PLAN CONTEXT ===');
+    const root = process.env.ROOT_PROJECT_PATH || process.cwd();
+    const assignedUser = String(task.assigned_user || '').trim();
+    const githubUserId = String(task.github_user_id || '').trim();
+    const status = String(task.status || '').trim();
+    const type = String(task.status || '').trim();
+    if (!assignedUser || !githubUserId || !status) {
+      console.log('Missing one of required fields: assigned_user, github_user_id, status');
+      process.exit(0);
+    }
+    const planDir = path.resolve(root, 'agents/agent.manager/tasks/in_plan', assignedUser + '.' + githubUserId + '.' + type + '.' + status);
+    const planPath = path.join(planDir, githubUserId + '.plan.md');
+    if (!fs.existsSync(planDir)) fs.mkdirSync(planDir, { recursive: true });
+    if (!fs.existsSync(planPath)) fs.writeFileSync(planPath, '# Plan\n', 'utf8');
+    console.log('Plan Path:', planPath);
+    console.log(fs.readFileSync(planPath, 'utf8'));
+  } catch(e) { console.log(raw); }
+} else { console.log('index file missing:', tasksFile); }
+" -- \"$0\"
 ```
-
-Primary plan file: `$PLAN_ROOT/plan.md`.
-
-### 3. Plan document and mandatory human confirmation
-
-- If `$PLAN_ROOT/plan.md` is missing or empty/stub-only, generate it (see §6 template) from `title`, `description`, `type`, and the **first two** sub-tasks.
-- If `@plan` was used, the user should have filled `plan.md` (and test notes) in a **separate session**; if still missing, generate a draft and ask them to review.
-
-**Stop and ask explicitly:** show the path to `plan.md` (relative to repo) and ask the user to **confirm** they accept the plan (and test approach) before any git branch work.
-
-If they do **not** confirm, stop without changing `status` or creating a branch.
-
-### 4. Expand implementation sub-tasks (after confirmation)
-
-If `sub_tasks` has **exactly two** entries (the standard plan + proposals slice from create-task):
-
-- Append new `sub_task_id` values starting at **3**, derived from the task `description`, `type`, and the agreed `plan.md`.
-- Typical pattern for **feature** / **enhancement**: one or more `build` steps, then optional `report`.
-- For **bug**: reproduce/verify → `build` (fix) → `build` (regression test) → optional `report`.
-- For **research** / **idea**: further `research` and/or a closing `report`.
-
-Set each new sub-task to `status`: `"pending"`, `is_need_human`: `true` when review is needed.
-
-If `sub_tasks` has more than two entries (legacy or manually edited tasks), **skip** expansion and leave `sub_tasks` unchanged.
-
-The expanded rows are persisted together with §7 (single write). Preserve JSONC comments if present.
-
-### 5. Determine current user
-
-Read `team` from `CONFIG_PATH`. Match current GitHub email to assign `assigned_user` when appropriate.
-
-### 6. Create git branch
-
-Check current git status — if there are uncommitted changes, warn the user.
-
-Create and switch to the task branch from main:
-Where `{branch_name}` comes from the task object (e.g. `feature/12-user-profile-photo`).
-
-If branch already exists:
-```bash
-git checkout {branch_name}
-```
-
-Print:
-```
-✓ Switched to branch: feature/12-user-profile-photo
-```
-
-Always create the git branch **after** plan confirmation (§3).
-
-### 7. Update task in tasks.index.jsonc
-
-Update the task object in **one** write (merge with §4):
-
-- `sub_tasks` — include any new rows appended in §4
-- `status` → `"planned"`
-- `when` → `"today"` (task is being started)
-- `assigned_user` → set from team match when applicable
-- `updated_at` → today's date (YYYY-MM-DD)
-- `task_directory` → keep or set to `"./tasks/{github_issue_id}"` as in the index convention
-
-Write back to `TASKS_FILE`.
-
-### 8. Ensure `plan.md` is complete
-
-If not already filled in §3, build a focused work plan based on the task's `title`, `description`, `type`, and **all** `sub_tasks` (including newly added ones).
-
-```markdown
-# Plan: {title}
-
-**Task:** #{github_issue_id}
-**Branch:** {branch_name}
-**Type:** {type} | **Priority:** {priority} | **Est:** {estimated_time}
-**Date:** {today}
-**Plan folder:** {PLAN_ROOT relative to repo}
 
 ---
 
-## Goal
+# STEPS
 
-{description}
+1. Parse args — extract task-id, sub-task-id, prompt, flags (`@ai`, `@context`)
+3. if not main branch or worktree checkout to it
+2. read `@context` files if provided
+3. If plan file is empty or only has `#User Task Notes` 
+  — run `/create-plan {task-id} manager skill`, 
+  - ask user check edit if needs and say ok to continue with a plan. 
+  - if user say ok get reload task object from a tasks.index.jsonc and reload new plan.
+
+5. if plan exists pick next pending task if sub-task id not provided
+6. create task worktree + branch from main branch if not created yet
+7. execute next subtask in a new session with a new context 
+  - attach related information from plan 
+  - attach previous subtask report if exists
+  - //ai_todo: create later different type of agents for exectution different type of tasks like research, development and etc if needed
+8. when finished run `/generate-report {task-id} {sub-task-id}` and 
+  - provide developer file path for validation.
+  - ask if user want to close-task.
+  - We I’m I’m 
+9. if yes run `/close-task {task-id}` skill 
+10. if user providing additional prompt to work on a task.
+11. if it was last task /generate-report {task-id} (full report). And ask user to approve and if we can close the task if user approved run `/close-task {task-id}` skill 
+12. if user approved run `/close-task {task-id}` skill 
+13. update task in `tasks.index.jsonc`
+14. update task folder name base on current status
+15. push current changes to the branch
+     
 
 ---
 
-## Sub-tasks
-
-### 1. {sub_task_1 title} [{type}]
-- [ ] {concrete step}
-- [ ] {concrete step}
-
-### 2. {sub_task_2 title} [{type}]
-- [ ] {concrete step}
-- [ ] {concrete step}
-
-...
-
+# RULES
+- if no sub-task-id given, pick next pending subtask
+- If `@ai` flag set — execute subtasks previously marked `is_need_human_confirmation:true` without confirmation
 ---
 
-## Definition of Done
-
-- [ ] All sub-tasks completed
-- [ ] Tests passing (if applicable)
-- [ ] PR ready for review
-
----
-
-## Notes
-
-<!-- Add notes, blockers, decisions as you go -->
-```
-
-Fill in concrete checklist steps under each sub-task based on the task's scope and type. Keep steps actionable and specific.
-
-### 9. Confirm output
-
+# OUTPUT
 ```
 ✓ Task #12 started
 
   branch:   feature/12-user-profile-photo  (created & checked out)
   assigned: Andrei
-  status:   planned
-  when:     today
+  status:   in-progress
   plan:     agents/agent.manager/tasks/in_plan/12.agent.manager.feature.andrei/plan.md
-            (or .../tasks/done/... when not @plan)
 
   Sub-tasks:
-    1. [ ] Plan and define tests for the build     [plan]
-    2. [ ] Proposals and alternatives              [research]
-    3. [ ] … (implementation added after plan confirm) [build]
-    …
-
-  Update plan.md and sessions/*.log as you work.
-```
-
----
-
-## Rules
-
-- **Plan confirmation (§3) is mandatory** before branch checkout and before setting `planned`.
-- After confirmation, expand `sub_tasks` in §4 only when **exactly two** entries exist; then persist with §7.
-- Create the git branch only after confirmation; refresh `plan.md` in §8 so it lists all sub-tasks including new ones.
-- Never force-push or delete existing branches
-- `plan.md` must have concrete checklist items — not just sub-task titles
-- Allowed writes: `tasks/tasks.index.jsonc`, `tasks/in_plan/**`, `tasks/done/**`
-- Strip `//` JSONC comments before parsing tasks file; preserve structure when writing back
-
-```json
-{ "ai_file_metadata": {
-    "path": ".claude/skills/start-task/SKILL.md",
-    "description": "Skill: start a task with plan confirmation, sub-task expansion, git branch, and plan.md under in_plan or done.",
-    "tags": ["skill", "tasks", "start", "planning", "git"],
-    "notes_for_ai": ["Confirm plan.md with the user first. If only two sub_tasks, append implementation sub_tasks after confirm. Use in_plan when @plan tag or folder exists."]
-} }
+    1. [x] Plan and define tests                  [done]
+    2. [ ] Proposals and alternatives             [research]  <- current
+    3. [ ] Implementation                         [build]
 ```

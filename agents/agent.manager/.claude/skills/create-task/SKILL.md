@@ -21,7 +21,7 @@ Behavior differs based on who the task is assigned to (AI vs human) and when it'
 
 ```
 /create-task "Add profile photo upload to dashboard @andrei @week @feature"
-/create-task "Fix crash on login screen @ai @today @bug @context ./apps/mobile/src/login.tsx"
+/create-task "Fix crash on login screen @ai @today @bug @context logout.tsx login.tsx"
 /create-task "Research caching strategies for feed @ai @today @research"
 /create-task "Refactor DB connection pool @tomorrow @no_plan @improvement"
 /create-task "Deploy new API endpoint @15.05.2026 @week @feature"
@@ -204,9 +204,9 @@ Metadata only — task is registered for future scheduling.
     "is_need_human_confirmation": false,
     "notes": "",
     "platform": "claude",
-    "created_at": "<YYYY-MM-DD>",
+    "created_at": "<YYYY-MM-DDThh:mm:ssZ>",  // UTC ISO 8601
     "created_by": "<git user or ai>",
-    "updated_at": "<YYYY-MM-DD>",
+    "updated_at": "<YYYY-MM-DDThh:mm:ssZ>",  // UTC ISO 8601
     "closed_at": ""
 }
 ```
@@ -214,6 +214,8 @@ Metadata only — task is registered for future scheduling.
 ### Sub-tasks construction
 
 Always create exactly **one** sub-task at creation time. Additional sub-tasks are added by `/start-task` after plan confirmation.
+
+> **Note for AI:** The absence of `@no_plan` does **not** mean a plan sub-task must always be created. Use judgment — if the task is trivial, purely metadata, or clearly does not require planning (e.g. a simple config change or label update), skip plan generation even without `@no_plan`. Only create a plan sub-task when the task genuinely benefits from upfront planning.
 
 | Condition | sub_task status | `is_need_human_confirmation` |
 |-----------|----------------|------------------------------|
@@ -342,7 +344,7 @@ tasks/
 ├── in_plan/
 │   ├── week.jsonc
 │   ├── ai.today.jsonc
-│   └── <slug>/                    # slug = "{assigned_user}.{github_issue_id}.{scope}.{type}"
+│   └── <slug>/                    # slug = "{assigned_user}.{github_issue_id}.{type}.{status}"
 │       ├── plan.md
 │       ├── report.md
 │       ├── sub-task-id.report.md

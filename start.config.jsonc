@@ -48,6 +48,17 @@
       "path": "agents/agent.content-factory",
       "init": "bun install"
       // agents are never auto-started -- run independently from their folder, "enabled": true, means it need to be installed
+    },
+    {
+      "name": "brightbean-studio",
+      "description": "Self-hosted social media management platform — schedule, publish, and monitor content across 10+ social networks",
+      "type": "github-project",
+      "enabled": false,
+      "path": "github-projects/content-factory/brightbean-studio",
+      "init": "python3.12 -m pip install -r requirements.txt && python3.12 manage.py migrate",
+      "start": "python3.12 manage.py runserver"
+      // requires .env file — copy from .env.example and fill SECRET_KEY, ENCRYPTION_KEY_SALT, DATABASE_URL
+      // for production: use docker compose up -d --build with docker-compose.prod.yml
     }
   ]
 }

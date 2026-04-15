@@ -7,6 +7,7 @@
             "role": "main developer and manager for the project",
             "platforms": "claude, cursor", // claude should be always present it's default and additonally poosible another
             "current_focus": "1)finish agent.manager 2)agent.logs 3)dev.agent", // for better task assignement
+            "scopes": ["main", "app.dev", "agent.manager", "app.logs", "agent.research", "agent.db", "agent.logs"],
             "ai_manger_notes": [""]
         }
     ]

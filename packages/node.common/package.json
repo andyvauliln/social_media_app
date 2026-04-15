@@ -1,5 +1,5 @@
 {
   "name": "node-common",
   "private": true,
-  "dependencies": {}
+  "dependencies": { "jsonc-parser": "^3.3.1" }
 }

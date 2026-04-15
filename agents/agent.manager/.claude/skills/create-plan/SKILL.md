@@ -26,7 +26,7 @@ MANAGER_TASKS="$ROOT/agents/agent.manager/tasks"
 2. If not found — say so and stop
 3. Read task details, related files, and context
 4. Generate plan and save to `tasks/in_plan/{assigned_user}.{github_issue_id}.{status}.{v?}.jsonc`
-5. Confirm plan created with path
+5. update task object in a tasks.index.jsonc inlcude new subtasks if they exist.
 
 ## Plan Structure
 
