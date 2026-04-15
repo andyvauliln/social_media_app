@@ -24,13 +24,15 @@ Reads `tasks/tasks.index.jsonc` and displays filtered tasks with a pick recommen
 
 Known Filters but could be any:
 - `@top5` — top 5 by priority (urgent > high > medium > low)
-- `@today` — tasks with `when: "@today"` or `when: "@now"`
-- `@week` — tasks with `when: "@week"`, `"@today"`, or `"@now"`
+- `@today` — tasks with `when` = `"today"`
+- `@week` — tasks with `when` = `"week"` or `"today"`
 - `@project <name>` — tasks matching `scope: "<name>"`
 - `@short` — tasks with `estimated_time` ≤ 2h
-- `@pending` — status is `"pending"`
-- `@blocked` — status is `"blocked"`
-- `@mine` — `assigned_user` matched current github email`
+- `@pending` — `status` is `"pending"`
+- `@planned` — `status` is `"planned"`
+- `@in_progress` — `status` is `"in_progress"`
+- `@blocked` — `status` is `"blocked"`
+- `@mine` — `assigned_user` matched current github email
 
 Multiple tags combine with AND logic: `/pick-task @today @short`
 
@@ -59,19 +61,21 @@ Read the JSON array. Strip `//` comments before parsing (JSONC format). Apply ta
 | Tag | Filter |
 |-----|--------|
 | `@top5priority` | Sort by priority rank, take top 5 |
-| `@today` | `when` is `"@today"` or `"@now"` |
-| `@week` | `when` is `"@week"`, `"@today"`, or `"@now"` |
+| `@today` | `when` is `"today"` |
+| `@week` | `when` is `"week"` or `"today"` |
 | `@project <name>` | `scope` equals `<name>` |
 | `@short` | `estimated_time` ≤ 2h |
 | `@pending` | `status` is `"pending"` |
+| `@planned` | `status` is `"planned"` |
+| `@in_progress` | `status` is `"in_progress"` |
 | `@blocked` | `status` is `"blocked"` |
 | `@mine` | `assigned_user` matches team.jsonc entry |
 
-Default (no tags): all non-done, non-canceled tasks sorted by priority.
+Default (no tags): all non-done, non-cancelled tasks sorted by priority.
 
 Priority rank: `urgent(1) > high(2) > medium(3) > low(4)`
 
-Always exclude `status` of `"done"`, `"canceled"`, `"merged"` unless explicitly filtered.
+Always exclude `status` of `"done"`, `"cancelled"` unless explicitly filtered.
 
 ### 3. Display results
 
@@ -81,11 +85,11 @@ Always exclude `status` of `"done"`, `"canceled"`, `"merged"` unless explicitly 
 ─────────────────────────────────────────────
 
 #1  [URGENT] Fix login crash on mobile         (#12)
-    scope: app.mobile | when: @today | est: 1h
+    scope: app.mobile | when: today | est: 1h
     status: pending | assigned: —
 
 #2  [HIGH]   Add push notification opt-in       (#9)
-    scope: app.mobile | when: @today | est: 2h
+    scope: app.mobile | when: today | est: 2h
     status: pending | assigned: Andrei
 
 ─────────────────────────────────────────────

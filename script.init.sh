@@ -1,3 +1,10 @@
+# install everyting
+# run symlink script ai_todo: "make symlink script"
+# deal with a local db ai_todo: "deal with a local db"
+# make file CLAUDE.local.md in a root ai_todo: "make file CLAUDE.local.md in a root @ai"
+# make folder main in a root ai_todo: "make folder main in a root" @ai
+
+
 #!/usr/bin/env bash
 set -euo pipefail
 

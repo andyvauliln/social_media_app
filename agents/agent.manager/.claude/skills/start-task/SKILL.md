@@ -39,7 +39,7 @@ Task #{id} not found. Run /pick-task to see available tasks.
 ```
 and stop.
 
-If task `status` is `"done"` or `"canceled"`, warn the user and ask to confirm before proceeding.
+If task `status` is `"done"` or `"cancelled"`, warn the user and ask to confirm before proceeding.
 
 ### 2. Resolve planning directory (`in_plan` vs `done`)
 
@@ -114,7 +114,8 @@ Always create the git branch **after** plan confirmation (§3).
 Update the task object in **one** write (merge with §4):
 
 - `sub_tasks` — include any new rows appended in §4
-- `status` → `"scheduled"`
+- `status` → `"planned"`
+- `when` → `"today"` (task is being started)
 - `assigned_user` → set from team match when applicable
 - `updated_at` → today's date (YYYY-MM-DD)
 - `task_directory` → keep or set to `"./tasks/{github_issue_id}"` as in the index convention
@@ -178,7 +179,8 @@ Fill in concrete checklist steps under each sub-task based on the task's scope a
 
   branch:   feature/12-user-profile-photo  (created & checked out)
   assigned: Andrei
-  status:   scheduled
+  status:   planned
+  when:     today
   plan:     agents/agent.manager/tasks/in_plan/12.agent.manager.feature.andrei/plan.md
             (or .../tasks/done/... when not @plan)
 
@@ -195,7 +197,7 @@ Fill in concrete checklist steps under each sub-task based on the task's scope a
 
 ## Rules
 
-- **Plan confirmation (§3) is mandatory** before branch checkout and before setting `scheduled`.
+- **Plan confirmation (§3) is mandatory** before branch checkout and before setting `planned`.
 - After confirmation, expand `sub_tasks` in §4 only when **exactly two** entries exist; then persist with §7.
 - Create the git branch only after confirmation; refresh `plan.md` in §8 so it lists all sub-tasks including new ones.
 - Never force-push or delete existing branches
