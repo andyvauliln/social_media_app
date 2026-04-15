@@ -1,0 +1,55 @@
+[
+  {
+    "github_issue_id": 3,
+    "title": "Test sync-task skill",
+    "description": "Manually test the sync-task skill end-to-end to verify it correctly syncs task state from tasks.index.jsonc, rebuilds per-user today/week files, and pushes the result. This ensures the skill works reliably before it is used in automated flows.",
+    "branch_name": "self-improvement/3-test-sync-task-skill",
+    "branch_github_link": "",
+    "pr_id": "",
+    "pr_link": "",
+    "estimated_time": "1h",
+    "status": "pending",
+    "when": "phase_1",
+    "when_date": "",
+    "blocked_reason": "",
+    "task_directory": "",
+    "priority": "medium",
+    "scope": "agent.manager",
+    "tags": [
+      "sync-task",
+      "skill-testing",
+      "agent-manager",
+      "workflow",
+      "validation"
+    ],
+    "type": "self_improvement",
+    "context": "",
+    "user_input": "test sync-task skill",
+    "sub_tasks": [
+      {
+        "sub_task_id": 1,
+        "commit_id": "",
+        "session_id": "",
+        "title": "Plan and define tests for the build",
+        "type": "plan",
+        "model": "haiku",
+        "platform": "claude",
+        "changed_files_relative_paths": [],
+        "is_need_human_confirmation": true,
+        "blocked_reason": "",
+        "notes": "",
+        "status": "pending"
+      }
+    ],
+    "is_passed_tests": false,
+    "run_test_command": "",
+    "assigned_user": "Andrei",
+    "is_need_human_confirmation": false,
+    "notes": "",
+    "platform": "claude",
+    "created_at": "2026-04-15",
+    "created_by": "Andrei",
+    "updated_at": "2026-04-15",
+    "closed_at": ""
+  }
+]
