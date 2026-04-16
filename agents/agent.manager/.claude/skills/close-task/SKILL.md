@@ -11,51 +11,52 @@ paths: []
 shell: bash
 hooks: {}
 ---
-
-# close-task
-
-Closes a task by transitioning its status through `in_review` → `done`, creating a PR, closing the GitHub issue, and archiving task files.
-
 # Examples
 
 ```
-/close-task 12
-/close-task 12 "All changes tested and ready"
+/close-task 12 @skip-pr
+/close-task 12 "don't send pr"
 ```
 
----
-
-## Step 0 — Path constants
+# CONTEXT
 
 ```bash
-ROOT=$(git rev-parse --show-toplevel)
-source "$ROOT/agents/agent.manager/scripts/task-helpers.sh"
-MANAGER_TASKS="$ROOT/agents/agent.manager/tasks"
-TASKS_FILE="$MANAGER_TASKS/tasks.index.jsonc"
+!ROOT_PROJECT_PATH="$(pwd)" && \
+export ROOT_PROJECT_PATH && \
+export ALL_TASKS_PATH="$ROOT_PROJECT_PATH/agents/agent.manager/tasks" && \
+export TASK_LIST_PATH="$ALL_TASKS_PATH/tasks.index.jsonc" && \
+export AGENT_CONFIG_PATH="$ROOT_PROJECT_PATH/agents/agent.manager/config.manager.jsonc" && \
+export DOCS_AGENT_MANAGER_PATH="$ROOT_PROJECT_PATH/agents/agent.manager/docs.agent.manager/!index.md" && \
+echo "ROOT_PROJECT_PATH=$ROOT_PROJECT_PATH" && \
+echo "ALL_TASKS_PATH=$ALL_TASKS_PATH" && \
+echo "TASK_LIST_PATH=$TASK_LIST_PATH" && \
+echo "AGENT_CONFIG_PATH=$AGENT_CONFIG_PATH"
+echo "AGENT_CONFIG_CONTENT=$(cat "$AGENT_CONFIG_PATH")"
+echo "MAIN_DOCUMENTATION_FILE=$(cat "$DOCS_AGENT_MANAGER_PATH")"
 ```
 
+
 ---
+# STEPS
+
 
 ## Step 1 — Read and validate task
-
-Find the task in `tasks.index.jsonc` where `github_issue_id` equals `{task-id}`.
-
-If not found → print `Task #{task-id} not found.` and stop.
-
-If `status` is already `"done"` or `"cancelled"` → print `Task #{task-id} is already {status}.` and stop.
+- Find the task in `tasks.index.jsonc` where `github_issue_id` equals `{task-id}`. if not provided with a prompt.
+- If not found → print `Task #{task-id} not found.` and stop.
+- If `status` is already `"done"` or `"cancelled"` → print `Task #{task-id} is already {status}.` and stop.
 
 ---
 
 ## Step 2 — Verify all sub-tasks are finished
-
-Check that every sub-task has `status` of `"done"` or `"cancelled"`.
-
-If any sub-task is still `"pending"`, `"in_progress"`, `"awaiting_review"`, or `"blocked"`:
+- Check that every sub-task has `status` of `"done"` or `"cancelled"`.
+- If any sub-task is still `"pending"`, `"in_progress"`, `"awaiting_review"`, or `"blocked"`:
 - Print a warning listing unfinished sub-tasks
 - Ask the user to confirm they want to close anyway
 - If not confirmed → stop
 
 ---
+
+## Step 2.1 — Merge main to current branch
 
 ## Step 3 — Create pull request (status → `in_review`)
 
@@ -70,61 +71,38 @@ PR_URL=$(gh pr create \
 PR_ID=$(echo "$PR_URL" | grep -oE '[0-9]+$')
 ```
 
-Update the task object:
-- `status` → `"in_review"`
-- `pr_id` → `$PR_ID`
-- `pr_link` → `$PR_URL`
-- `updated_at` → today's date
 
 If `pr_id` already exists, skip PR creation and proceed.
-
+attach final report.md to the pr from tasks/in_plan/{assigned_user}.{type}.{github_issue_id}.{status}/{github_issue_id}.report.md
 ---
 
 ## Step 4 — Merge and finalize (status → `done`)
 
-If the task was assigned to AI and all sub-tasks are done:
+- if @skip-pr flag exist:
 
-```bash
-gh pr merge "$PR_ID" --merge --delete-branch
-```
+  ```bash
+  gh pr merge "$PR_ID" --merge --delete-branch
 
-If assigned to a human, print:
-```
-PR #{pr_id} created and ready for review.
-Merge when ready, then run /close-task {task-id} again to finalize.
-```
-and stop (leave status as `in_review`).
+  ```
 
-After merge:
-- `status` → `"done"`
-- `closed_at` → today's date
-- `updated_at` → today's date
-
----
-
-## Step 5 — Close GitHub issue
-
-```bash
-gh issue close "$ISSUE_ID" --comment "Closed via /close-task. PR: #$PR_ID"
+  move  task folder from ./tasks/in_plan/{assigned_user}.{type}.{github_issue_id}.{status} 
+  to ./tasks/done/{github_issue_id} 
+  close github issue `gh issue close "$ISSUE_ID" --comment "Closed via /close-task. PR: #$PR_ID"`
+- else 
+  print `PR #{pr_id} created and ready for review. Merge when ready...\n PR link: #{pr_link}`
 ```
 
 ---
 
-## Step 6 — Archive task folder
 
-If `$MANAGER_TASKS/in_plan/$SLUG` exists:
+## Step 5 — Update task object
 
-```bash
-mv "$MANAGER_TASKS/in_plan/$SLUG" "$MANAGER_TASKS/done/$SLUG"
-```
+- Update current state for the task object in a tasks.index.jsonc
 
-Update `task_directory` on the task object.
 
----
+## Step 6 — Save and sync
 
-## Step 7 — Save and sync
-
-Write updated task back to `TASKS_FILE`. Then run `/sync-tasks`.
+Write updated task back to `TASKS_FILE`. Then run `agent.manager /sync-tasks skill`.
 
 ---
 

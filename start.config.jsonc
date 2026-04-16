@@ -59,6 +59,17 @@
       "start": "python3.12 manage.py runserver"
       // requires .env file — copy from .env.example and fill SECRET_KEY, ENCRYPTION_KEY_SALT, DATABASE_URL
       // for production: use docker compose up -d --build with docker-compose.prod.yml
+    },
+    {
+      "name": "BMAD-METHOD",
+      "description": "Agile AI-driven development framework — installs 12+ expert agent personas and 34+ workflows into any project's .claude/ folder",
+      "type": "github-project",
+      "enabled": true,
+      "path": "github-projects/coding-terminals/BMAD-METHOD",
+      "init": "npm install --no-workspaces",
+      "start": "node tools/installer/bmad-cli.js install"
+      // not a running service — invoke manually to install agents/workflows into a target project
+      // non-interactive: node tools/installer/bmad-cli.js install --directory /path --modules bmm --tools claude-code --yes
     }
   ]
 }

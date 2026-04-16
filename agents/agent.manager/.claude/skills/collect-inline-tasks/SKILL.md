@@ -34,7 +34,7 @@ If a `[path]` argument is provided, scope the search to that path. Otherwise sea
 |---------|----------|-------------|
 | `ai_todo:` | yes | Marker keyword (case-insensitive) |
 | `"<prompt>"` | yes | Task description — may include params inside or outside quotes |
-| `@ai` | no | Assign to AI |
+| `@ai` | no | Assign to AI | (default)
 | `@<user>` | no | Assign to a team member |
 | `@context` | no | Include file path and line number in the task prompt |
 | `@now` / `@today` / `@week` | no | Scheduling hint |
@@ -48,6 +48,7 @@ If a `[path]` argument is provided, scope the search to that path. Otherwise sea
 // ai_todo: "fix date parsing for ISO format @context @high"
 /* ai_todo: "add input validation" @ai @today */
 # ai_todo: "migrate config to YAML" @context
+ai_todo: "migrate config to YAML" @context
 ```
 
 ## Workflow
@@ -81,12 +82,8 @@ For each `ai_todo` entry:
 ```
 ✓ Collected inline tasks
 
-  Processed: 4
-  Created:   3
-  Failed:    1
-    - src/api/auth.ts:42 — error: could not parse prompt
-
-  Remaining ai_todo comments: 1
+   * Task ID: "title"
+   * Task ID: "title"
 ```
 
 ## Rules

@@ -80,7 +80,7 @@ if (fs.existsSync(tasksFile)) {
       console.log('Missing one of required fields: assigned_user, github_user_id, status');
       process.exit(0);
     }
-    const planDir = path.resolve(root, 'agents/agent.manager/tasks/in_plan', assignedUser + '.' + githubUserId + '.' + type + '.' + status);
+    const planDir = path.resolve(root, 'agents/agent.manager/tasks/in_plan', assignedUser + '.' + type + '.' + githubUserId + '.' + status);
     const planPath = path.join(planDir, githubUserId + '.plan.md');
     if (!fs.existsSync(planDir)) fs.mkdirSync(planDir, { recursive: true });
     if (!fs.existsSync(planPath)) fs.writeFileSync(planPath, '# Plan\n', 'utf8');
@@ -94,32 +94,26 @@ if (fs.existsSync(tasksFile)) {
 ---
 
 # STEPS
-
 1. Parse args — extract task-id, sub-task-id, prompt, flags (`@ai`, `@context`)
-3. if not main branch or worktree checkout to it
 2. read `@context` files if provided
 3. If plan file is empty or only has `#User Task Notes` 
-  — run `/create-plan {task-id} manager skill`, 
+  — run `/create-plan {task-id} {include task in a prompt} agent.manager skill`, 
   - ask user check edit if needs and say ok to continue with a plan. 
   - if user say ok get reload task object from a tasks.index.jsonc and reload new plan.
-
 5. if plan exists pick next pending task if sub-task id not provided
-6. create task worktree + branch from main branch if not created yet
-7. execute next subtask in a new session with a new context 
+6. create task worktree + branch from main branch if not created yet 
+7. execute next subtask in a new session with a new context in a task worktree and branch
   - attach related information from plan 
   - attach previous subtask report if exists
-  - //ai_todo: create later different type of agents for exectution different type of tasks like research, development and etc if needed
-8. when finished run `/generate-report {task-id} {sub-task-id}` and 
-  - provide developer file path for validation.
-  - ask if user want to close-task.
-  - We I’m I’m 
-9. if yes run `/close-task {task-id}` skill 
-10. if user providing additional prompt to work on a task.
-11. if it was last task /generate-report {task-id} (full report). And ask user to approve and if we can close the task if user approved run `/close-task {task-id}` skill 
-12. if user approved run `/close-task {task-id}` skill 
-13. update task in `tasks.index.jsonc`
-14. update task folder name base on current status
-15. push current changes to the branch
+  - run assigned agent if in task object assigned_agent is provided for related agent folder agents/agent.dev .. if main run from the root social-media-app folder
+8. when finished run `agent.manager /generate-report {task-id} {sub-task-id}` 
+  - provide user with file paths to check report.
+  - ask if user if he want to 1. commit changes or 2. commit and close-task if it's last subtask.
+9.  commit and close if  user said close `agent.manager /close-task {task-id}` skill 
+10. if user continue and asking additional changes continue working, consider create additional subtasks and update related plan and report
+13. update task in `tasks.index.jsonc` base on current state of task
+14. update task folder name base on current status TASK_LIST_PATH/in_plan/{assigned_user}.{type}.{github-issue-id}.{status}
+
      
 
 ---

@@ -61,7 +61,7 @@
     // Relative path to the task folder under tasks/in_plan/.
     // Folder exists only when a plan or report is created.
     // Format: "./tasks/in_plan/{slug}"
-    // Slug format: "{assigned_user}.{github_issue_id}.{type}.{status}"
+    // Slug format: "{assigned_user}.{type}.{github_issue_id}.{status}"
     "in_plan_task_directory": "",
 
     // Urgency level.
@@ -69,7 +69,7 @@
     "priority": "",
 
     // Best-matching project/app/agent scope.
-    // Examples: "main", "app.dashboard", "agent.manager", "app.mobile"
+    // Examples: "main" - entrire project, "app.dashboard", "agent.manager", "app.mobile"
     "scope": "",
 
     // 2–5 short descriptive tags.
@@ -121,7 +121,7 @@
             // Whether a human must review and approve before this sub-task is closed.
             // true for human-assigned tasks with generated plans (awaiting review)
             // false for AI tasks or tasks with @no_plan
-            "is_need_human_confirmation": false,
+            "is_need_human_confirmation": true,
 
             // Reason this sub-task is blocked. Cleared when unblocked.
             "blocked_reason": "",
@@ -148,13 +148,21 @@
     "run_test_command": "",
 
     // Who is responsible for executing this task.
-    // "ai"          — root AI agent will pick it up
+    // "ai"          — if tag @ai, it's mean will be done automaticly without user
     // "<user_name>" — a specific human team member (must match team[].name in config)
-    // "specifi ai agent" — agent.dev, agent.db
     "assigned_user": "",
+    // Agent that will execute this task
+    // "main"          — root AI agent will pick it up
+    // "<user_name>" — a specific human team member (must match team[].name in config)
+    // "specifi ai agent" — agent.dev if it's development task, agent.db, agent.knowledgebase, agent.logs,
+    //                      if research assigned agent agent.knowledgebase 
+    "assigned_agent": "",
 
-    // Whether a human must confirm the plan before execution begins.
-    // Automatically set based on assigned_user and plan presence.
+    // Whether this task requires human confirmation at any point.
+    // true  — assigned to a human user (not ai), OR any sub-task has is_need_human_confirmation: true
+    // false — assigned_user is "ai" AND all sub-tasks are fully automated (no confirmation needed)
+    // Meaning: even if sub-tasks are not yet defined, set true for human-assigned tasks.
+    // A fully automated AI task (no human touchpoints anywhere) is the only case for false.
     "is_need_human_confirmation": false,
 
     // Free-form notes about the task (decisions, caveats, links).

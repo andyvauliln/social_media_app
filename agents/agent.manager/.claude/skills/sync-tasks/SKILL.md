@@ -53,113 +53,62 @@ If both the local `tasks.index.jsonc` and the remote are empty/missing → print
 ---
 
 ## Step 2 — Merge local + remote tasks.index.jsonc (field-level)
-
-Three outcomes per shared task (same `github_issue_id`):
-
-| Situation | Result |
-|---|---|
-| ID only in local | kept as-is |
-| ID only in remote | added |
-| ID in both, no field conflict | fields union-merged (each side's changes combined) |
-| ID in both, **same field edited by both** | written to `CONFLICTS_TMP` for Step 2b |
-
-A **field conflict** = the field value differs between local and remote **and** both differ from the
-empty/null default (i.e. both sides actually wrote something different to the same field).
-
 ```bash
 CONFLICTS_TMP=$(mktemp)
 
 node -e "
-const fs   = require('fs');
-const {parse} = require('jsonc-parser');
+const fs = require('fs');
+const { parse } = require('jsonc-parser');
 
-const localFile     = process.env.TASKS_FILE;
-const remoteFile    = process.env.REMOTE_TASKS_TMP;
-const conflictFile  = process.env.CONFLICTS_TMP;
+const local  = parse(fs.readFileSync(process.env.TASKS_FILE,       'utf8')) || [];
+const remote = parse(fs.readFileSync(process.env.REMOTE_TASKS_TMP, 'utf8')) || [];
 
-const readTasks = (f) => {
-  try { return parse(fs.readFileSync(f, 'utf8')) || []; } catch { return []; }
-};
-
-const local  = readTasks(localFile);
-const remote = readTasks(remoteFile);
-
-if (!local.length && !remote.length) {
-  console.log('No tasks to sync.');
-  process.exit(0);
-}
-
-const remoteMap = new Map(remote.map(t => [String(t.github_issue_id ?? ''), t]));
-const localMap  = new Map(local.map(t  => [String(t.github_issue_id ?? ''), t]));
+const localMap  = new Map(local.map(t  => [String(t.github_issue_id), t]));
+const remoteMap = new Map(remote.map(t => [String(t.github_issue_id), t]));
 
 const merged    = [];
 const conflicts = [];
 
-// Start from remote as base, then apply local field-by-field
-for (const [id, remoteTask] of remoteMap) {
-  if (!localMap.has(id)) {
-    merged.push(remoteTask);   // remote-only
-    continue;
-  }
-  const localTask   = localMap.get(id);
-  const mergedTask  = { ...remoteTask };
+for (const [id, r] of remoteMap) {
+  const l = localMap.get(id);
+  if (!l) { merged.push(r); continue; }
+
+  const task = { ...r };
   const taskConflicts = [];
 
-  const allKeys = new Set([...Object.keys(remoteTask), ...Object.keys(localTask)]);
-  for (const key of allKeys) {
-    const rv = JSON.stringify(remoteTask[key] ?? null);
-    const lv = JSON.stringify(localTask[key]  ?? null);
-    if (rv === lv) continue;                 // identical — no action
-    if (rv === 'null' || rv === '\"\"') { mergedTask[key] = localTask[key]; continue; }  // remote empty, local has value
-    if (lv === 'null' || lv === '\"\"') continue;                                        // local empty, remote has value
-    // Both sides have different non-empty values — real conflict
-    taskConflicts.push({ field: key, local: localTask[key], remote: remoteTask[key] });
-    mergedTask[key] = remoteTask[key];       // placeholder: remote wins until AI resolves
+  for (const key of new Set([...Object.keys(r), ...Object.keys(l)])) {
+    const rv = r[key] ?? null, lv = l[key] ?? null;
+    if (JSON.stringify(rv) === JSON.stringify(lv)) continue;
+    if (rv === null) { task[key] = lv; continue; }   // only local has value
+    if (lv === null) continue;                        // only remote has value
+    taskConflicts.push({ field: key, local: lv, remote: rv });
+    task[key] = lv;                                   // local placeholder until AI resolves
   }
 
-  if (taskConflicts.length) {
-    conflicts.push({ github_issue_id: id, title: remoteTask.title || '', fields: taskConflicts });
-  }
-  merged.push(mergedTask);
+  if (taskConflicts.length) conflicts.push({ github_issue_id: id, fields: taskConflicts });
+  merged.push(task);
 }
 
-// Add local-only tasks
-for (const [id, localTask] of localMap) {
-  if (!remoteMap.has(id)) merged.push(localTask);
+for (const [id, l] of localMap) {
+  if (!remoteMap.has(id)) merged.push(l);
 }
 
-fs.writeFileSync(localFile,    JSON.stringify(merged,    null, 2) + '\n');
-fs.writeFileSync(conflictFile, JSON.stringify(conflicts, null, 2) + '\n');
-
-console.log('merged tasks:', merged.length, '(local:', local.length, '/ remote:', remote.length + ')');
-console.log('field conflicts:', conflicts.length);
+fs.writeFileSync(process.env.TASKS_FILE,       JSON.stringify(merged,    null, 2));
+fs.writeFileSync(process.env.CONFLICTS_TMP,    JSON.stringify(conflicts, null, 2));
+console.log('conflicts:', conflicts.length);
 "
 ```
 
----
+If CONFLICTS_TMP is not empty, read it and resolve each conflict using judgment:
 
-## Step 2b — AI conflict resolution (only if conflicts exist)
+Prefer more advanced status
+Prefer longer/richer text fields
+Prefer non-null over null
+Combine additive values (e.g. tags from both sides)
+Then patch the resolved fields back into $TASKS_FILE.
 
-If `CONFLICTS_TMP` contains an empty array (`[]`) skip this step entirely.
-
-Otherwise read `CONFLICTS_TMP` and for **each conflicting task** resolve every field conflict
-using your judgment:
-
-- Prefer the value that represents **progress** (e.g. a more advanced `status`, a more specific `when`).
-- Prefer longer/richer text for description-like fields (`title`, `notes`, `description`).
-- Prefer the non-null / non-empty value when one side is blank.
-- If both values are equally valid and additive (e.g. both added different tags), combine them.
-
-After resolving, update `tasks.index.jsonc` in-place: for each conflicting task ID, set every
-resolved field to the chosen value.
-
-Print a resolution summary:
-
-```
-⚠ resolved {n} field conflicts:
-  task #{id} "{title}": {field} → chose "{value}" over "{other_value}" (reason)
-  ...
-```
+Print: merged: {n} tasks, conflicts resolved: {n}.
+DOUBTES: if you resolve with doubts and something is ambiguous, write here you conserns.
 
 ---
 
