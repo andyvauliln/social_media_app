@@ -1,81 +1,5 @@
 [
-  {
-    // GitHub issue ID — set after `gh issue create`
-    "github_issue_id": 7,
-
-    "title": "Finish generate-report skill",
-
-    "description": "Complete and finalize the generate-report task skill for the manager workflow. The skill should reliably produce the expected report output shape and integrate cleanly with existing task lifecycle commands. Finishing it reduces manual overhead and keeps task reporting consistent across runs.",
-
-    // Git branch name — format: {type}/{github_issue_id}-{slug}
-    "branch_name": "improvement/7-finish-generate-report-skill",
-
-    "branch_github_link": "",
-
-    "pr_id": "",
-    "pr_link": "",
-
-    "estimated_time": "2h",
-
-    // pending | planned | in_progress | in_review | done | blocked | cancelled
-    "status": "pending",
-
-    // phase_N | week | today
-    "when": "phase_1",
-    "when_date": "",
-
-    "blocked_reason": "",
-
-    // Folder created only when plan/report generation starts
-    "in_plan_task_directory": "",
-
-    "priority": "medium",
-
-    "scope": "agent.manager",
-
-    "tags": ["skill", "generate-report", "agent.manager", "workflow", "improvement"],
-
-    // research | bug | feature | enhancement | idea | update | self_improvement | improvement
-    "type": "improvement",
-
-    "context": ".cursor/skills/generate-report-task.manager/SKILL.md",
-
-    "user_input": "finish generate-report skill",
-
-    "sub_tasks": [
-      {
-        "sub_task_id": 1,
-        "commit_id": "",
-        "session_id": "",
-        "title": "Plan and define improvements for generate-report skill",
-        "type": "plan",
-        "model": "haiku",
-        "platform": "claude",
-        "changed_files_relative_paths": [],
-        "is_need_human_confirmation": true,
-        "blocked_reason": "",
-        "notes": "",
-        "status": "pending"
-      }
-    ],
-
-    "is_passed_tests": false,
-    "run_test_command": "",
-
-    "assigned_user": "Andrei",
-    "assigned_agent": "agent.manager",
-
-    "is_need_human_confirmation": true,
-
-    "notes": "",
-
-    "platform": "claude",
-
-    "created_at": "2026-04-16T16:30:24Z",
-    "created_by": "Andrei",
-    "updated_at": "2026-04-16T16:30:24Z",
-    "closed_at": ""
-  },
+ 
   {
     // GitHub issue ID — set after `gh issue create`
     "github_issue_id": 6,
@@ -126,47 +50,31 @@
         "session_id": "",
         "title": "Plan and define improvements for collect-inline-tasks skill",
         "type": "plan",
-        "model": "haiku",
+        "model": "opus",
         "platform": "claude",
-        "changed_files_relative_paths": [],
+        "plan_path": "",
         "is_need_human_confirmation": true,
         "blocked_reason": "",
         "notes": "",
         "status": "done"
-      },
-      {
-        "sub_task_id": 2,
-        "commit_id": "",
-        "session_id": "",
-        "title": "Rewrite SKILL.md to match project skill format",
-        "type": "build",
-        "model": "haiku",
-        "platform": "claude",
-        "changed_files_relative_paths": [
-          "agents/agent.manager/.claude/skills/collect-inline-tasks/SKILL.md"
-        ],
-        "is_need_human_confirmation": true,
-        "blocked_reason": "",
-        "notes": "Single file rewrite. See 6_plan_v2.md for detailed rewrite guidance and section-by-section instructions.",
-        "status": "pending"
       }
     ],
 
     "is_passed_tests": false,
-    "run_test_command": "bun run test:collect-inline-tasks",
+    "run_test_command": "node agents/agent.manager/agent.manager.tests/collect-inline-tasks.test.js",
 
     "assigned_user": "Andrei",
     "assigned_agent": "agent.dev",
 
     "is_need_human_confirmation": true,
 
-    "notes": "Plan at agents/agent.manager/tasks/in_plan/Andrei.improvement.6.pending/6_plan.md",
+    "notes": "",
 
     "platform": "claude",
 
     "created_at": "2026-04-17T00:00:00Z",
     "created_by": "Andrei",
-    "updated_at": "2026-04-17T12:00:00Z",
+    "updated_at": "2026-04-17T15:30:00Z",
     "closed_at": ""
   }
 ]

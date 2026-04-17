@@ -102,6 +102,8 @@
 
             // Short description of what this sub-task does.
             "title": "",
+            // Relative path to the plan file in a tasks/in_plan/{assigned_user}.{type}.{github_issue_id}.{status}/{github_issue_id}_plan.{v1}.md
+            "plan_path": "",
 
             // Sub-task category.
             // plan | research | implementation | review | test | fix | chore
@@ -127,7 +129,7 @@
             "blocked_reason": "",
 
             // Free-form notes about this sub-task.
-            "notes": "",
+            "notes": "current plan version v1",
 
             // Sub-task lifecycle stage.
             // pending         — not yet started
