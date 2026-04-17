@@ -45,7 +45,7 @@
 |   |       |-- create-plan.manager.md
 |   |       |-- create-task.manager.md
 |   |       |-- pick-task.manager.md
-|   |       |-- start-task.manager.md
+|   |       |-- do-task.manager.md
 |   |       `-- sync-tasks.manager.md
 |   |-- output-styles
 |   |   |-- breaker.md
@@ -178,7 +178,7 @@
 |   |   |       |   `-- SKILL.md
 |   |   |       |-- pick-task
 |   |   |       |   `-- SKILL.md
-|   |   |       |-- start-task
+|   |   |       |-- do-task
 |   |   |       |   `-- SKILL.md
 |   |   |       |-- sync-tasks
 |   |   |       |   `-- SKILL.md

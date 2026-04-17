@@ -54,7 +54,7 @@ console.log(sub ? JSON.stringify(sub, null, 2) : 'Sub-task ' + subTaskId + ' not
 
 // Load plan file if exists
 const planDir = path.join(process.env.IN_PLAN_PATH, 'ai.' + taskId + '.' + (task.scope || 'main'));
-const planFile = path.join(planDir, taskId + '.plan.md');
+const planFile = path.join(planDir, taskId + '_plan.md');
 if (fs.existsSync(planFile)) {
   console.log('=== PLAN ===');
   console.log(fs.readFileSync(planFile, 'utf8'));
@@ -108,7 +108,7 @@ if (fs.existsSync(reportFile)) {
 - Never commit unrelated files — stage only what the sub-task changed.
 - If `is_need_human_confirmation: true` on the sub-task, show a diff summary and wait for user approval before committing.
 - Do not create new sub-tasks during implementation — note them in the report instead.
-- If the sub-task requires a plan that does not exist yet, stop and ask the user to run `/start-task {task-id}` first.
+- If the sub-task requires a plan that does not exist yet, stop and ask the user to run `/do-task {task-id}` first.
 
 ---
 

@@ -28,7 +28,7 @@
         "create-plan.manager.md": "",
         "create-task.manager.md": "",
         "pick-task.manager.md": "",
-        "start-task.manager.md": "",
+        "do-task.manager.md": "",
         "sync-tasks.manager.md": ""
       }
     },
@@ -126,7 +126,7 @@
           "make-pan-for-week": "Make plan for week for project",
           "make-plan-for-today": "Make plan for today for project",
           "pick-task": "Pick task for project",
-          "start-task": "Start task for project",
+          "do-task": "Start task for project",
           "sync-tasks": "Sync tasks for project",
           "sync-with-notion-db": "Sync with notion db for project",
         }

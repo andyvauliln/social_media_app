@@ -151,7 +151,7 @@ Metadata only — no folder, no branch, no execution. Task is registered for fut
 3. Generate plan → write to $MANAGER_TASKS/in_plan/$SLUG/plan.md
 ```
 
-No branch creation, no execution — human reviews and runs `/start-task` when ready.
+No branch creation, no execution — human reviews and runs `/do-task` when ready.
 
 ### 5b. `@now` or `@today` WITH `@no_plan`
 
@@ -167,7 +167,7 @@ Metadata only — task is registered for future scheduling.
 ---
 
 ## Step 6 — Build task object base on example and rules in a   MAIN_DOCUMENTATION_FILE context
-- Always create exactly **one** sub-task at creation time. Additional sub-tasks are added by `/start-task` after plan confirmation.
+- Always create exactly **one** sub-task at creation time. Additional sub-tasks are added by `/do-task` after plan confirmation.
 
 ---
 
@@ -236,7 +236,7 @@ run `agents/agent.manager  /sync-tasks skill`
   sub-tasks:
     1. [ID: 1]  Plan and define tests for the build   (type: plan, status: {sub_task_status})
 
-  Next: /start-task {id}
+  Next: /do-task {id}
 ```
 
 ## Rules
@@ -251,7 +251,7 @@ run `agents/agent.manager  /sync-tasks skill`
 ```json
 { "ai_file_metadata": {
     "path": ".claude/skills/create-task/SKILL.md",
-    "description": "Skill: create a structured task with two-branch flow (AI vs human). AI tasks can self-execute; human tasks wait for /start-task.",
+    "description": "Skill: create a structured task with two-branch flow (AI vs human). AI tasks can self-execute; human tasks wait for /do-task.",
     "tags": ["skill", "tasks", "create", "planning", "git"]
 } }
 ```

@@ -88,7 +88,7 @@
 
     // Ordered list of sub-tasks.
     // Exactly one sub-task is created at task creation time.
-    // Additional sub-tasks are appended by /start-task after plan confirmation.
+    // Additional sub-tasks are appended by /do-task after plan confirmation.
     "sub_tasks": [
         {
             // Sequential integer ID within this task (starts at 1).

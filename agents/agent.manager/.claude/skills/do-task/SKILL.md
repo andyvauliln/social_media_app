@@ -1,5 +1,5 @@
 ---
-name: start-task
+name: do-task
 description: Starting task by it id or sub id
 argument-hint: "{task-id} {sub-task-id optional} {prompt optional} @context @ai"
 user-invocable: true
@@ -13,13 +13,13 @@ hooks: {}
 ---
 
 # EXAMPLES
-```javascript
-/start-task 12
-/start-task 12 2
-/start-task 12 2 "Let's try do instead of..."
-/start-task 12 2 Let's try do instead of...
-/start-task 12 @ai // execute without confirmation if was marked need-human
-/start-task 12 @context or @c login.tsx @logout.tsx  
+```js
+/do-task 12
+/do-task 12 2
+/do-task 12 2 "Let's try do instead of..."
+/do-task 12 2 Let's try do instead of...
+/do-task 12 @ai // execute without confirmation if was marked need-human
+/do-task 12 @context or @c login.tsx @logout.tsx  
 ```
 
 ---
@@ -75,13 +75,13 @@ if (fs.existsSync(tasksFile)) {
     const assignedUser = String(task.assigned_user || '').trim();
     const githubUserId = String(task.github_user_id || '').trim();
     const status = String(task.status || '').trim();
-    const type = String(task.status || '').trim();
+    const type = String(task.type || '').trim();
     if (!assignedUser || !githubUserId || !status) {
       console.log('Missing one of required fields: assigned_user, github_user_id, status');
       process.exit(0);
     }
     const planDir = path.resolve(root, 'agents/agent.manager/tasks/in_plan', assignedUser + '.' + type + '.' + githubUserId + '.' + status);
-    const planPath = path.join(planDir, githubUserId + '.plan.md');
+    const planPath = path.join(planDir, githubUserId + '_plan.md');
     if (!fs.existsSync(planDir)) fs.mkdirSync(planDir, { recursive: true });
     if (!fs.existsSync(planPath)) fs.writeFileSync(planPath, '# Plan\n', 'utf8');
     console.log('Plan Path:', planPath);
@@ -121,6 +121,8 @@ if (fs.existsSync(tasksFile)) {
 # RULES
 - if no sub-task-id given, pick next pending subtask
 - If `@ai` flag set — execute subtasks previously marked `is_need_human_confirmation:true` without confirmation
+- task should not be in a pending after this command
+- also when should be today after this command
 ---
 
 # OUTPUT

@@ -13,7 +13,7 @@
 - pick a task for today and recommendation what to work on
 /create-task {prompt}
 - ll create task and subtask and put it in a tasks.index.jsonc
-/start-task {id}
+/do-task {id}
 - shoule create and switch to the new branch
 - should create plan
 /collect-tasks

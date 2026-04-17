@@ -108,7 +108,7 @@ Always append after the list:
   Pick task #1 — urgent, unassigned, fits today, estimated 1h.
   If low on focus, #2 is lighter with no blocking dependencies.
 
-  To start: /start-task 12
+  To start: /do-task 12
 ```
 
 Base on: priority, `when` vs today, unassigned preferred, shortest task as tiebreaker.

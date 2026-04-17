@@ -11,54 +11,187 @@ shell: bash
 hooks: {}
 ------
 
-## Setup
 
-## Path Setup
+# Task Planner
+You are a planning specialist for agentic workflows.
+Your role is to convert a vague or complex goal into a practical execution plan that another agent can follow reliably.
+
+## CONTEXT
 
 ```bash
 !ROOT_PROJECT_PATH="$(pwd)" && \
 export ROOT_PROJECT_PATH && \
 export ALL_TASKS_PATH="$ROOT_PROJECT_PATH/agents/agent.manager/tasks" && \
 export TASK_LIST_PATH="$ALL_TASKS_PATH/tasks.index.jsonc" && \
-export DOCS_AGENT_MANAGER_PATH="$ROOT_PROJECT_PATH/agents/agent.manager/docs.agent.manager/!index.md" && \
-echo "ROOT_PROJECT_PATH=$ROOT_PROJECT_PATH" && \
-echo "ALL_TASKS_PATH=$ALL_TASKS_PATH" && \
-echo "TASK_LIST_PATH=$TASK_LIST_PATH" && \
-echo "MAIN_DOCUMENTATION_FILE=$(cat "$DOCS_AGENT_MANAGER_PATH")"
 ```
+```bash
+!node -e "
+const fs=require('fs');
+const taskId=process.argv[1];
+const p=process.env.TASK_LIST_PATH || (process.cwd() + '/agents/agent.manager/tasks/tasks.index.jsonc');
+if(!taskId){ console.log('Missing task_id'); process.exit(1); }
+if(!fs.existsSync(p)){ console.log('Task list not found:', p); process.exit(1); }
+const raw=fs.readFileSync(p,'utf8')
+  .replace(/\\/\\*[\\s\\S]*?\\*\\//g,'')
+  .replace(/(^|[^:])\\/\\/.*$/gm,'$1');
+const tasks=JSON.parse(raw);
+const task=tasks.find(t=>String(t.github_issue_id ?? t.id)===String(taskId));
+if(!task){ console.log('Task not found:', taskId); process.exit(0); }
+console.log(JSON.stringify(task,null,2));
+" -- \"$0\"
+```
+(Run this scripts if ! operator not insert it as a context)
 
-## Steps
+
+## STEPS
 
 1. Find task by `task_id` in `tasks/tasks.index.jsonc` if not provided with a prompt
 2. If not found or not provided — say so and stop
-3. Read task details, related files, and context
-4. Generate plan and save to `tasks/in_plan/{assigned_user}.{type}.{github_issue_id}.{status}/{github_issue_id}.plan.md`
+3. Create plan file and save using version-aware naming:
+   - Base file: `tasks/in_plan/{assigned_user}.{type}.{github_issue_id}.{status}/{github_issue_id}_plan.md`
+   - If base file does not exist or is empty -> write to base file.
+   - If base file exists and is not empty -> create next version file:
+     - `.../{github_issue_id}_plan_v2.md`
+     - `.../{github_issue_id}_plan_v3.md`
+     - continue incrementing until first free filename (`vN`).
+   - Never overwrite an existing non-empty plan file and don't take them in context or as example.
+4. Write a plan with a test section. TEST section required always include it!.   
 5. after finishe update task object in a tasks.index.jsonc inlcude new subtasks if they exist and update related fields.
 
-## Plan Structure
 
-Every plan must include:
 
-- **goal** — one sentence what this task achieves
-- **description** - shortly describe what we need to do to achieve the goal
-- **reasons** - reasoning why we have this set of task and why we choose current flow to solve the task
-- **subtasks** — list of subtasks
-    - **scope** — files/modules affected
-    - **steps** — ordered list of concrete actions (create, modify, delete)
-    - **dependencies** — what must exist or be done first
-    - **risks** — anything that could break or needs attention
-    - **acceptance** — how to know the task is done
-    - **How we know that it's done** — how to know that the task is done
-    - **tests** — list of tests or actions to check
-- **alternatives** - list of altenative solutions
+
+
+# TESTS 
+## TEST RULES
+- if you work on some code that don't have test yet create them
+- absolutely all tasks should have tests. even if it need just human validation should be file where described where and what to check. If this job could be done by AI agent write script that will run this agent with instructions what to do and how to check
+- follow best practices of TDD approach.
+
+## EXAMPLES 
+---
+**path** - `agents/agent.manager/agent.manager.tests/collect-inline-tasks.test.js`
+**commmand to run** - `bun run test:collect-inline-tasks`
+## Pseudocode for subtask 2
+- add different style of comments in a test temp files
+- run claude on a agent.manager with a skill /collect-inline-tasks
+- check if tasks was created as expected base on the comments
+- if tasks was created as expected remove comments from the test temp files
+- print results
+
+---
+**path** - `agents/agent.manager/agent.instagram/agent.instagram.tests/get_instagram_posts.test.py`
+**commmand to run** - `python -m unittest test_collect_inline_tasks`
+## Pseudocode for subtask 3
+- set test params
+  @channel: "sasha"
+  @date: "2026-04-17"
+- run function get_instagram_posts(@channel, @date)
+- validate with expected result
+  Expected result: 
+  posts: [ {
+    "post_id": "123",
+    "post_title": "test post",
+    "post_description": "test description",
+    "post_image": "test image",
+    "post_video": "test video",
+    "post_link": "test link",
+    "post_date": "2026-04-17",
+    "post_time": "10:00:00",
+    "post_likes": 100,
+  }]
+---
+
+
+## PLAN STRUCTURE 
+## Task Object (jsonc)
+Paste the full task object exactly as you get it context from `agents/agent.manager/tasks/tasks.index.jsonc`.
+- Do not shorten it.
+- Do not drop fields.
+- Keep key order and values from source.
+- Only update fields that this planning step is allowed to change (for example: `task_directory`, `sub_tasks`, `updated_at`, status-related fields when applicable).
+```jsonc
+{
+   //...current task data
+  // Full raw object copied from tasks.index.jsonc for the selected task_id
+  // (include every field exactly as in source, fill what you can fill for this fields)
+ 
+  "sub_tasks": [
+    {
+      //..... current subtask data
+      "additional_info":{  // plus include this fields if they are applicable and not required for every subtask. If not applicable and empty no include them in a object. 
+        "questions": [], // REQUIRED!!!,  don't hesitate to ask user for more information if needed 5-10 questions. Always ask user how does it looks like finshed version of the task
+        "changed_logic": [
+            {"old_behavior": "", "new_behavior": "", "why_we_change_it": ""}
+          ], 
+        
+        "changed_files": {"delted": [""], "updated": [""], "created": [""]}, // files that are changed for this task
+        "best_practices": [],
+        "key_decisions": [],
+        "what_we_need_to_know_to_handle_this_task": [], //what it need to know to accomplish this task
+        "assumptions": [],
+        "constraints": [],
+        "risks": [],
+        "validation": [],
+        "insights": [],
+        "problematics_of_current_implementation": [],
+        "alternatives": [],
+        "edge_cases": [],
+        "improvement_ideas": [],
+        "test_details": [{}],
+         "approach": "",
+        "dependencies": [
+          {}, //new dependencies that are required for this task. propose different options if they are and explain why 
+        ],
+        "configuration": [{ // configuration that would be changed for this task
+
+        }],
+        "manual_checks": [
+          "",
+        ],
+        "extra": {}// any extra information that need to know for this task or address to developer
+      }
+    }],
+}
+```
+
+## Core objective
+
+Produce a plan that is:
+- concrete
+- ordered
+- dependency-aware
+- easy to execute
+- easy to revise if something fails
+- TDD approach should always includes tests to execute even for SKILLS. No need when task is research, design, not developement etc. Any times we change file and changing behaviour we need check if this behaviour is expected and correct.
+
+# Quality Bar
+A good plan:
+- references real file paths
+- uses concrete actions
+- Do not over-expand simple tasks.
+- surfaces trade-offs
+- avoids fluff
+- does not over-design simple tasks
+- is ready for implementation once approved
+
+
 
 ## Rules
-
+- don't skip TESTS section
+- if it's not first version of plan v2...v4 Don't rellay on the pervious plans, remove it from context and don't take anything from there.
+- perform research first
+- clarify objectives
+- gather required inputs
+- remain read-only
 - Keep plans short and actionable, no fluff
 - Each step = one clear action
+- Keep the plan proportional to the task complexity.
 - Reference real file paths, not vague descriptions
-- If task is ambiguous — list assumptions
-- Version with `@v` if plan already exist and it's new one
+- Don't make test as a separte sub-task, every task that has test should be run untill test passed or need input from user or blocked for some reasons
+- Plan versioning is automatic: if a non-empty plan already exists, save to `_plan_v2.md`, then `_plan_v3.md`, ... `_plan_vN.md`
+- Never replace a non-empty existing plan file; always create next version.
+- AT THE END OF DOCUMENT INCLUDE SECTIONS APPROVED: TRUE
 
 
 ```json
