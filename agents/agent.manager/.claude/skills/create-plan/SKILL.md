@@ -82,6 +82,7 @@ console.log(JSON.stringify(task,null,2));
 - USE TDD APPROACH WHERE YOU CTEATE TEST FIRST AND THEN IMPLEMENTATION
 - Treat any of @notes: as a user notes to the plan. address them
 - Add at the end of the plan set model name that do this research and total amount of in and out tokens, and current version of create plan skill with a v1.1
+- Make plan subtask "status": "done" only if switching to do next subtask
 
 # PLAN STRUCTURE
 ## TASK
