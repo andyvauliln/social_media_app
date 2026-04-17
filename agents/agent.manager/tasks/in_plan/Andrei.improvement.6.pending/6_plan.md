@@ -1,4 +1,5 @@
 # Plan: Finish collect-inline-tasks skill
+
 **Task ID:** 6  
 **Branch:** `improvement/6-finish-collect-inline-tasks-skill`  
 **Assigned to:** Andrei → agent.dev
@@ -116,6 +117,7 @@ Rewrite `agents/agent.manager/.claude/skills/collect-inline-tasks/SKILL.md` to c
 **File:** `agents/agent.manager/.claude/skills/collect-inline-tasks/SKILL.md`
 
 **What exists (good — keep):**
+
 - Frontmatter is correct and complete
 - `ai_todo` syntax table with all supported params
 - Ripgrep search command: `rg -n -i 'ai_todo:' "$SEARCH_PATH"`
@@ -124,6 +126,7 @@ Rewrite `agents/agent.manager/.claude/skills/collect-inline-tasks/SKILL.md` to c
 - Line-preservation rules on comment removal
 
 **What's missing (needs to be added/restructured):**
+
 - `# EXAMPLES` section with annotated invocation examples
 - `# CONTEXT` section using `!` bash injection pattern (root path, task list path)
 - `# STEPS` section (numbered, with "why" and "how" per step)
@@ -160,7 +163,7 @@ Rewrite `agents/agent.manager/.claude/skills/collect-inline-tasks/SKILL.md` to c
 [bullet list of rules]
 
 # OUTPUT
-[success/failure format]
+[success/failure/next step formats]
 
 [ai_file_metadata block]
 ```
@@ -168,36 +171,43 @@ Rewrite `agents/agent.manager/.claude/skills/collect-inline-tasks/SKILL.md` to c
 ### Step breakdown
 
 **Step 1 — Gather context (bash injection)**
+
 ```bash
 !ROOT=$(git rev-parse --show-toplevel) && \
 export ALL_TASKS_PATH="$ROOT/agents/agent.manager/tasks" && \
 export TASK_LIST_PATH="$ALL_TASKS_PATH/tasks.index.jsonc"
 ```
+
 Why: Agent needs to know where to write tasks and what root to search from.
 
 **Step 2 — Search**
+
 - `SEARCH_PATH = arg[0] ?? $ROOT`
 - Run: `rg -n -i 'ai_todo:' "$SEARCH_PATH"`
 - If no matches → print "No ai_todo comments found" and stop.
 
 **Step 3 — Parse each match**
 For each match extract:
+
 - `prompt` — text inside quotes (or full text after `ai_todo:`)
 - `@params` — `@ai`, `@user`, `@context`, `@today`, `@week`, `@high`, etc.
 - If `@context` → append `(source: <file>:<line>)` to prompt
 
 **Step 4 — Create task**
+
 - Call `/create-task "<prompt>" <@params>`
 - Wait for successful task ID returned
 - On failure → log error, keep comment, continue
 
 **Step 5 — Remove comment**
+
 - On success only: remove the `ai_todo` line from source file
 - If comment is the only content on line → delete entire line
 - If code precedes comment on same line → remove only the comment portion
 - Support `//`, `/* */`, `#`, `<!-- -->` styles
 
 **Step 6 — Report**
+
 ```
 ✓ Collected inline tasks
 
@@ -238,6 +248,7 @@ For each match extract:
 ```
 
 ### Additional checks
+
 - Test failure path: corrupt `ai_todo:` line (no prompt text) → task NOT created, comment NOT removed
 - Test no-match path: file with no `ai_todo` → reports "No ai_todo comments found"
 
@@ -253,7 +264,7 @@ For each match extract:
 
 ## Questions for User
 
-1. Should the skill support `ai_todo` in JSON/JSONC files (using `//` comments)? Current skill says yes — confirm.
+1. Should the skill support `ai_todo` in JSON/JSONC files (using `//` comments)? Current skill says yes — confirm.``
 2. After removing the comment, should the skill commit the file change, or leave it unstaged?
 3. Is the test runner `bun` already configured in `package.json` for `test:collect-inline-tasks`, or does the test script need to be added?
 4. Should `/create-task` failures abort the whole run, or silently continue to next comment?
@@ -262,3 +273,7 @@ For each match extract:
 ---
 
 ## APPROVED: TRUE
+
+## DEV NOTES:
+
+- Descrise amout of tokens for agent context if it possible

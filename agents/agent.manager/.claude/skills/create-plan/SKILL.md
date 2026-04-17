@@ -57,6 +57,15 @@ console.log(JSON.stringify(task,null,2));
    - Never overwrite an existing non-empty plan file and don't take them in context or as example.
 4. Write a plan with a test section. TEST section required always include it!.   
 5. after finishe update task object in a tasks.index.jsonc inlcude new subtasks if they exist and update related fields.
+6. Print file path and 3 options to choose 
+  1. Start executing plan in a new session
+    - should run /do-task {task-id}
+  2. Update file with a notes @notes comments or in DEV NOTES section
+    - update file plan and just stop
+  3. Update with a notes and execute plan in a new session
+    - should just update file plan and run /do-task {task-id}
+  4. Update with a notes in a new version of plan
+    - should create new version of plan and run /create-plan {task-id}
 
 
 
@@ -191,7 +200,8 @@ A good plan:
 - Don't make test as a separte sub-task, every task that has test should be run untill test passed or need input from user or blocked for some reasons
 - Plan versioning is automatic: if a non-empty plan already exists, save to `_plan_v2.md`, then `_plan_v3.md`, ... `_plan_vN.md`
 - Never replace a non-empty existing plan file; always create next version.
-- AT THE END OF DOCUMENT INCLUDE SECTIONS APPROVED: TRUE
+- AT THE END OF DOCUMENT INCLUDE SECTIONS APPROVED: TRUE, DEV NOTES:
+
 
 
 ```json

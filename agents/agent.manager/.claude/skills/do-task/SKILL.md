@@ -111,8 +111,8 @@ if (fs.existsSync(tasksFile)) {
   - ask if user if he want to 1. commit changes or 2. commit and close-task if it's last subtask.
 9.  commit and close if  user said close `agent.manager /close-task {task-id}` skill 
 10. if user continue and asking additional changes continue working, consider create additional subtasks and update related plan and report
-13. update task in `tasks.index.jsonc` base on current state of task
-14. update task folder name base on current status TASK_LIST_PATH/in_plan/{assigned_user}.{type}.{github-issue-id}.{status}
+11. update task in `tasks.index.jsonc` base on current state of task
+12. update task folder name base on current status TASK_LIST_PATH/in_plan/{assigned_user}.{type}.{github-issue-id}.{status}
 
      
 
