@@ -19,7 +19,7 @@
     "estimated_time": "2h",
 
     // pending | planned | in_progress | in_review | done | blocked | cancelled
-    "status": "planned",
+    "status": "in_progress",
 
     // phase_N | week | today
     "when": "phase_1",
@@ -70,7 +70,7 @@
       "is_need_human_confirmation": true,
       "blocked_reason": "",
       "notes": "",
-      "status": "pending"
+      "status": "done"
     },
     {
       "sub_task_id": 3,
@@ -84,7 +84,7 @@
       "is_need_human_confirmation": true,
       "blocked_reason": "",
       "notes": "",
-      "status": "pending"
+      "status": "done"
     }
   ],
 
@@ -102,7 +102,7 @@
 
     "created_at": "2026-04-17T00:00:00Z",
     "created_by": "Andrei",
-    "updated_at": "2026-04-17T15:30:00Z",
+    "updated_at": "2026-04-17T20:40:00Z",
     "closed_at": ""
   }
 ]
