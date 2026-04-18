@@ -1,18 +1,24 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
 # install everyting
 # run symlink script ai_todo: "make symlink script"
 # deal with a local db ai_todo: "deal with a local db"
 # make file CLAUDE.local.md in a root ai_todo: "make file CLAUDE.local.md in a root @ai"
 # make folder main in a root ai_todo: "make folder main in a root" @ai
 
-
-#!/usr/bin/env bash
-set -euo pipefail
-
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 CONFIG="$ROOT/start.config.jsonc"
 
 if [[ ! -f "$CONFIG" ]]; then
   echo "[init] error: $CONFIG not found" >&2
+  exit 1
+fi
+
+echo "[init] --- root common (bun) ---"
+echo "[init] root: bun install"
+if ! (cd "$ROOT" && bun install); then
+  echo "[init] FAILED: root bun install" >&2
   exit 1
 fi
 

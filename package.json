@@ -2,6 +2,9 @@
   "name": "social-media-app",
   "private": true,
   "workspaces": ["apps/*", "agents/*", "packages/*"],
+  "dependencies": {
+    "jsonc-parser": "^3.3.1"
+  },
   "scripts": {
     "init": "./script.init.sh",
     "start": "./start.sh"

@@ -1,7 +1,7 @@
 ---
 name: install-package
-description: Installs a Python or Node package into the correct scope (global common layer or a specific agent/app) by reading start.config.jsonc to resolve paths and detecting the runtime from manifest files. Use when the user runs /install-package with a package name and scope.
-argument-hint: "<package> scope=<global|service-name>"
+description: Install Python or JS packages with the project standard (root-common + per-agent local), then verify imports and init flow.
+argument-hint: "<package> scope=<global|agent.dev|telegram.app|...>"
 user-invocable: true
 model: claude-haiku-4-6
 effort: low
@@ -12,86 +12,101 @@ shell: bash
 hooks: {}
 ---
 
-## Invocation
+## Goal
 
-```
-/install-package <package> scope=<target>
-```
+Install dependencies correctly for this repo using the hybrid model:
+1) root-common packages shared across agents/apps
+2) local packages for one specific agent/app
 
-- `<package>` — package name (e.g. `requests`, `axios`, `python-dotenv`)
-- `scope=global` — installs into the common layer
-- `scope=<name>` — any `"name"` value from `start.config.jsonc` (e.g. `telegram-bot`, `content-factory`, `cron-supervisor`)
+## Core Concepts
 
----
+### 1) JS/Node/Bun dependency model
+- Common JS dependencies live in root `package.json`.
+- Agent-only JS dependencies live in that agent/app `package.json`.
+- Root install command: `bun install` (run at repo root).
+- Agent local install command: `cd <agent-path> && bun add <pkg>`.
+- Agent scripts can import root packages (for example `jsonc-parser`) when root install was executed.
 
-## Reference
+### 2) Python dependency model
+- Python is environment-based (interpreter/venv), not folder-walk resolution like Node.
+- For Python services, install dependencies in their own project path (for example via requirements or `pyproject.toml` flow used by that service).
+- If a shared Python baseline is needed later, use one root `.venv` strategy explicitly and document it before adding packages.
 
-Read `agents/agent.dev/.claude/skills/install-package/knowledge.md` before proceeding. It contains all concepts, decisions, workspace rules, scope resolution, and type detection logic used in the steps below.
+### 3) Init script flow
+- `script.init.sh` always runs root `bun install` first.
+- Then it executes all entries from `"common"` in `start.config.jsonc`.
+- Then it executes `"services"` where `"enabled": true`, running each entry's `init` command in that entry's `path`.
+- This means package installation policy is enforced by:
+  - root `package.json`,
+  - per-service/agent `package.json` or Python install files,
+  - `start.config.jsonc` init commands.
 
----
+## Ownership Policy
 
-## Steps
+- Common JS package used by multiple agents/apps -> install at repo root.
+- Package used by only one agent/app -> install in that agent/app.
+- Do not add shared wrappers unless explicitly needed for shared code (not just shared dependency).
+- Keep `start.config.jsonc` init commands aligned with actual runtime:
+  - JS services -> `bun install`
+  - Python services -> existing Python init command for that service.
 
-### 1. Resolve scope → path
+## Installation Playbook
 
+1. Identify target scope:
+- `global` (root common JS), or
+- one concrete service/agent from `start.config.jsonc`.
+
+2. Detect runtime by files in target path:
+- `package.json` -> JS/Bun
+- `pyproject.toml` or `requirements.txt` -> Python
+
+3. Install with the right command:
+- JS global: `cd <repo-root> && bun add <pkg>`
+- JS local: `cd <target-path> && bun add <pkg>`
+- Python local (requirements-based): edit requirements and run the service init command
+- Python local (pyproject/uv-based): use that service's documented uv flow
+
+4. Validate:
+- run `./script.init.sh` from root
+- run a minimal import check from target runtime path.
+
+## Examples
+
+### Example A: Add common JS package (`jsonc-parser`)
 ```bash
-ROOT=$(git rev-parse --show-toplevel)
-CONFIG="$ROOT/start.config.jsonc"
+cd /path/to/repo
+bun add jsonc-parser
+./script.init.sh
 ```
 
-- If `scope=global`: path is determined by runtime (see step 2) — Python → `packages/python.common`, Node → `packages/node.common`.
-- Otherwise: parse `start.config.jsonc` (both `"common"` and `"services"` arrays) and find the entry whose `"name"` matches the scope value. Use its `"path"`.
-- If no match is found: stop and tell the user the valid scope values from the config.
-
-### 2. Detect runtime
-
-In the resolved path:
-
-- `pyproject.toml` present, no `package.json` → Python/uv
-- `package.json` present, no `pyproject.toml` → Node/bun
-- Both present → ask user which
-- Neither present → ask user which, then create the manifest (see knowledge.md for the template)
-
-For `scope=global` with no explicit runtime context: ask the user "Python or Node?"
-
-### 3. Ensure manifest exists
-
-If the target path has no manifest yet, create it before adding the package:
-
-Python — create `<path>/pyproject.toml`:
-```toml
-[project]
-name = "<derived-from-folder-name>"
-version = "0.1.0"
-requires-python = ">=3.11"
-dependencies = []
+Import from an agent script:
+```js
+import { parse } from "jsonc-parser";
 ```
 
-Node — create `<path>/package.json`:
-```json
-{
-  "name": "<derived-from-folder-name>",
-  "private": true,
-  "dependencies": {}
-}
-```
-
-### 4. Install
-
-**Python (uv)** — run from repo root:
+### Example B: Add agent-only JS package (`zod`) to `agent.content-factory`
 ```bash
-uv add <package> --package <project-name>
+cd /path/to/repo/agents/agent.content-factory
+bun add zod
+cd /path/to/repo
+./script.init.sh
 ```
-`<project-name>` is the `name` field from the target `pyproject.toml`.
 
-**Node (bun)** — run from the target path:
+Import in that agent:
+```js
+import { z } from "zod";
+```
+
+### Example C: Verify root-common + local import together
 ```bash
-cd "$ROOT/<path>" && bun add <package>
+cd /path/to/repo/agents/agent.content-factory
+bun -e "import { parse } from 'jsonc-parser'; import { z } from 'zod'; console.log(typeof parse, z.string().safeParse('ok').success)"
 ```
 
-### 5. Confirm
+Expected output:
+- `function true`
 
-Report to the user:
-- Package name and installed version
-- Which manifest was updated (relative path)
-- Reminder: run `uv sync` (Python) or `bun install` (Node) at the repo root to propagate the change to all workspace members
+# NOTES
+- FIX IF ANY ERRORS IN INSALLATION 
+- ASK USER IF NOT SURE ABOUT YOUR ACTIONS
+

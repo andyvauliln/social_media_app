@@ -1,8 +1,8 @@
 {
-  "name": "app.dashboard-v2",
+  "name": "agent-content-factory",
   "private": true,
   "type": "module",
   "dependencies": {
-    "node-common": "*"
+    "zod": "^3.25.76"
   }
 }

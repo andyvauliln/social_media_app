@@ -1,8 +1,0 @@
-[project]
-name = "python-common"
-version = "0.1.0"
-requires-python = ">=3.11"
-dependencies = [
-  "requests",
-  "python-dotenv",
-]
