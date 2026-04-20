@@ -22,24 +22,6 @@ if ! (cd "$ROOT" && bun install); then
   exit 1
 fi
 
-parse_common() {
-  python3 -c "
-import json, re, sys
-
-raw = open(sys.argv[1]).read()
-raw = re.sub(r'//.*', '', raw)
-raw = re.sub(r'/\*.*?\*/', '', raw, flags=re.DOTALL)
-config = json.loads(raw)
-
-for s in config.get('common', []):
-    print('\t'.join([
-        s.get('name', ''),
-        s.get('path', ''),
-        s.get('init', ''),
-    ]))
-" "$1"
-}
-
 parse_services() {
   python3 -c "
 import json, re, sys

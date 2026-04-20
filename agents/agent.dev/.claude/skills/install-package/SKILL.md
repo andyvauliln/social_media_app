@@ -17,15 +17,17 @@ hooks: {}
 Install dependencies correctly for this repo using the hybrid model:
 1) root-common packages shared across agents/apps
 2) local packages for one specific agent/app
+3) script.init.sh single point of truth for the project everything that need to be installed shoud be set there.
+4) script.init.sh also handling applications and agent installation from the start.config.jsonc file by executing init script in every application, github project and agent folder.
 
 ## Core Concepts
 
-### 1) JS/Node/Bun dependency model
+### 1) TS,JS/Node/Bun dependency model
 - Common JS dependencies live in root `package.json`.
 - Agent-only JS dependencies live in that agent/app `package.json`.
-- Root install command: `bun install` (run at repo root).
+- All installation should hapen in a script.init.sh file in a root of the project
 - Agent local install command: `cd <agent-path> && bun add <pkg>`.
-- Agent scripts can import root packages (for example `jsonc-parser`) when root install was executed.
+- Agent scripts can import root packages (for example `jsonc-parser`) if root init script was executed.
 
 ### 2) Python dependency model
 - Python is environment-based (interpreter/venv), not folder-walk resolution like Node.
@@ -56,9 +58,7 @@ Install dependencies correctly for this repo using the hybrid model:
 - `global` (root common JS), or
 - one concrete service/agent from `start.config.jsonc`.
 
-2. Detect runtime by files in target path:
-- `package.json` -> JS/Bun
-- `pyproject.toml` or `requirements.txt` -> Python
+2. Detect is it js package or python package, if not sure ask user
 
 3. Install with the right command:
 - JS global: `cd <repo-root> && bun add <pkg>`

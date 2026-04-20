@@ -1,5 +1,4 @@
 {
-  "common": [],
   "services": [
     {
       "name": "cron-supervisor",

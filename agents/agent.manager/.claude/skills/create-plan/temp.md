@@ -147,4 +147,3 @@ Run: node agents/agent.manager/agent.manager.tests/collect-inline-tasks.test.js
 - Keep SKILL use and execution with low amount of tokens, analyze how much tokens it use for exection and try to reduce by removing any unnecessary context or information simplify some steps execution by providing fastes and low token solutions, decrise amount of steps(tool use, another...) you made for running this task .
 
 Model: {current model} | Tokens: ~{total amount of in and out tokens}. /create-plan skill version: {current version}
-
