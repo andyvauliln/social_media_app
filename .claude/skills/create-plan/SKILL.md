@@ -11,17 +11,30 @@ shell: bash
 hooks: {}
 ------
 
-you should run this script and wait result after this report of exection
+# STEPS
+
+## 1. Run this bash command with the Bash tool (do not just describe it — execute it):
 
 ```bash
-!cd "$(dirname "$0")" && \
-  SESSION_ID=$(uuidgen | tr '[:upper:]' '[:lower:]') && \
-  echo "SESSION_ID=$SESSION_ID" && \
-  claude \
-    --debug \
-    --debug-file ./debug.claude.log \
-    --verbose \
-    --session-id "$SESSION_ID" \
-    -p "Session ID: $SESSION_ID\nTask: $ARGUMENTS"
+ROOT=$(git rev-parse --show-toplevel) && \
+SESSION_ID=$(uuidgen | tr '[:upper:]' '[:lower:]') && \
+echo "SESSION_ID=$SESSION_ID" && \
+SKILL_CONTENT=$(cat "$ROOT/agents/agent.manager/.claude/skills/create-plan/SKILL.md") && \
+cd "$ROOT/agents/agent.manager" && \
+claude \
+  --debug \
+  --debug-file "$ROOT/.claude/skills/create-plan/debug.claude.log" \
+  --verbose \
+  --session-id "$SESSION_ID" \
+  --max-turns 50 \
+  --permission-mode bypassPermissions \
+  -p "Session ID: $SESSION_ID
+Task args: $ARGUMENTS
+
+$SKILL_CONTENT"
 ```
-print current session subagent session and model currently executing subagent skill
+
+## 2. After execution print:
+- Sub-agent session ID
+- Model used (haiku, from skill frontmatter)
+- The exact prompt passed to the agent
