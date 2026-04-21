@@ -627,6 +627,7 @@ mcp.setRequestHandler(CallToolRequestSchema, async req => {
   }
 })
 
+process.stdin.resume()
 await mcp.connect(new StdioServerTransport())
 
 // When Claude Code closes the MCP connection, stdin gets EOF. Without this

@@ -254,7 +254,7 @@ if [[ -d "${ENVS_DIR}" ]]; then
   done < <(printf '%s\n' "${ENVS_DIR}"/agents*.env | sort)
 fi
 
-TELEGRAM_CHANNEL="${TELEGRAM_CHANNEL:-plugin:telegram@claude-plugins-official}"
+TELEGRAM_CHANNEL="${TELEGRAM_CHANNEL:-plugin:telegram@inline}"
 
 # --plugin-dir sync with /sync-plugins dev agent  before every pr and with a command /sync-plugins.dev on a root
 args=(
@@ -282,9 +282,8 @@ args=(
   # need auth vercel (later)
   --plugin-dir "./plugins/vercel/0.40.0"
   --debug
-  # --channels "${TELEGRAM_CHANNEL}"
   --dangerously-skip-permissions
-  --dangerously-load-development-channels server:plugin:fakechat:fakechat
+  --dangerously-load-development-channels server:plugin:fakechat:fakechat "${TELEGRAM_CHANNEL}"
   --permission-mode bypassPermissions
   
 )
