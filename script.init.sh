@@ -95,6 +95,7 @@ while IFS=$'\t' read -r name type enabled svc_path init_cmd start_cmd production
   [[ -z "$init_cmd" ]] && continue
 
   cwd="$ROOT/$svc_path"
+
   if [[ ! -d "$cwd" ]]; then
     echo "[init] skip $name: directory $cwd not found" >&2
     continue
