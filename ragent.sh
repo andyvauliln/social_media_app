@@ -281,6 +281,6 @@ exec claude --verbose \
   # need auth vercel (later)
   --plugin-dir "./plugins/vercel/0.40.0" \ 
   --debug \
-  --channels "${TELEGRAM_CHANNEL}" \
+  # --channels "${TELEGRAM_CHANNEL}" \
   --channels fakechat \
   --permission-mode bypassPermissions

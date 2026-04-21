@@ -69,6 +69,16 @@
       "start": "node tools/installer/bmad-cli.js install"
       // not a running service — invoke manually to install agents/workflows into a target project
       // non-interactive: node tools/installer/bmad-cli.js install --directory /path --modules bmm --tools claude-code --yes
+    },
+    {
+      "name": "hyperframes",
+      "description": "HTML-native AI-first video rendering framework and local preview studio",
+      "type": "github-project",
+      "enabled": false,
+      "path": "github-projects/content-factory/hyperframes",
+      "init": "npm install",
+      "start": "npx hyperframes preview"
+      // requires Node.js >= 22 and FFmpeg installed on host
     }
   ]
 }
