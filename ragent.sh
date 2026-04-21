@@ -228,4 +228,4 @@
 # JSON automation:
 #   claude -p --output-format stream-json --include-partial-messages "query"
 
-exec claude --verbose --debug --permission-mode bypassPermissions
+exec claude --verbose --debug --permission-mode bypassPermissions --plugin-dir "./claude/plugins/*" 

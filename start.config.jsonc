@@ -5,6 +5,7 @@
       "description": "Scheduled GitHub Actions and periodic tasks",
       "type": "app",
       "enabled": true,
+      "serviceManaged": true, // managed by launchd (macOS) / systemd (Linux) — not started by start.sh
       "path": "apps/cron-supervisor",
       "init": "bun install",
       "start": "bun run start"

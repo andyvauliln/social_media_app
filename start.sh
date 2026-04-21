@@ -29,13 +29,15 @@ for s in config.get('services', []):
         s.get('path', ''),
         s.get('init', ''),
         s.get('start', ''),
+        str(s.get('serviceManaged', False)).lower(),
     ]))
 " "$1"
 }
 
-while IFS=$'\t' read -r name type enabled svc_path init_cmd start_cmd; do
+while IFS=$'\t' read -r name type enabled svc_path init_cmd start_cmd service_managed; do
   [[ "$enabled" != "true" ]] && continue
   [[ "$type" == "agent" ]] && continue
+  [[ "$service_managed" == "true" ]] && continue
   [[ -z "$start_cmd" ]] && continue
 
   cwd="$ROOT/$svc_path"

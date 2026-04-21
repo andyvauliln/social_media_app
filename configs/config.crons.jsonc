@@ -72,6 +72,20 @@
             }
         },
         {
+            "name": "health-check",
+            "description": "prints a heartbeat every minute",
+            "schedule": "* * * * *",
+            "enabled": true,
+            "production": true,
+            "development": true,
+            "runLocation": "supervisor",
+            "run": {
+                "type": "shell",
+                "cwd": ".",
+                "command": "echo \"[health-check] $(date -u +%Y-%m-%dT%H:%M:%SZ)\""
+            }
+        },
+        {
             "name": "make-week-plan",
             "description": "weekly plan 07:00 Bali; GitHub: Sunday 23:00 UTC ≈ Monday 07:00 WITA",
             "schedule": "0 0 * * *",

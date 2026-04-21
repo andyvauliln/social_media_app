@@ -23,8 +23,9 @@ SKILL_CONTENT=$(cat "$ROOT/agents/agent.manager/.claude/skills/create-plan/SKILL
 cd "$ROOT/agents/agent.manager" && \
 claude \
   --debug \
-  --debug-file "$ROOT/.claude/skills/create-plan/debug.claude.log" \
+  --debug-file "$ROOT/debug.claude.log" \
   --verbose \
+  --bare \
   --session-id "$SESSION_ID" \
   --max-turns 50 \
   --permission-mode bypassPermissions \

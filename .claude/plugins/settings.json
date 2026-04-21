@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "respectGitignore": true,
+  "cleanupPeriodDays": 30,
+  "env": {
+    "NODE_ENV": "development",
+    "CLAUDE_CODE_ENABLE_TASKS": 0,
+    "CLAUDE_CODE_DEBUG_LOG_LEVEL": "verbose",
+    "CLAUDE_CODE_DEBUG": 1,
+    "CLAUDE_CODE_DEBUG_LOGS_DIR": "./agents/agent.logs/claude-debug.log"
+  },
+  "attribution": {
+    "commit": "🤖 Generated with Claude Code\n\nCo-Authored-By: Claude <[email protected]>",
+    "pr": ""
+  },
+  "includeGitInstructions": true,
+  "permissions": {
+    "allow": [
+      "Agent",
+      "Bash",
+      "Edit",
+      "Glob",
+      "Grep",
+      "KillShell",
+      "LSP",
+      "NotebookEdit",
+      "Read",
+      "Skill",
+      "TaskCreate",
+      "TaskGet",
+      "TaskList",
+      "TaskOutput",
+      "TaskStop",
+      "TaskUpdate",
+      "TodoWrite",
+      "ToolSearch",
+      "WebFetch",
+      "WebSearch",
+      "Write"
+    ],
+    "deny": [],
+    "ask": [],
+    "defaultMode": "bypassPermissions",
+    "additionalDirectories": [],
+    "skipDangerousModePermissionPrompt": true
+  },
+  "model": "claude-sonnet-4-6",
+  "availableModels": [
+    "best",
+    "sonnet",
+    "opus",
+    "haiku",
+    "sonnet[1m]",
+    "opus[1m]",
+    "opusplan"
+  ],
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash(git commit *)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pnpm lint-fix && pnpm typecheck"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'Claude done'"
+          }
+        ]
+      }
+    ]
+  },
+  "worktree": {
+    "symlinkDirectories": [
+      "node_modules",
+      ".cache"
+    ],
+    "sparsePaths": []
+  },
+  "disableAllHooks": false,
+  "allowedHttpHookUrls": [],
+  "httpHookAllowedEnvVars": [],
+  "outputStyle": "Explanatory",
+  "language": "english",
+  "sandbox": {
+    "enabled": false,
+    "failIfUnavailable": false,
+    "autoAllowBashIfSandboxed": true,
+    "network": {
+      "allowedDomains": [
+        "github.com",
+        "*.npmjs.org",
+        "api.anthropic.com"
+      ],
+      "allowUnixSockets": [
+        "/var/run/docker.sock"
+      ],
+      "allowAllUnixSockets": false,
+      "allowLocalBinding": true
+    },
+    "filesystem": {
+      "allowWrite": [
+        "/tmp",
+        "./dist",
+        "./.next"
+      ],
+      "denyWrite": [
+        "/etc",
+        "/usr/local/bin"
+      ],
+      "denyRead": [
+        "~/.aws/credentials",
+        "~/.ssh/id_rsa"
+      ],
+      "allowRead": [
+        "."
+      ]
+    },
+    "excludedCommands": [
+      "docker *",
+      "colima *"
+    ]
+  },
+  "feedbackSurveyRate": 0,
+  "spinnerTipsEnabled": true,
+  "alwaysThinkingEnabled": false,
+  "effortLevel": "medium",
+  "showClearContextOnPlanAccept": true,
+  "autoUpdatesChannel": "stable",
+  "plansDirectory": "./plans",
+  "prefersReducedMotion": false,
+  "showThinkingSummaries": false,
+  "claudeMdExcludes": [],
+  "enabledPlugins": {
+  },
+  "extraKnownMarketplaces": {
+    "cc-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "ananddtyagi/claude-code-marketplace"
+      }
+    }
+  }
+}

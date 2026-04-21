@@ -85,4 +85,18 @@ if [[ "$failed" -eq 1 ]]; then
   exit 1
 fi
 
+echo "[init] --- cron supervisor service ---"
+chmod +x "$ROOT/apps/cron-supervisor/acron.sh"
+chmod +x "$ROOT/apps/cron-supervisor/scripts/setup-service.sh"
+chmod +x "$ROOT/apps/cron-supervisor/scripts/cron-edit.mjs"
+
+if ! bash "$ROOT/apps/cron-supervisor/scripts/setup-service.sh"; then
+  echo "[init] FAILED: cron supervisor service setup" >&2
+  exit 1
+fi
+
+echo "[init] --- acron CLI ---"
+ln -sf "$ROOT/apps/cron-supervisor/acron.sh" /usr/local/bin/acron
+echo "[init] acron linked: /usr/local/bin/acron"
+
 echo "[init] done"
