@@ -64,3 +64,5 @@ github-projects/
 AI
 
 *.log
+
+.envs/*

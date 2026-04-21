@@ -49,6 +49,17 @@
       // for production: use docker compose up -d --build with docker-compose.prod.yml
     },
     {
+      "name": "postiz-app",
+      "description": "Open-source AI social media scheduling suite with NextJS frontend, NestJS backend, and orchestration workers",
+      "type": "github-project",
+      "enabled": false,
+      "path": "github-projects/content-factory/postiz-app",
+      "init": "pnpm install",
+      "start": "pnpm run dev"
+      // requires PostgreSQL + Redis and a configured .env file (linked from envs/github.app.postiz-app.symlink.env)
+      // alternative local stack: docker compose -f docker-compose.dev.yaml up -d
+    },
+    {
       "name": "BMAD-METHOD",
       "description": "Agile AI-driven development framework — installs 12+ expert agent personas and 34+ workflows into any project's .claude/ folder",
       "type": "github-project",

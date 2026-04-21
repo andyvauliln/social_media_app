@@ -13,8 +13,9 @@ hooks: {}
 ---
 
 1) check folders that represent collections in ./github-projects
-2) install project to folder ./github-projects/collection
-3) install dependencies and if it's project that runnning not an package or some collection of something try to run and and check if it's works
-4) base on the result and additional research add project to !index.jsonc
+2) install project to any sutabable folder (collection) ./github-projects/{collection_name} or create new collection
+3) research project and make init and start scripts and add them in a start.config.jsonc file with init and start. make it default dissabled
+4) base on the result and additional research add project to ./github-projects/!index.jsonc
 5) add entrace in a start.config.jsonc (disabled by default)
-6) say user if he need add envs and if yes than say how to add them and what to fill in
+6) symlink env file with examples to env with a name ./envs/github.app.{project_name}.symlink.env
+6) print env file path and envs need to be filled for user
