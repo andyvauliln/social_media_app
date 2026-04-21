@@ -1,0 +1,423 @@
+// List of gihub projects with description and another valuable details
+[
+  {
+    "progect_name": "hermes-agent",
+    "collection": "coding-terminals",
+    "github": "https://github.com/NousResearch/hermes-agent",
+    "languages": ["Python", "JavaScript"],
+    "description": "Self-improving AI agent by Nous Research with a built-in learning loop — creates skills from experience, improves them during use, supports Telegram/Discord/Slack gateways, cron scheduler, batch trajectory generation, and runs on any model via OpenRouter/Nous Portal/OpenAI.",
+    "start_script": "python run_agent.py",
+    "commits": 3202,
+    "features": [
+      "Self-improving skills with learning loop",
+      "Telegram / Discord / Slack / WhatsApp gateway",
+      "Built-in cron scheduler",
+      "Parallel subagent delegation",
+      "Runs on any LLM endpoint (OpenRouter, Nous Portal, OpenAI, etc.)",
+      "Six terminal backends: local, Docker, SSH, Daytona, Singularity, Modal",
+      "Batch trajectory generation for RL training"
+    ],
+    "last_commit_date": "04.04.2026",
+    "stars": 0, // update manually
+    "is_ui": false,
+    "ui_endpoint": "",
+    "docs": ["./docs", "README.md"],
+    "is_docker": true,
+    "start_errors": "Optional modules missing: firecrawl, fal_client (non-blocking)",
+    "install_errors": "Minor version conflicts: pyppeteer/websockets, langchain/tenacity (non-blocking)",
+    "is_installed": true,
+    "is_pass_first_run": true,
+    "main_stack": "Python, OpenAI SDK, rich TUI",
+    "ai_functionality": ["Self-improving agent", "Skill creation", "Memory/session search", "Multi-platform messaging", "Cron automations"],
+    "ENV": "OPENAI_API_KEY or OPENROUTER_API_KEY",
+    "main_functions": [
+      {
+        "name": "run_agent",
+        "input": { "query": "natural language task" },
+        "output": { "result": "agent response with tool use" },
+        "steps": ["1. Parse query", "2. Select tools from toolset", "3. Execute tools", "4. Persist skills/memory"]
+      }
+    ],
+    "apis": [],
+    "is_running": false,
+    "is_enabled": true
+  },
+  {
+    "progect_name": "openscreen",
+    "collection": "content-factory",
+    "github": "https://github.com/siddharthvaddem/openscreen",
+    "languages": ["TypeScript", "JavaScript"],
+    "description": "Free open-source alternative to Screen Studio (Electron app). Record screen/windows, add auto/manual zooms, microphone + system audio, annotations, trim, speed segments, motion blur, custom backgrounds, and export in multiple resolutions.",
+    "start_script": "npm run dev",
+    "commits": 409,
+    "features": [
+      "Screen and window recording",
+      "Auto and manual zooms with customizable depth",
+      "Microphone and system audio capture",
+      "Annotations: text, arrows, images",
+      "Trim and speed segment controls",
+      "Motion blur for pan/zoom effects",
+      "Custom backgrounds: wallpapers, solid colors, gradients",
+      "Export in different aspect ratios and resolutions"
+    ],
+    "last_commit_date": "03.04.2026",
+    "stars": 0, // update manually
+    "is_ui": true,
+    "ui_endpoint": "Electron desktop app",
+    "docs": ["README.md"],
+    "is_docker": false,
+    "start_errors": "",
+    "install_errors": "npm audit warnings (non-blocking)",
+    "is_installed": true,
+    "is_pass_first_run": true,
+    "main_stack": "Electron, Vite, React, TypeScript, Tailwind CSS",
+    "ai_functionality": [],
+    "ENV": "",
+    "main_functions": [
+      {
+        "name": "record",
+        "input": { "source": "screen or window" },
+        "output": { "video": "recorded video file" },
+        "steps": ["1. Select source", "2. Record with audio", "3. Apply zooms/effects", "4. Export"]
+      }
+    ],
+    "apis": [],
+    "is_running": false,
+    "is_enabled": true
+  }
+,
+  {
+    "progect_name": "claude-code",
+    "collection": "coding-terminals",
+    "github": "https://github.com/codeaashu/claude-code",
+    "languages": ["TypeScript"],
+    "description": "Leaked source code of Anthropic's Claude Code CLI (leaked 2026-03-31). Full ~512K line TypeScript codebase with React+Ink TUI, tool system, MCP server explorer, and agent/command architecture. For research/exploration only — not an official release.",
+    "start_script": "bun scripts/build-bundle.ts",
+    "commits": 12,
+    "features": [
+      "Full Claude Code CLI source (~512K lines TypeScript)",
+      "React + Ink terminal UI",
+      "Tool system and command system architecture",
+      "MCP Explorer server",
+      "Agent and daemon subsystems"
+    ],
+    "last_commit_date": "02.04.2026",
+    "stars": 0, // update manually
+    "is_ui": false,
+    "ui_endpoint": "",
+    "docs": ["./docs", "README.md", "agent.md", "Skill.md"],
+    "is_docker": true,
+    "start_errors": "Build fails: missing daemon/workerRegistry.js and daemon/main.js — incomplete leaked source",
+    "install_errors": "npm audit warnings (non-blocking)",
+    "is_installed": true,
+    "is_pass_first_run": false,
+    "main_stack": "TypeScript, Bun, React, Ink",
+    "ai_functionality": ["CLI agent for coding tasks", "Tool use", "MCP integration"],
+    "ENV": "ANTHROPIC_API_KEY",
+    "main_functions": [],
+    "apis": [],
+    "is_running": false,
+    "is_enabled": false
+  },
+  {
+    "progect_name": "pi-mono",
+    "collection": "coding-terminals",
+    "github": "https://github.com/badlogic/pi-mono",
+    "languages": ["TypeScript"],
+    "description": "Monorepo of AI agent tools by badlogic: unified multi-provider LLM API, agent runtime with tool calling, interactive coding agent CLI (pi), Slack bot, terminal UI library, web UI components, and GPU pod manager for vLLM deployments.",
+    "start_script": "./pi-test.sh",
+    "commits": 3454,
+    "features": [
+      "Unified LLM API across OpenAI, Anthropic, Google, etc. (pi-ai)",
+      "Agent runtime with tool calling and state management (pi-agent-core)",
+      "Interactive coding agent CLI — pi (pi-coding-agent)",
+      "Slack bot delegating to pi coding agent (pi-mom)",
+      "Terminal UI library with differential rendering (pi-tui)",
+      "Web components for AI chat interfaces (pi-web-ui)",
+      "CLI for managing vLLM deployments on GPU pods (pi-pods)"
+    ],
+    "last_commit_date": "03.04.2026",
+    "stars": 0, // update manually
+    "is_ui": false,
+    "ui_endpoint": "",
+    "docs": ["README.md", "AGENTS.md", "CONTRIBUTING.md", "packages/coding-agent/docs"],
+    "is_docker": false,
+    "start_errors": "",
+    "install_errors": "Build requires tsgo (TypeScript Go compiler) — full build fails, but CLI runs via ./pi-test.sh",
+    "is_installed": true,
+    "is_pass_first_run": true,
+    "main_stack": "TypeScript, Node.js, npm workspaces",
+    "ai_functionality": ["Multi-provider LLM API", "Coding agent CLI", "Tool calling agent runtime"],
+    "ENV": "ANTHROPIC_API_KEY or GOOGLE_API_KEY or OPENAI_API_KEY",
+    "main_functions": [
+      {
+        "name": "pi (coding agent CLI)",
+        "input": { "message": "natural language coding task", "files": ["@file1", "@file2"] },
+        "output": { "result": "code edits and agent responses" },
+        "steps": ["1. Parse message and context files", "2. Call LLM with tools", "3. Execute read/edit/bash/write tools", "4. Stream output to TUI"]
+      }
+    ],
+    "apis": [],
+    "is_running": false,
+    "is_enabled": true
+  },
+  {
+    "progect_name": "claude-code-output-styles",
+    "collection": "content-factory",
+    "github": "https://github.com/nattergabriel/claude-code-output-styles",
+    "languages": ["Markdown"],
+    "description": "Curated collection of 13 custom output styles for Claude Code that modify AI behavior by changing its system prompt — adapting it for different workflows such as TDD, security-focused, minimal, ship-it, socratic, and more.",
+    "start_script": "", // no executable — copy .md files to ~/.claude/output-styles/ or .claude/output-styles/
+    "commits": 7,
+    "features": [
+      "13 output styles: Breaker, Challenger, Concise, Minimal, Opinionated, Paranoid, Performance, Roast, Ship It, Simple, Socratic, TDD, Think Aloud",
+      "Project-level or user-level installation via .claude/output-styles/",
+      "Select style via /config > Output style or settings.json outputStyle key",
+      "MIT licensed, contributions welcome"
+    ],
+    "last_commit_date": "03.04.2026",
+    "stars": 0, // update manually
+    "is_ui": false,
+    "ui_endpoint": "",
+    "docs": ["README.md", "CONTRIBUTING.md"],
+    "is_docker": false,
+    "start_errors": "",
+    "install_errors": "",
+    "is_installed": true,
+    "is_pass_first_run": true,
+    "main_stack": "Markdown (Claude Code system prompt files)",
+    "ai_functionality": ["Custom Claude Code output styles", "System prompt modification"],
+    "ENV": "",
+    "main_functions": [
+      {
+        "name": "output-style",
+        "input": { "style": "one of 13 style names" },
+        "output": { "behavior": "Claude Code responds according to the selected style's system prompt" },
+        "steps": ["1. Copy .md files to .claude/output-styles/", "2. Select via /config or set outputStyle in settings.json", "3. Claude Code applies the style's system prompt on next session"]
+      }
+    ],
+    "apis": [],
+    "is_running": false,
+    "is_enabled": true
+  }
+,
+  {
+    "progect_name": "everything-claude-code",
+    "collection": "coding-terminals",
+    "github": "https://github.com/affaan-m/everything-claude-code",
+    "languages": ["JavaScript", "TypeScript", "Shell", "Markdown"],
+    "description": "Battle-tested collection of Claude Code agents, skills, hooks, commands, rules, and MCP configs — built over 10+ months by an Anthropic hackathon winner. Published as ecc-universal npm package. Covers token optimization, memory persistence, continuous learning, security scanning, parallel worktree orchestration, and cross-harness support (Claude Code, Codex, Cursor, OpenCode, Gemini).",
+    "start_script": "npx ecc <profile>",
+    "commits": 1272,
+    "features": [
+      "40+ production-ready agents (planner, tdd-guide, code-reviewer, etc.)",
+      "Hooks: session start/end, cost tracking, auto-tmux dev server, security scan, format/typecheck on stop",
+      "Skills: TDD, planning, E2E tests, code review, skill extraction from git history",
+      "Commands: /tdd, /plan, /e2e, /code-review, /build-fix, /learn, /skill-create",
+      "MCP config examples for popular servers",
+      "AgentShield security scanning (ecc-agentshield npm package)",
+      "Token/memory optimization via hook-based session persistence",
+      "Multi-harness: Claude Code, Codex, Cursor, OpenCode, Gemini",
+      "Install profiles: minimal, standard, full",
+      "Comprehensive CI validators for agents, commands, hooks, skills, rules"
+    ],
+    "last_commit_date": "10.04.2026",
+    "stars": 0, // update manually
+    "is_ui": false,
+    "ui_endpoint": "",
+    "docs": ["README.md", "the-shortform-guide.md", "the-longform-guide.md", "the-security-guide.md", "docs/"],
+    "is_docker": false,
+    "start_errors": "",
+    "install_errors": "",
+    "is_installed": true,
+    "is_pass_first_run": true,
+    "main_stack": "Node.js, JavaScript (CommonJS), Markdown, Shell",
+    "ai_functionality": ["Multi-agent orchestration", "Session memory persistence", "Continuous skill learning", "Security scanning", "TDD workflow", "Cost tracking"],
+    "ENV": "ANTHROPIC_API_KEY (for Claude Code), optional: ECC_HOOK_PROFILE, ECC_DISABLED_HOOKS",
+    "main_functions": [
+      {
+        "name": "ecc install",
+        "input": { "profile": "minimal | standard | full | typescript | python | etc." },
+        "output": { "result": "Copies agents, skills, hooks, commands, rules into .claude/ directory" },
+        "steps": ["1. Run npx ecc <profile>", "2. Files copied to project .claude/ or ~/.claude/", "3. Reload Claude Code to pick up new agents/hooks"]
+      }
+    ],
+    "apis": [],
+    "is_running": false,
+    "is_enabled": true
+  }
+,
+  {
+    "progect_name": "brightbean-studio",
+    "collection": "content-factory",
+    "github": "https://github.com/brightbeanxyz/brightbean-studio",
+    "languages": ["Python", "HTML", "JavaScript", "CSS"],
+    "description": "Open-source self-hosted social media management platform. Plan, compose, schedule, approve, publish, and monitor content across 10+ social networks (Facebook, Instagram, LinkedIn, TikTok, YouTube, Pinterest, Threads, Bluesky, Google Business Profile, Mastodon) from a unified dashboard.",
+    "start_script": "python3.12 manage.py runserver",
+    "commits": 239,
+    "features": [
+      "Multi-workspace management with role-based access control",
+      "Visual calendar with drag-and-drop and recurring posting",
+      "Unified social inbox (comments, mentions, DMs)",
+      "Client approval portal (no signup required)",
+      "Auto-optimized media library per platform",
+      "Rich content composition with version history and templates",
+      "Configurable approval workflows with audit trails",
+      "Encrypted credential storage + optional 2FA",
+      "10+ platform integrations: Facebook, Instagram, LinkedIn, TikTok, YouTube, Pinterest, Threads, Bluesky, Google Business, Mastodon",
+      "Docker + Caddy production setup with auto-HTTPS"
+    ],
+    "last_commit_date": "15.04.2026",
+    "stars": 0, // update manually
+    "is_ui": true,
+    "ui_endpoint": "http://localhost:8000",
+    "docs": ["README.md", "CONTRIBUTING.md", "development_specs/"],
+    "is_docker": true,
+    "start_errors": "",
+    "install_errors": "Must use python3.12+ (not system python); wandb/protobuf conflict is non-blocking",
+    "is_installed": true,
+    "is_pass_first_run": true,
+    "main_stack": "Python 3.12, Django 5, HTMX, Alpine.js, Tailwind CSS 4, PostgreSQL/SQLite, Gunicorn, Caddy",
+    "ai_functionality": [],
+    "ENV": "SECRET_KEY, ENCRYPTION_KEY_SALT, DATABASE_URL, APP_URL, ALLOWED_HOSTS — platform API keys optional (can set via admin UI)",
+    "main_functions": [
+      {
+        "name": "runserver",
+        "input": { "command": "python3.12 manage.py runserver" },
+        "output": { "ui": "Web dashboard at http://localhost:8000" },
+        "steps": ["1. Copy .env.example to .env and fill values", "2. Run migrations: python3.12 manage.py migrate", "3. Create superuser: python3.12 manage.py createsuperuser", "4. Run server: python3.12 manage.py runserver", "5. Add social platform credentials via admin UI"]
+      }
+    ],
+    "apis": [],
+    "is_running": false,
+    "is_enabled": false
+  }
+,
+  {
+    "progect_name": "BMAD-METHOD",
+    "collection": "coding-terminals",
+    "github": "https://github.com/bmad-code-org/BMAD-METHOD",
+    "languages": ["JavaScript", "Node.js", "HTML", "CSS", "Shell", "Markdown"],
+    "description": "Breakthrough Method of Agile AI-driven Development (BMAD). A CLI installer that drops 12+ specialized AI agents (PM, Architect, Developer, QA, UX, Scrum Master, etc.) and 34+ agile workflows into any project's .claude/ folder. Works with Claude Code, Cursor, and other AI IDEs.",
+    "start_script": "node tools/installer/bmad-cli.js install",
+    "commits": 1820,
+    "features": [
+      "12+ domain expert agent personas (PM, Architect, Developer, UX, QA, Scrum Master, Product Owner, etc.)",
+      "34+ agile workflows grounded in best practices",
+      "Scale-adaptive: simple bug fixes to enterprise systems",
+      "Party Mode — multi-agent collaboration sessions",
+      "Complete lifecycle: brainstorming → deployment",
+      "5 official modules including Test Architect and Game Dev Studio",
+      "BMad Builder for custom agent persona creation",
+      "Agent-as-Code Markdown files — no runtime dependency",
+      "Works with Claude Code, Cursor, and any AI IDE with system prompt support",
+      "Non-interactive install flag for CI/CD pipelines"
+    ],
+    "last_commit_date": "13.04.2026",
+    "stars": 0, // update manually
+    "is_ui": false,
+    "ui_endpoint": "",
+    "docs": ["README.md", "AGENTS.md", "docs/", "CONTRIBUTING.md"],
+    "is_docker": false,
+    "start_errors": "",
+    "install_errors": "Must use --no-workspaces flag with npm (conflicts with monorepo root); 14 audit warnings (non-blocking)",
+    "is_installed": true,
+    "is_pass_first_run": true,
+    "main_stack": "Node.js 20+, JavaScript (CommonJS), Markdown",
+    "ai_functionality": ["Multi-agent orchestration", "Agile AI-driven development workflow", "Specialized domain expert agents", "Structured project planning and execution"],
+    "ENV": "",
+    "main_functions": [
+      {
+        "name": "bmad install",
+        "input": { "directory": "target project path", "modules": "bmm or others", "tools": "claude-code | cursor" },
+        "output": { "result": "Copies agents, skills, and workflow files into .claude/ of the target project" },
+        "steps": ["1. Run: node tools/installer/bmad-cli.js install", "2. Select modules interactively (or pass --modules --tools --yes for non-interactive)", "3. Files copied to target project's .claude/ folder", "4. Reload AI IDE to pick up new agents"]
+      }
+    ],
+    "apis": [],
+    "is_running": false,
+    "is_enabled": true
+  },
+  {
+    "progect_name": "postiz-app",
+    "collection": "content-factory",
+    "github": "https://github.com/gitroomhq/postiz-app",
+    "languages": ["TypeScript", "JavaScript", "CSS"],
+    "description": "Open-source social media scheduling platform with AI-assisted content workflows, multi-platform publishing, analytics, and collaboration features.",
+    "start_script": "pnpm run dev",
+    "commits": 2480,
+    "features": [
+      "Unified social media scheduling across major platforms",
+      "AI-enhanced content generation and workflow automation",
+      "Multi-app monorepo: frontend, backend, orchestrator, extension",
+      "API-first architecture for automation with tools like n8n and Make",
+      "Self-hosted deployment with Docker and local development modes"
+    ],
+    "last_commit_date": "20.04.2026",
+    "stars": 0, // update manually
+    "is_ui": true,
+    "ui_endpoint": "http://localhost:4200",
+    "docs": ["README.md", "docs.postiz.com (external)"],
+    "is_docker": true,
+    "start_errors": "",
+    "install_errors": "Requires Node 22.12+ and pnpm 10; local dev also requires PostgreSQL and Redis",
+    "is_installed": true,
+    "is_pass_first_run": false,
+    "main_stack": "TypeScript, NextJS, NestJS, Prisma, PNPM workspaces, Temporal",
+    "ai_functionality": ["AI-assisted social media workflows", "Automated scheduling and content operations"],
+    "ENV": "DATABASE_URL, REDIS_URL, JWT_SECRET, FRONTEND_URL, NEXT_PUBLIC_BACKEND_URL, BACKEND_INTERNAL_URL",
+    "main_functions": [
+      {
+        "name": "dev",
+        "input": { "command": "pnpm run dev" },
+        "output": { "ui": "Frontend at http://localhost:4200 with backend and orchestrator services" },
+        "steps": ["1. Copy .env.example to .env", "2. Fill required environment variables", "3. Ensure PostgreSQL and Redis are running", "4. Run pnpm install", "5. Run pnpm run dev"]
+      }
+    ],
+    "apis": [],
+    "is_running": false,
+    "is_enabled": false
+  },
+  {
+    "progect_name": "OpenMontage",
+    "collection": "content-factory",
+    "github": "https://github.com/calesthio/OpenMontage",
+    "languages": ["Python", "JavaScript", "HTML", "CSS"],
+    "description": "Open-source, agentic video production system that orchestrates research, script, asset generation, editing, and composition from natural language prompts.",
+    "start_script": "python render_demo.py",
+    "commits": 0,
+    "features": [
+      "Agentic video production workflows from prompt to final render",
+      "Reference video analysis and concept generation",
+      "Remotion composition plus pipeline-based media orchestration",
+      "Open-source stack with local tooling and reproducible workflows",
+      "Demo rendering flow for zero-key local testing"
+    ],
+    "last_commit_date": "22.04.2026",
+    "stars": 0, // update manually
+    "is_ui": true,
+    "ui_endpoint": "",
+    "docs": ["README.md", "AGENT_GUIDE.md", "docs/"],
+    "is_docker": true,
+    "start_errors": "",
+    "install_errors": "Requires Python 3.10+, Node.js 18+, and FFmpeg",
+    "is_installed": true,
+    "is_pass_first_run": false,
+    "main_stack": "Python, Node.js, FFmpeg, Remotion pipeline tooling",
+    "ai_functionality": ["Agent-driven video workflow orchestration", "Prompt-to-video production planning", "Automated rendering pipelines"],
+    "ENV": "Provider API keys optional depending on selected pipeline",
+    "main_functions": [
+      {
+        "name": "render-demo",
+        "input": { "command": "python render_demo.py" },
+        "output": { "video": "Locally rendered demo output" },
+        "steps": ["1. Run setup: make setup", "2. Configure optional provider keys", "3. Run demo renderer: python render_demo.py"]
+      }
+    ],
+    "apis": [],
+    "is_running": false,
+    "is_enabled": false
+  }
+]
+
+//add later prompt

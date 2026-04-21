@@ -56,8 +56,15 @@ CLAUDE.local.md
 # ---- Personal / local ----
 mine/
 
-# Local GitHub clones / checkouts (not part of this repo)
-github-projects/
+# Local GitHub clones / checkouts (track project wrapper files, ignore cloned repo dir)
+github-projects/**
+!github-projects/
+!github-projects/!index.jsonc
+!github-projects/*/
+!github-projects/*/*/
+!github-projects/*/*/**
+github-projects/*/*/repo/
+github-projects/*/*/repo/**
 
 *symlink*
 
@@ -67,3 +74,4 @@ AI
 
 *.env*
 envs
+

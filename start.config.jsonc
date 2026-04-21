@@ -5,7 +5,9 @@
       "description": "Scheduled GitHub Actions and periodic tasks",
       "type": "app",
       "enabled": true,
+      "productionEnabled": true,
       "serviceManaged": true, // managed by launchd (macOS) / systemd (Linux) — not started by start.sh
+      "envFiles": [],
       "path": "apps/cron-supervisor",
       "init": "bun install",
       "start": "bun run start"
@@ -15,6 +17,8 @@
       "description": "Telegram bot for notifications and commands",
       "type": "app",
       "enabled": false,
+      "productionEnabled": false,
+      "envFiles": [],
       "path": "apps/telegram-bot",
       "init": "pip install -r requirements.txt",
       "start": "python3 main.py"
@@ -24,15 +28,19 @@
       "description": "OpenScreen content factory UI",
       "type": "github-project",
       "enabled": false,
-      "path": "github-projects/content-factory/openscreen",
-      "init": "bun install",
-      "start": "bun run dev"
+      "productionEnabled": false,
+      "envFiles": [],
+      "path": "github-projects/content-factory/openscreen/repo",
+      "init": "bash ../openscreen.init.sh",
+      "start": "bash ../openscreen.start.sh"
     },
     {
       "name": "content-factory",
       "description": "Content generation and publishing agent",
       "type": "agent",
       "enabled": true,
+      "productionEnabled": true,
+      "envFiles": [],
       "path": "agents/agent.content-factory",
       "init": "bun install"
       // agents are never auto-started -- run independently from their folder, "enabled": true, means it need to be installed
@@ -42,9 +50,12 @@
       "description": "Self-hosted social media management platform — schedule, publish, and monitor content across 10+ social networks",
       "type": "github-project",
       "enabled": false,
-      "path": "github-projects/content-factory/brightbean-studio",
-      "init": "python3.12 -m pip install -r requirements.txt && python3.12 manage.py migrate",
-      "start": "python3.12 manage.py runserver"
+      "productionEnabled": false,
+      "port": 8000,
+      "envFiles": ["envs/gp.brightbean-studio.symlink.env"],
+      "path": "github-projects/content-factory/brightbean-studio/repo",
+      "init": "bash ../brightbean-studio.init.sh",
+      "start": "bash ../brightbean-studio.start.sh"
       // requires .env file — copy from .env.example and fill SECRET_KEY, ENCRYPTION_KEY_SALT, DATABASE_URL
       // for production: use docker compose up -d --build with docker-compose.prod.yml
     },
@@ -53,10 +64,14 @@
       "description": "Open-source AI social media scheduling suite with NextJS frontend, NestJS backend, and orchestration workers",
       "type": "github-project",
       "enabled": false,
-      "path": "github-projects/content-factory/postiz-app",
-      "init": "pnpm install",
-      "start": "pnpm run dev"
-      // requires PostgreSQL + Redis and a configured .env file (linked from envs/github.app.postiz-app.symlink.env)
+      "productionEnabled": false,
+      "port": 4200,
+      "envFiles": ["envs/gp.postiz-app.symlink.env"],
+      "path": "github-projects/content-factory/postiz-app/repo",
+      "init": "bash ../postiz-app.init.sh",
+      "start": "bash ../postiz-app.start.sh"
+      // frontend is typically available on 4200, backend on 3000 (from .env.example)
+      // requires PostgreSQL + Redis and a configured .env file
       // alternative local stack: docker compose -f docker-compose.dev.yaml up -d
     },
     {
@@ -64,21 +79,80 @@
       "description": "Agile AI-driven development framework — installs 12+ expert agent personas and 34+ workflows into any project's .claude/ folder",
       "type": "github-project",
       "enabled": true,
-      "path": "github-projects/coding-terminals/BMAD-METHOD",
-      "init": "npm install --no-workspaces",
-      "start": "node tools/installer/bmad-cli.js install"
+      "productionEnabled": true,
+      "envFiles": [],
+      "path": "github-projects/coding-terminals/BMAD-METHOD/repo",
+      "init": "bash ../BMAD-METHOD.init.sh",
+      "start": "bash ../BMAD-METHOD.start.sh"
       // not a running service — invoke manually to install agents/workflows into a target project
       // non-interactive: node tools/installer/bmad-cli.js install --directory /path --modules bmm --tools claude-code --yes
     },
     {
-      "name": "hyperframes",
-      "description": "HTML-native AI-first video rendering framework and local preview studio",
+      "name": "claude-code",
+      "description": "Research copy of Claude Code source tree",
       "type": "github-project",
       "enabled": false,
-      "path": "github-projects/content-factory/hyperframes",
-      "init": "npm install",
-      "start": "npx hyperframes preview"
-      // requires Node.js >= 22 and FFmpeg installed on host
+      "productionEnabled": false,
+      "envFiles": ["envs/gp.claude-code.symlink.env"],
+      "path": "github-projects/coding-terminals/claude-code/repo",
+      "init": "bash ../claude-code.init.sh",
+      "start": "bash ../claude-code.start.sh"
+    },
+    {
+      "name": "everything-claude-code",
+      "description": "Toolkit collection of Claude Code agents, hooks, and workflows",
+      "type": "github-project",
+      "enabled": false,
+      "productionEnabled": false,
+      "envFiles": ["envs/gp.everything-claude-code.symlink.env"],
+      "path": "github-projects/coding-terminals/everything-claude-code/repo",
+      "init": "bash ../everything-claude-code.init.sh",
+      "start": "bash ../everything-claude-code.start.sh"
+    },
+    {
+      "name": "hermes-agent",
+      "description": "Self-improving AI agent runtime",
+      "type": "github-project",
+      "enabled": false,
+      "productionEnabled": false,
+      "envFiles": ["envs/gp.hermes-agent.symlink.env"],
+      "path": "github-projects/coding-terminals/hermes-agent/repo",
+      "init": "bash ../hermes-agent.init.sh",
+      "start": "bash ../hermes-agent.start.sh"
+    },
+    {
+      "name": "pi-mono",
+      "description": "Monorepo with coding-agent CLI and supporting packages",
+      "type": "github-project",
+      "enabled": false,
+      "productionEnabled": false,
+      "envFiles": [],
+      "path": "github-projects/coding-terminals/pi-mono/repo",
+      "init": "bash ../pi-mono.init.sh",
+      "start": "bash ../pi-mono.start.sh"
+    },
+    {
+      "name": "claude-code-output-styles",
+      "description": "Collection of output style prompts for Claude Code",
+      "type": "github-project",
+      "enabled": false,
+      "productionEnabled": false,
+      "envFiles": [],
+      "path": "github-projects/content-factory/claude-code-output-styles/repo",
+      "init": "bash ../claude-code-output-styles.init.sh",
+      "start": "bash ../claude-code-output-styles.start.sh"
+    },
+    {
+      "name": "OpenMontage",
+      "description": "Agentic open-source video production system",
+      "type": "github-project",
+      "enabled": false,
+      "productionEnabled": false,
+      "envFiles": ["envs/gp.OpenMontage.symlink.env"],
+      "path": "github-projects/content-factory/OpenMontage/repo",
+      "init": "bash ../OpenMontage.init.sh",
+      "start": "bash ../OpenMontage.start.sh"
+      // requires Python 3.10+, Node.js 18+, and FFmpeg on host
     }
   ]
 }

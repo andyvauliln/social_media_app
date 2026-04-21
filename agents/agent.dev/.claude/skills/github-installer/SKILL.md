@@ -12,10 +12,10 @@ shell: bash
 hooks: {}
 ---
 
-1) check folders that represent collections in ./github-projects
-2) install project to any sutabable folder (collection) ./github-projects/{collection_name} or create new collection
-3) research project and make init and start scripts and add them in a start.config.jsonc file with init and start. make it default dissabled
-4) base on the result and additional research add project to ./github-projects/!index.jsonc
-5) add entrace in a start.config.jsonc (disabled by default)
-6) symlink env file with examples to env with a name ./envs/github.app.{project_name}.symlink.env
-6) print env file path and envs need to be filled for user
+1) install project under `./github-projects/{group}/{project}/repo` (create group folder if project not relates to any current flders)
+2) research project and create init/start scripts
+3) add init/start entry to `./start.config.jsonc` with `disabled: true` by default
+4) add project metadata to `./github-projects/!index.jsonc`
+5) create env symlink files in `./envs` for project `.env*` files using unique names:
+   `./envs/gp.{project}.symlink.env`
+6) print created env symlink paths and required env values the user must fill

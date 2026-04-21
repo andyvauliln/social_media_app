@@ -9,6 +9,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 CONFIG="$ROOT/start.config.jsonc"
+ENVIRONMENT="${ENVIRONMENT:-development}"
 
 if [[ ! -f "$CONFIG" ]]; then
   echo "[init] error: $CONFIG not found" >&2
@@ -23,6 +24,7 @@ if ! (cd "$ROOT" && bun install); then
 fi
 
 parse_services() {
+  # Parse JSONC config and flatten service init metadata.
   python3 -c "
 import json, re, sys
 
@@ -39,6 +41,26 @@ for s in config.get('services', []):
         s.get('path', ''),
         s.get('init', ''),
         s.get('start', ''),
+        str(s.get('productionEnabled', False)).lower(),
+    ]))
+" "$1"
+}
+
+parse_common() {
+  # Parse optional shared/common init tasks.
+  python3 -c "
+import json, re, sys
+
+raw = open(sys.argv[1]).read()
+raw = re.sub(r'//.*', '', raw)
+raw = re.sub(r'/\\*.*?\\*/', '', raw, flags=re.DOTALL)
+config = json.loads(raw)
+
+for s in config.get('common', []):
+    print('\\t'.join([
+        s.get('name', ''),
+        s.get('path', ''),
+        s.get('init', ''),
     ]))
 " "$1"
 }
@@ -63,8 +85,13 @@ while IFS=$'\t' read -r name svc_path init_cmd; do
 done < <(parse_common "$CONFIG")
 
 echo "[init] --- services ---"
-while IFS=$'\t' read -r name type enabled svc_path init_cmd start_cmd; do
+while IFS=$'\t' read -r name type enabled svc_path init_cmd start_cmd production_enabled; do
+  # Run init only for enabled services.
   [[ "$enabled" != "true" ]] && continue
+  # In production, init only services explicitly allowed for production.
+  if [[ "$ENVIRONMENT" == "production" && "$production_enabled" != "true" ]]; then
+    continue
+  fi
   [[ -z "$init_cmd" ]] && continue
 
   cwd="$ROOT/$svc_path"
@@ -91,12 +118,14 @@ chmod +x "$ROOT/apps/cron-supervisor/scripts/setup-service.sh"
 chmod +x "$ROOT/apps/cron-supervisor/scripts/cron-edit.mjs"
 
 if ! bash "$ROOT/apps/cron-supervisor/scripts/setup-service.sh"; then
-  echo "[init] FAILED: cron supervisor service setup" >&2
-  exit 1
+  echo "[init] WARN: cron supervisor service setup failed; continuing" >&2
 fi
 
 echo "[init] --- acron CLI ---"
-ln -sf "$ROOT/apps/cron-supervisor/acron.sh" /usr/local/bin/acron
-echo "[init] acron linked: /usr/local/bin/acron"
+if ln -sf "$ROOT/apps/cron-supervisor/acron.sh" /usr/local/bin/acron; then
+  echo "[init] acron linked: /usr/local/bin/acron"
+else
+  echo "[init] WARN: could not link /usr/local/bin/acron; continuing" >&2
+fi
 
 echo "[init] done"
