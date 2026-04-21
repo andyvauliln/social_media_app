@@ -16,6 +16,14 @@ if [[ ! -f "$CONFIG" ]]; then
   exit 1
 fi
 
+echo "[init] --- local root scaffolding ---"
+mkdir -p "$ROOT/mine/rot/claude"
+mkdir -p "$ROOT/.claude"
+touch "$ROOT/mine/rot/claude/local.md"
+if [[ ! -f "$ROOT/.claude/settings.local.json" ]]; then
+  printf "{}\n" > "$ROOT/.claude/settings.local.json"
+fi
+
 echo "[init] --- root common (bun) ---"
 echo "[init] root: bun install"
 if ! (cd "$ROOT" && bun install); then
