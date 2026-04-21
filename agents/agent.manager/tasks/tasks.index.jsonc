@@ -2,6 +2,85 @@
  
   {
     // GitHub issue ID — set after `gh issue create`
+    "github_issue_id": 8,
+
+    "title": "Add Telegram bot support for agents and root flow",
+
+    "description": "Add Telegram bot support so individual agents and the root agent can send and receive task updates through direct and group chats. Define routing, identity mapping, and message handling for both 1:1 and group interactions. Validate whether Claude channels can be used as a practical communication layer for this workflow. This enables centralized chat-based coordination across agent roles.",
+
+    // Git branch name — format: {type}/{github_issue_id}-{slug}
+    "branch_name": "feature/8-add-telegram-bot-support-for-agents-and-root-flow",
+
+    "branch_github_link": "",
+
+    "pr_id": "",
+    "pr_link": "",
+
+    "estimated_time": "1d",
+
+    // pending | planned | in_progress | in_review | done | blocked | cancelled
+    "status": "pending",
+
+    // phase_N | week | today
+    "when": "phase_1",
+    "when_date": "",
+
+    "blocked_reason": "",
+
+    // Folder created only when plan/report generation starts
+    "in_plan_task_directory": "",
+
+    "priority": "high",
+
+    "scope": "agent.manager",
+
+    "tags": ["telegram", "bot", "multi-agent", "root-agent", "claude-channels"],
+
+    // research | bug | feature | enhancement | idea | update | self_improvement | improvement
+    "type": "feature",
+
+    "context": "",
+
+    "user_input": "add support telegram bot for individual agents and for root agent, group support, can we use claude channels for our goals",
+
+    "sub_tasks": [
+      {
+        "sub_task_id": 1,
+        "commit_id": "",
+        "session_id": "",
+        "title": "Plan Telegram integration and define validation tests",
+        "type": "plan",
+        "model": "haiku",
+        "platform": "claude",
+        "changed_files_relative_paths": [],
+        "plan_path": "",
+        "is_need_human_confirmation": true,
+        "blocked_reason": "",
+        "notes": "",
+        "status": "pending"
+      }
+    ],
+
+    "is_passed_tests": false,
+    "run_test_command": "",
+
+    "assigned_user": "Andrei",
+    "assigned_agent": "agent.manager",
+
+    "is_need_human_confirmation": true,
+
+    "notes": "",
+
+    "platform": "claude",
+
+    "created_at": "2026-04-21T14:17:54Z",
+    "created_by": "Andrei",
+    "updated_at": "2026-04-21T14:17:54Z",
+    "closed_at": ""
+  },
+
+  {
+    // GitHub issue ID — set after `gh issue create`
     "github_issue_id": 6,
 
     "title": "Finish collect-inline-tasks skill",

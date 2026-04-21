@@ -257,30 +257,35 @@ fi
 TELEGRAM_CHANNEL="${TELEGRAM_CHANNEL:-plugin:telegram@claude-plugins-official}"
 
 # --plugin-dir sync with /sync-plugins dev agent  before every pr and with a command /sync-plugins.dev on a root
-exec claude --verbose \
-  --plugin-dir "./plugins/ai-firstify/1.1.0" \
-  --plugin-dir "./plugins/ai-plugins/1.0.0" \
-  --plugin-dir "./plugins/analyze-codebase/1.0.0" \
-  --plugin-dir "./plugins/claude-code-setup" \
-  --plugin-dir "./plugins/claude-md-management" \
-  --plugin-dir "./plugins/code-simplifier" \
-  --plugin-dir "./plugins/codebase-documenter/1.0.0" \
-  --plugin-dir "./plugins/context7" \
-  --plugin-dir "./plugins/context7-docs-fetcher/1.0.0" \
+args=(
+  --verbose
+  --plugin-dir "./plugins/ai-firstify/1.1.0"
+  --plugin-dir "./plugins/ai-plugins/1.0.0"
+  --plugin-dir "./plugins/analyze-codebase/1.0.0"
+  --plugin-dir "./plugins/claude-code-setup"
+  --plugin-dir "./plugins/claude-md-management"
+  --plugin-dir "./plugins/code-simplifier"
+  --plugin-dir "./plugins/codebase-documenter/1.0.0"
+  --plugin-dir "./plugins/context7"
+  --plugin-dir "./plugins/context7-docs-fetcher/1.0.0"
   # need configure
-  --plugin-dir "./plugins/fakechat/0.0.1" \
-  --plugin-dir "./plugins/hookify/unknown" \
-  --plugin-dir "./plugins/playwright" \
-  --plugin-dir "./plugins/postman/1.0.0" \
-  --plugin-dir "./plugins/python-expert/1.0.0" \
-  --plugin-dir "./plugins/ralph-loop" \
-  --plugin-dir "./plugins/skill-creator" \
+  --plugin-dir "./plugins/fakechat/0.0.1"
+  --plugin-dir "./plugins/hookify/unknown"
+  --plugin-dir "./plugins/playwright"
+  --plugin-dir "./plugins/postman/1.0.0"
+  --plugin-dir "./plugins/python-expert/1.0.0"
+  --plugin-dir "./plugins/ralph-loop"
+  --plugin-dir "./plugins/skill-creator"
   # need configure
-  --plugin-dir "./plugins/telegram" \
-  --plugin-dir "./plugins/ui5/0.1.0" \
+  --plugin-dir "./plugins/telegram"
+  --plugin-dir "./plugins/ui5/0.1.0"
   # need auth vercel (later)
-  --plugin-dir "./plugins/vercel/0.40.0" \ 
-  --debug \
-  # --channels "${TELEGRAM_CHANNEL}" \
-  --channels fakechat \
+  --plugin-dir "./plugins/vercel/0.40.0"
+  --debug
+  # --channels "${TELEGRAM_CHANNEL}"
+  --dangerously-skip-permissions
+  --dangerously-load-development-channels server:plugin:fakechat:fakechat
   --permission-mode bypassPermissions
+  
+)
+exec claude "${args[@]}" "$@"
