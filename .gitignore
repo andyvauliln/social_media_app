@@ -73,5 +73,5 @@ envs/root.env
 *.log
 *.env
 *.env*
-envs
+envs/*
 
