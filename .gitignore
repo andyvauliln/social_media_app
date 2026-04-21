@@ -65,4 +65,5 @@ AI
 
 *.log
 
-.envs/*
+*.env*
+envs
