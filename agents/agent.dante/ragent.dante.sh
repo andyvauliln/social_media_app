@@ -231,9 +231,8 @@
 
 
 
-########## ENV LOADING ########## from envs/root.env and envs/agents*.env
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(git rev-parse --show-toplevel 2>/dev/null || printf '%s' "${SCRIPT_DIR}")"
+########## ENV LOADING ########## from root envs/ + telegram.dante.env override
+ROOT_DIR="$(git rev-parse --show-toplevel)"
 ENVS_DIR="${ROOT_DIR}/envs"
 
 load_env_file() {
@@ -249,13 +248,9 @@ load_env_file() {
 
 if [[ -d "${ENVS_DIR}" ]]; then
   load_env_file "${ENVS_DIR}/root.env"
-
-  while IFS= read -r env_path; do
-    load_env_file "${env_path}"
-  done < <(printf '%s\n' "${ENVS_DIR}"/agents*.env | sort)
 fi
 
-ACCESS_CONFIG_FILE="${TELEGRAM_ACCESS_CONFIG:-${ENVS_DIR}/main.telegram/access.json}"
+ACCESS_CONFIG_FILE="${ENVS_DIR}/dante.telegram/access.json"
 if [[ -f "${ACCESS_CONFIG_FILE}" ]]; then
   if command -v node >/dev/null 2>&1; then
     TELEGRAM_STATE_DIR_FROM_CONFIG="$(
@@ -307,6 +302,8 @@ fi
 
 TELEGRAM_CHANNEL="${TELEGRAM_CHANNEL:-plugin:telegram@inline}"
 
+AGENT_DIR="${ROOT_DIR}/agents/agent.dante"
+
 enable_telegram=false
 if [[ "${ENVIRONMENT:-}" == "production" ]]; then
   enable_telegram=true
@@ -328,11 +325,11 @@ fi
 ########## STALE SESSION CLEANUP ##########
 # kill stale telegram bot process so a fresh instance can bind cleanly.
 if [[ "${enable_telegram}" == "true" ]]; then
-  TELEGRAM_BOT_PID_FILE="${TELEGRAM_BOT_PID_FILE:-${ENVS_DIR}/main.telegram/bot.pid}"
+  TELEGRAM_BOT_PID_FILE="${TELEGRAM_BOT_PID_FILE:-${ENVS_DIR}/dante.telegram/bot.pid}"
   if [[ -f "${TELEGRAM_BOT_PID_FILE}" ]]; then
     _OLD_BOT_PID="$(<"${TELEGRAM_BOT_PID_FILE}")"
     if [[ -n "${_OLD_BOT_PID}" ]] && kill -0 "${_OLD_BOT_PID}" 2>/dev/null; then
-      echo "ragent: killing stale telegram bot (pid=${_OLD_BOT_PID})" >&2
+      echo "ragent.dante: killing stale telegram bot (pid=${_OLD_BOT_PID})" >&2
       kill "${_OLD_BOT_PID}" 2>/dev/null || true
     fi
   fi
@@ -341,37 +338,17 @@ fi
 # --plugin-dir sync with /sync-plugins dev agent  before every pr and with a command /sync-plugins.dev on a root
 args=(
   --verbose
-  --plugin-dir "./plugins/ai-firstify/1.1.0"
-  --plugin-dir "./plugins/ai-plugins/1.0.0"
-  --plugin-dir "./plugins/analyze-codebase/1.0.0"
-  --plugin-dir "./plugins/claude-code-setup"
-  --plugin-dir "./plugins/claude-md-management"
-  --plugin-dir "./plugins/code-simplifier"
-  --plugin-dir "./plugins/codebase-documenter/1.0.0"
-  --plugin-dir "./plugins/context7"
-  --plugin-dir "./plugins/context7-docs-fetcher/1.0.0"
-  # need configure
-  --plugin-dir "./plugins/fakechat/0.0.1"
-  --plugin-dir "./plugins/hookify/unknown"
-  --plugin-dir "./plugins/playwright"
-  --plugin-dir "./plugins/postman/1.0.0"
-  --plugin-dir "./plugins/python-expert/1.0.0"
-  --plugin-dir "./plugins/ralph-loop"
-  --plugin-dir "./plugins/skill-creator"
-  --plugin-dir "./plugins/ui5/0.1.0"
-  # need auth vercel (later)
-  --plugin-dir "./plugins/vercel/0.40.0"
   --dangerously-skip-permissions
   --permission-mode bypassPermissions
-  
+
 )
 if [[ "${ENVIRONMENT:-}" != "production" ]]; then
   args+=(--debug)
 fi
 if [[ "${enable_telegram}" == "true" ]]; then
   args+=(
-    --plugin-dir "./plugins/telegram"
-    --dangerously-load-development-channels server:plugin:fakechat:fakechat "${TELEGRAM_CHANNEL}"
+    --plugin-dir "${ROOT_DIR}/plugins/telegram"
+    --dangerously-load-development-channels "${TELEGRAM_CHANNEL}"
   )
 fi
-exec claude "${args[@]}" "${forwarded_args[@]}"
+cd "${AGENT_DIR}" && exec claude "${args[@]}" "${forwarded_args[@]}"

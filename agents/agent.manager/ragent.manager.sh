@@ -248,7 +248,6 @@ load_env_file() {
 
 if [[ -d "${ENVS_DIR}" ]]; then
   load_env_file "${ENVS_DIR}/root.env"
-  load_env_file "${ENVS_DIR}/telegram.manager.env"
 fi
 
 ACCESS_CONFIG_FILE="${ENVS_DIR}/manager.telegram/access.json"
@@ -276,6 +275,17 @@ try {
 } catch {}
 ' "${ACCESS_CONFIG_FILE}"
     )"
+    TELEGRAM_ACCESS_ENABLED="$(
+      node -e '
+const fs = require("fs");
+try {
+  const raw = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+  process.stdout.write(raw.enabled === false ? "false" : "true");
+} catch {
+  process.stdout.write("true");
+}
+' "${ACCESS_CONFIG_FILE}"
+    )"
 
     if [[ -n "${TELEGRAM_STATE_DIR_FROM_CONFIG}" ]]; then
       if [[ "${TELEGRAM_STATE_DIR_FROM_CONFIG}" = /* ]]; then
@@ -294,25 +304,51 @@ TELEGRAM_CHANNEL="${TELEGRAM_CHANNEL:-plugin:telegram@inline}"
 
 AGENT_DIR="${ROOT_DIR}/agents/agent.manager"
 
+enable_telegram=false
+if [[ "${ENVIRONMENT:-}" == "production" ]]; then
+  enable_telegram=true
+fi
+ragent_telegram_cli_override=false
+forwarded_args=()
+for arg in "$@"; do
+  if [[ "${arg}" == "--telegram" ]]; then
+    enable_telegram=true
+    ragent_telegram_cli_override=true
+    continue
+  fi
+  forwarded_args+=("${arg}")
+done
+if [[ -f "${ACCESS_CONFIG_FILE}" ]] && [[ "${TELEGRAM_ACCESS_ENABLED:-true}" == "false" ]] && [[ "${ragent_telegram_cli_override}" != "true" ]]; then
+  enable_telegram=false
+fi
+
 ########## STALE SESSION CLEANUP ##########
 # kill stale telegram bot process so a fresh instance can bind cleanly.
-TELEGRAM_BOT_PID_FILE="${TELEGRAM_BOT_PID_FILE:-${ENVS_DIR}/manager.telegram/bot.pid}"
-if [[ -f "${TELEGRAM_BOT_PID_FILE}" ]]; then
-  _OLD_BOT_PID="$(<"${TELEGRAM_BOT_PID_FILE}")"
-  if [[ -n "${_OLD_BOT_PID}" ]] && kill -0 "${_OLD_BOT_PID}" 2>/dev/null; then
-    echo "ragent.manager: killing stale telegram bot (pid=${_OLD_BOT_PID})" >&2
-    kill "${_OLD_BOT_PID}" 2>/dev/null || true
+if [[ "${enable_telegram}" == "true" ]]; then
+  TELEGRAM_BOT_PID_FILE="${TELEGRAM_BOT_PID_FILE:-${ENVS_DIR}/manager.telegram/bot.pid}"
+  if [[ -f "${TELEGRAM_BOT_PID_FILE}" ]]; then
+    _OLD_BOT_PID="$(<"${TELEGRAM_BOT_PID_FILE}")"
+    if [[ -n "${_OLD_BOT_PID}" ]] && kill -0 "${_OLD_BOT_PID}" 2>/dev/null; then
+      echo "ragent.manager: killing stale telegram bot (pid=${_OLD_BOT_PID})" >&2
+      kill "${_OLD_BOT_PID}" 2>/dev/null || true
+    fi
   fi
 fi
 
 # --plugin-dir sync with /sync-plugins dev agent  before every pr and with a command /sync-plugins.dev on a root
 args=(
   --verbose
-  --plugin-dir "${ROOT_DIR}/plugins/telegram"
-  --debug
   --dangerously-skip-permissions
-  --dangerously-load-development-channels server:plugin:fakechat:fakechat "${TELEGRAM_CHANNEL}"
   --permission-mode bypassPermissions
 
 )
-cd "${AGENT_DIR}" && exec claude "${args[@]}" "$@"
+if [[ "${ENVIRONMENT:-}" != "production" ]]; then
+  args+=(--debug)
+fi
+if [[ "${enable_telegram}" == "true" ]]; then
+  args+=(
+    --plugin-dir "${ROOT_DIR}/plugins/telegram"
+    --dangerously-load-development-channels "${TELEGRAM_CHANNEL}"
+  )
+fi
+cd "${AGENT_DIR}" && exec claude "${args[@]}" "${forwarded_args[@]}"

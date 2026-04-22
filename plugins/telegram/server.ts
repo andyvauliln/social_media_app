@@ -19,7 +19,7 @@ import { z } from 'zod'
 import { Bot, GrammyError, InlineKeyboard, InputFile, type Context } from 'grammy'
 import type { ReactionTypeEmoji } from 'grammy/types'
 import { randomBytes } from 'crypto'
-import { readFileSync, writeFileSync, mkdirSync, readdirSync, rmSync, statSync, renameSync, realpathSync } from 'fs'
+import { readFileSync, writeFileSync, mkdirSync, readdirSync, rmSync, statSync, renameSync, realpathSync, appendFileSync } from 'fs'
 import { homedir } from 'os'
 import { join, extname, sep } from 'path'
 
@@ -39,6 +39,10 @@ if (!TOKEN) {
 }
 const INBOX_DIR = join(STATE_DIR, 'inbox')
 const PID_FILE = join(STATE_DIR, 'bot.pid')
+const TELEGRAM_LOG_FILE = join(STATE_DIR, 'teleram.logs')
+const ROOT_DIR = realpathSync(join(import.meta.dir, '..', '..'))
+const MANAGER_RAGENT = join(ROOT_DIR, 'agents', 'agent.manager', 'ragent.manager.sh')
+const MANAGER_TIMEOUT_MS = 2 * 60 * 1000
 
 // Telegram allows exactly one getUpdates consumer per token. If a previous
 // session crashed (SIGKILL, terminal closed) its server.ts grandchild can
@@ -63,6 +67,14 @@ process.on('unhandledRejection', err => {
 process.on('uncaughtException', err => {
   process.stderr.write(`telegram channel: uncaught exception: ${err}\n`)
 })
+
+function writeTelegramLog(message: string): void {
+  try {
+    appendFileSync(TELEGRAM_LOG_FILE, `[${new Date().toISOString()}] ${message}\n`, { mode: 0o600 })
+  } catch {}
+}
+
+writeTelegramLog(`telegram bot started pid=${process.pid}`)
 
 // Permission-reply spec from anthropics/claude-cli-internal
 // src/services/mcp/channelPermissions.ts — inlined (no CC repo dep).
@@ -348,6 +360,73 @@ function chunk(text: string, limit: number, mode: 'length' | 'newline'): string[
   }
   if (rest) out.push(rest)
   return out
+}
+
+async function sendChunkedText(
+  chat_id: string,
+  text: string,
+  reply_to?: number,
+): Promise<void> {
+  const access = loadAccess()
+  const limit = Math.max(1, Math.min(access.textChunkLimit ?? MAX_CHUNK_LIMIT, MAX_CHUNK_LIMIT))
+  const mode = access.chunkMode ?? 'length'
+  const replyMode = access.replyToMode ?? 'first'
+  const parts = chunk(text, limit, mode)
+  for (let i = 0; i < parts.length; i++) {
+    const shouldReplyTo =
+      reply_to != null &&
+      replyMode !== 'off' &&
+      (replyMode === 'all' || i === 0)
+    await bot.api.sendMessage(chat_id, parts[i], {
+      ...(shouldReplyTo ? { reply_parameters: { message_id: reply_to } } : {}),
+    })
+  }
+}
+
+async function runManagerPrompt(prompt: string): Promise<string> {
+  writeTelegramLog(`manager spawn start prompt_len=${prompt.length}`)
+  const proc = Bun.spawn({
+    cmd: ['bash', MANAGER_RAGENT, '-p', '--no-session-persistence', prompt],
+    cwd: ROOT_DIR,
+    stdout: 'pipe',
+    stderr: 'pipe',
+    env: process.env,
+  })
+
+  let timedOut = false
+  const timer = setTimeout(() => {
+    timedOut = true
+    proc.kill()
+  }, MANAGER_TIMEOUT_MS)
+
+  try {
+    const [exitCode, stdout, stderr] = await Promise.all([
+      proc.exited,
+      new Response(proc.stdout).text(),
+      new Response(proc.stderr).text(),
+    ])
+    writeTelegramLog(
+      `manager spawn finished exit_code=${exitCode} stdout_len=${stdout.length} stderr_len=${stderr.length}`,
+    )
+    if (timedOut) {
+      writeTelegramLog(`manager timeout after_ms=${MANAGER_TIMEOUT_MS}`)
+      throw new Error(`manager request timed out after ${Math.floor(MANAGER_TIMEOUT_MS / 1000)}s`)
+    }
+    if (exitCode !== 0) {
+      const detail = stderr.trim() || stdout.trim() || `exit code ${exitCode}`
+      writeTelegramLog(`manager failed detail=${JSON.stringify(detail)}`)
+      throw new Error(`manager failed: ${detail}`)
+    }
+    const out = stdout.trim()
+    if (!out) {
+      writeTelegramLog('manager returned empty response')
+      throw new Error('manager returned empty response')
+    }
+    writeTelegramLog(`manager success response_len=${out.length}`)
+    return out
+  } finally {
+    clearTimeout(timer)
+  }
 }
 
 // .jpg/.jpeg/.png/.gif/.webp go as photos (Telegram compresses + shows inline);
@@ -679,7 +758,8 @@ bot.command('help', async ctx => {
     `Messages you send here route to a paired Claude Code session. ` +
     `Text and photos are forwarded; replies and reactions come back.\n\n` +
     `/start — pairing instructions\n` +
-    `/status — check your pairing state`
+    `/status — check your pairing state\n` +
+    `/manager <prompt> — ask manager agent`
   )
 })
 
@@ -706,6 +786,64 @@ bot.command('status', async ctx => {
   }
 
   await ctx.reply(`Not paired. Send me a message to get a pairing code.`)
+})
+
+bot.command('manager', async ctx => {
+  const senderId = String(ctx.from?.id ?? 'unknown')
+  const chatId = String(ctx.chat?.id ?? 'unknown')
+  const chatType = ctx.chat?.type ?? 'unknown'
+  writeTelegramLog(
+    `manager command received sender_id=${senderId} chat_id=${chatId} chat_type=${chatType}`,
+  )
+  const from = ctx.from
+  const chat = ctx.chat
+  if (!from || !chat) return
+  const normalizedSenderId = String(from.id)
+  const access = loadAccess()
+  if (chat.type === 'private') {
+    if (!access.allowFrom.includes(normalizedSenderId)) {
+      writeTelegramLog(`manager blocked sender_id=${normalizedSenderId} not_paired=true`)
+      await ctx.reply('Not paired. Send me a message to get a pairing code.')
+      return
+    }
+  } else if (chat.type === 'group' || chat.type === 'supergroup') {
+    const policy = access.groups[chatId]
+    if (!policy) {
+      writeTelegramLog(`manager blocked sender_id=${normalizedSenderId} reason=group_not_allowlisted`)
+      await ctx.reply('This group is not allowlisted for `/manager`.')
+      return
+    }
+    const groupAllowFrom = policy.allowFrom ?? []
+    if (groupAllowFrom.length > 0 && !groupAllowFrom.includes(normalizedSenderId)) {
+      writeTelegramLog(`manager blocked sender_id=${normalizedSenderId} reason=sender_not_allowed_in_group`)
+      await ctx.reply('You are not allowed to run `/manager` in this group.')
+      return
+    }
+  } else {
+    writeTelegramLog(`manager blocked sender_id=${normalizedSenderId} reason=unsupported_chat_type`)
+    return
+  }
+
+  const raw = ctx.message?.text ?? ''
+  const match = raw.match(/^\/manager(?:@\w+)?(?:\s+([\s\S]+))?$/)
+  const prompt = (match?.[1] ?? '').trim()
+  if (!prompt) {
+    writeTelegramLog(`manager usage error sender_id=${normalizedSenderId} empty_prompt=true`)
+    await ctx.reply('Usage: /manager <prompt>')
+    return
+  }
+
+  writeTelegramLog(`manager prompt accepted sender_id=${normalizedSenderId} prompt_len=${prompt.length}`)
+  await ctx.reply('Running manager...')
+  try {
+    const out = await runManagerPrompt(prompt)
+    await sendChunkedText(String(ctx.chat.id), out, ctx.message?.message_id)
+    writeTelegramLog(`manager response sent sender_id=${normalizedSenderId} chat_id=${String(ctx.chat.id)}`)
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    writeTelegramLog(`manager command error sender_id=${normalizedSenderId} error=${JSON.stringify(msg)}`)
+    await ctx.reply(`Manager error: ${msg}`)
+  }
 })
 
 // Inline-button handler for permission requests. Callback data is
@@ -1018,14 +1156,20 @@ void (async () => {
           attempt = 0
           botUsername = info.username
           process.stderr.write(`telegram channel: polling as @${info.username}\n`)
-          void bot.api.setMyCommands(
-            [
-              { command: 'start', description: 'Welcome and setup guide' },
-              { command: 'help', description: 'What this bot can do' },
-              { command: 'status', description: 'Check your pairing status' },
-            ],
-            { scope: { type: 'all_private_chats' } },
-          ).catch(() => {})
+          const privateCommands = [
+            { command: 'start', description: 'Welcome and setup guide' },
+            { command: 'help', description: 'What this bot can do' },
+            { command: 'status', description: 'Check your pairing status' },
+            { command: 'manager', description: 'Run manager with a prompt' },
+          ]
+          const groupCommands = [
+            { command: 'manager', description: 'Run manager with a prompt' },
+            { command: 'help', description: 'Show supported commands' },
+          ]
+          void Promise.all([
+            bot.api.setMyCommands(privateCommands, { scope: { type: 'all_private_chats' } }),
+            bot.api.setMyCommands(groupCommands, { scope: { type: 'all_group_chats' } }),
+          ]).catch(() => {})
         },
       })
       return // bot.stop() was called — clean exit from the loop
