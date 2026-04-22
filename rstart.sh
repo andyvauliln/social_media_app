@@ -4,6 +4,13 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 CONFIG="$ROOT/start.config.jsonc"
 LOGS_DIR="$ROOT/logs/start"
+
+if [[ -f "$ROOT/envs/root.env" ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source "$ROOT/envs/root.env"
+  set +a
+fi
 ENVIRONMENT="${ENVIRONMENT:-development}"
 
 if [[ ! -f "$CONFIG" ]]; then
@@ -12,6 +19,11 @@ if [[ ! -f "$CONFIG" ]]; then
 fi
 
 mkdir -p "$LOGS_DIR"
+
+if [[ ! -f "$ROOT/envs/root.env" ]]; then
+  echo "[start] warning: ${ROOT}/envs/root.env missing; nohup children will not load API keys from that file." >&2
+fi
+echo "[start] ENVIRONMENT=${ENVIRONMENT} config=${CONFIG}" >&2
 
 parse_config() {
   # Parse JSONC config and flatten each service into a tab-delimited row.
@@ -31,7 +43,7 @@ for s in config.get('services', []):
     print('\t'.join([
         s.get('name', ''),
         s.get('type', ''),
-        str(s.get('enabled', False)).lower(),
+        str(s.get('developmentEnabled', False)).lower(),
         s.get('path', ''),
         s.get('init', ''),
         s.get('start', ''),
@@ -42,17 +54,29 @@ for s in config.get('services', []):
 " "$1"
 }
 
-while IFS=$'\t' read -r name type enabled svc_path init_cmd start_cmd service_managed production_enabled env_files; do
-  # Start only explicitly enabled services.
-  [[ "$enabled" != "true" ]] && continue
-  # In production, only services marked as productionEnabled are allowed.
-  if [[ "$ENVIRONMENT" == "production" && "$production_enabled" != "true" ]]; then
+started_count=0
+while IFS=$'\t' read -r name type development_enabled svc_path init_cmd start_cmd service_managed production_enabled env_files; do
+  # Development: start services flagged for dev. Production: start services flagged for prod.
+  if [[ "$ENVIRONMENT" == "production" ]]; then
+    if [[ "$production_enabled" != "true" ]]; then
+      echo "[start] skip ${name}: productionEnabled is not true (ENVIRONMENT=production)" >&2
+      continue
+    fi
+  else
+    if [[ "$development_enabled" != "true" ]]; then
+      echo "[start] skip ${name}: developmentEnabled is not true (ENVIRONMENT=development)" >&2
+      continue
+    fi
+  fi
+  # Externally managed services are not started by this script.
+  if [[ "$service_managed" == "true" ]]; then
+    echo "[start] skip ${name}: serviceManaged=true (use systemd/launchd, not rstart.sh)" >&2
     continue
   fi
-  # Agents and externally managed services are not started by this script.
-  [[ "$type" == "agent" ]] && continue
-  [[ "$service_managed" == "true" ]] && continue
-  [[ -z "$start_cmd" ]] && continue
+  if [[ -z "$start_cmd" ]]; then
+    echo "[start] skip ${name}: no start command in config" >&2
+    continue
+  fi
 
   cwd="$ROOT/$svc_path"
   if [[ ! -d "$cwd" ]]; then
@@ -66,7 +90,10 @@ while IFS=$'\t' read -r name type enabled svc_path init_cmd start_cmd service_ma
   echo "--- $stamp starting $name ($start_cmd) cwd=$cwd ---" >> "$log_file"
 
   # Load base env first, then service-specific env files so service values can override base values.
-  env_args=("$ROOT/envs/root.env")
+  env_args=()
+  if [[ -f "$ROOT/envs/root.env" ]]; then
+    env_args+=("$ROOT/envs/root.env")
+  fi
   if [[ -n "$env_files" ]]; then
     IFS=';' read -r -a service_env_files <<< "$env_files"
     for env_rel in "${service_env_files[@]}"; do
@@ -75,14 +102,33 @@ while IFS=$'\t' read -r name type enabled svc_path init_cmd start_cmd service_ma
     done
   fi
 
-  # Build a shell snippet that exports variables from each env file in order.
+  # Build a shell snippet that exports variables from each env file in order (skip missing files quietly).
   env_load_cmd=""
   for env_file in "${env_args[@]}"; do
-    env_load_cmd+="if [[ -f \\\"$env_file\\\" ]]; then set -a; source \\\"$env_file\\\"; set +a; else echo \\\"[start] warning: env file not found: $env_file\\\"; fi; "
+    _efq="$(printf '%q' "$env_file")"
+    env_load_cmd+="if [[ -f ${_efq} ]]; then set -a; source ${_efq}; set +a; fi; "
   done
 
-  echo "[start] $name: $start_cmd -> $log_file"
-  nohup bash -c "$env_load_cmd cd \"$cwd\" && $start_cmd" >> "$log_file" 2>&1 &
+  echo "[start] launching ${name}: ${start_cmd} (cwd=${cwd}, log=${log_file})" >&2
+  _pty="${ROOT}/scripts/run-under-pty.sh"
+  if [[ "${type}" == "agent" ]] && [[ -f "${_pty}" ]] && command -v script >/dev/null 2>&1; then
+    # Interactive `claude` needs a TTY; nohup has none. PTY wrapper avoids --print / stdin errors.
+    _inv="$(printf 'exec bash %q %q %q' "${_pty}" "${cwd}" "${start_cmd}")"
+    nohup bash -c "${env_load_cmd}${_inv}" >> "$log_file" 2>&1 &
+  else
+    if [[ "${type}" == "agent" ]]; then
+      if ! command -v script >/dev/null 2>&1; then
+        echo "[start] WARN: ${name}: install 'script' (bsdutils/util-linux) for PTY-wrapped agents, or run ./ragent*.sh in tmux/screen." >&2
+      elif [[ ! -f "${_pty}" ]]; then
+        echo "[start] WARN: ${name}: missing ${_pty}; starting without PTY." >&2
+      fi
+    fi
+    nohup bash -c "${env_load_cmd}cd $(printf '%q' "$cwd") && ${start_cmd}" >> "$log_file" 2>&1 &
+  fi
+  started_count=$((started_count + 1))
 done < <(parse_config "$CONFIG")
 
-echo "[start] done"
+if [[ "${started_count}" -eq 0 ]]; then
+  echo "[start] no services were started (every row was skipped by environment flags, serviceManaged, missing path, or empty start)." >&2
+fi
+echo "[start] done (${started_count} background service(s) started)"

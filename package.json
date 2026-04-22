@@ -12,7 +12,7 @@
   },
   "scripts": {
     "init": "./script.init.sh",
-    "start": "./start.sh",
+    "start": "bash ./ragent.sh",
     "task-management": "npx tsx ./agents/agent.manager/scripts.manager/task-management.script.ts"
   }
 }

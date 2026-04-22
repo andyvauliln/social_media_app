@@ -35,10 +35,20 @@ else
 fi
 
 echo "[init] --- root common (bun) ---"
+if [[ -f "$ROOT/scripts/ensure-bun.sh" ]]; then
+  _bun_env="$(bash "$ROOT/scripts/ensure-bun.sh")" || exit 1
+  [[ -n "${_bun_env:-}" ]] && eval "$_bun_env"
+fi
 echo "[init] root: bun install"
 if ! (cd "$ROOT" && bun install); then
   echo "[init] FAILED: root bun install" >&2
   exit 1
+fi
+
+echo "[init] --- root common (claude code) ---"
+if [[ -f "$ROOT/scripts/ensure-claude.sh" ]]; then
+  _claude_env="$(bash "$ROOT/scripts/ensure-claude.sh")" || exit 1
+  [[ -n "${_claude_env:-}" ]] && eval "$_claude_env"
 fi
 
 parse_services() {
@@ -55,7 +65,7 @@ for s in config.get('services', []):
     print('\t'.join([
         s.get('name', ''),
         s.get('type', ''),
-        str(s.get('enabled', False)).lower(),
+        str(s.get('developmentEnabled', False)).lower(),
         s.get('path', ''),
         s.get('init', ''),
         s.get('start', ''),
@@ -103,12 +113,12 @@ while IFS=$'\t' read -r name svc_path init_cmd; do
 done < <(parse_common "$CONFIG")
 
 echo "[init] --- services ---"
-while IFS=$'\t' read -r name type enabled svc_path init_cmd start_cmd production_enabled; do
-  # Run init only for enabled services.
-  [[ "$enabled" != "true" ]] && continue
-  # In production, init only services explicitly allowed for production.
-  if [[ "$ENVIRONMENT" == "production" && "$production_enabled" != "true" ]]; then
-    continue
+while IFS=$'\t' read -r name type development_enabled svc_path init_cmd start_cmd production_enabled; do
+  # Development: init services flagged for dev. Production: init services flagged for prod.
+  if [[ "$ENVIRONMENT" == "production" ]]; then
+    [[ "$production_enabled" != "true" ]] && continue
+  else
+    [[ "$development_enabled" != "true" ]] && continue
   fi
   [[ -z "$init_cmd" ]] && continue
 

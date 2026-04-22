@@ -19,6 +19,7 @@ default_aliases=(
   "sma.main=bash \"$ROOT_DIR/ragent.sh\""
   "sma.dev=bash \"$ROOT_DIR/agents/agent.dev/ragent.dev.sh\""
   "sma.manager=bash \"$ROOT_DIR/agents/agent.manager/ragent.manager.sh\""
+  "sma.dante=bash \"$ROOT_DIR/agents/agent.dante/ragent.dante.sh\""
   "sma.knowledge-base=bash \"$ROOT_DIR/agents/agent.knowledge-base/ragent.knowledge-base.sh\""
   "sma.db=bash \"$ROOT_DIR/agents/agent.db/ragent.db.sh\""
   "sma.logs=bash \"$ROOT_DIR/agents/agent.logs/ragent.logs.sh\""

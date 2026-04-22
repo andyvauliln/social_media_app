@@ -20,7 +20,7 @@ hooks: {}
 - if it's endpoints with a ports available after start remember them and add them in a 
 4) create also {project_name}.index.md file put there some guidance for installation and start process, endpoints all information needed to unerstand init and start process and where to check
 5) add health.sh script that ll run and check if application running and working as expected
-6) add init/start entry to `./start.config.jsonc` with `disabled: true` by default
+6) add init/start entry to `./start.config.jsonc` with `developmentEnabled: false` and `productionEnabled: false` by default (turn on per environment as needed)
 7) add project metadata to `./github-projects/!index.jsonc`
 8) create env symlink files in `./envs` for project `.env*` files using unique names:
    `./envs/gp.{project}.symlink.env`

@@ -275,17 +275,6 @@ try {
 } catch {}
 ' "${ACCESS_CONFIG_FILE}"
     )"
-    TELEGRAM_ACCESS_ENABLED="$(
-      node -e '
-const fs = require("fs");
-try {
-  const raw = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
-  process.stdout.write(raw.enabled === false ? "false" : "true");
-} catch {
-  process.stdout.write("true");
-}
-' "${ACCESS_CONFIG_FILE}"
-    )"
 
     if [[ -n "${TELEGRAM_STATE_DIR_FROM_CONFIG}" ]]; then
       if [[ "${TELEGRAM_STATE_DIR_FROM_CONFIG}" = /* ]]; then
@@ -300,27 +289,19 @@ try {
   fi
 fi
 
-TELEGRAM_CHANNEL="${TELEGRAM_CHANNEL:-plugin:telegram@inline}"
+TELEGRAM_CHANNEL="${TELEGRAM_CHANNEL:-plugin:telegram@claude-plugins-official}"
 
 AGENT_DIR="${ROOT_DIR}/agents/agent.manager"
 
 enable_telegram=false
-if [[ "${ENVIRONMENT:-}" == "production" ]]; then
-  enable_telegram=true
-fi
-ragent_telegram_cli_override=false
 forwarded_args=()
 for arg in "$@"; do
   if [[ "${arg}" == "--telegram" ]]; then
     enable_telegram=true
-    ragent_telegram_cli_override=true
     continue
   fi
   forwarded_args+=("${arg}")
 done
-if [[ -f "${ACCESS_CONFIG_FILE}" ]] && [[ "${TELEGRAM_ACCESS_ENABLED:-true}" == "false" ]] && [[ "${ragent_telegram_cli_override}" != "true" ]]; then
-  enable_telegram=false
-fi
 
 ########## STALE SESSION CLEANUP ##########
 # kill stale telegram bot process so a fresh instance can bind cleanly.
@@ -346,9 +327,11 @@ if [[ "${ENVIRONMENT:-}" != "production" ]]; then
   args+=(--debug)
 fi
 if [[ "${enable_telegram}" == "true" ]]; then
-  args+=(
-    --plugin-dir "${ROOT_DIR}/plugins/telegram"
-    --dangerously-load-development-channels "${TELEGRAM_CHANNEL}"
-  )
+  if [[ "${TELEGRAM_CHANNEL}" == *"@inline"* ]] || [[ "${TELEGRAM_CHANNEL}" == server:* ]]; then
+    args+=(--plugin-dir "${ROOT_DIR}/plugins/telegram")
+    args+=(--dangerously-load-development-channels "${TELEGRAM_CHANNEL}")
+  else
+    args+=(--channels "${TELEGRAM_CHANNEL}")
+  fi
 fi
 cd "${AGENT_DIR}" && exec claude "${args[@]}" "${forwarded_args[@]}"
