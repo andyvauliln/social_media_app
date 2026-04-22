@@ -1,4 +1,5 @@
 {
   "enabledPlugins": {
-  }
+  },
+  "autoMemoryEnabled": false
 }

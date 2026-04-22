@@ -8,10 +8,10 @@
   "type": "improvement",
   "scope": "agent.manager",
   "priority": "medium",
-  "assigned_user": "Andrei",
+  "assigned_user": "andrei",
   "assigned_agent": "agent.dev",
   "branch_name": "improvement/6-finish-collect-inline-tasks-skill",
-  "in_plan_task_directory": "agents/agent.manager/tasks/in_plan/Andrei.improvement.6.planned",
+  "in_plan_task_directory": "agents/agent.manager/tasks/in_plan/andrei.improvement.6.planned",
   "run_test_command": "node agents/agent.manager/agent.manager.tests/collect-inline-tasks.test.js",
   "sub_tasks": [
     {
@@ -110,7 +110,7 @@ File: `agents/agent.manager/.claude/skills/collect-inline-tasks/SKILL.md`
 
 **What's possible to improve**:
 
-- Add `@scope` parameter handling (e.g. `/collect-inline-tasks @andrei` only processes tasks for Andrei) @notes: no need
+- Add `@scope` parameter handling (e.g. `/collect-inline-tasks @andrei` only processes tasks for andrei) @notes: no need
 - Clarify that `/create-task` invocation must pass `@context` source info when `@context` param is in the `ai_todo`
 - `@notes @context or just @c would mean that we need attach current file and line where is comment into the task context field`
 

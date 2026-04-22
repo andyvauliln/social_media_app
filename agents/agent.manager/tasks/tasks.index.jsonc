@@ -64,17 +64,17 @@
     "is_passed_tests": false,
     "run_test_command": "",
 
-    "assigned_user": "Andrei",
+    "assigned_user": "andrei",
     "assigned_agent": "agent.manager",
 
     "is_need_human_confirmation": true,
 
-    "notes": "",
+    "notes": "Should be one telegram bot for root agent and if i run for example manager agent with a manager.ragent.sh it has own own config with setuped bot and this 2 bots both working",
 
     "platform": "claude",
 
     "created_at": "2026-04-21T14:17:54Z",
-    "created_by": "Andrei",
+    "created_by": "andrei",
     "updated_at": "2026-04-21T14:17:54Z",
     "closed_at": ""
   },
@@ -107,7 +107,7 @@
     "blocked_reason": "",
 
     // Folder created only when plan/report generation starts
-    "in_plan_task_directory": "agents/agent.manager/tasks/in_plan/Andrei.improvement.6.planned",
+    "in_plan_task_directory": "agents/agent.manager/tasks/in_plan/andrei.improvement.6.planned",
 
     "priority": "medium",
 
@@ -131,7 +131,7 @@
       "type": "plan",
       "model": "opus",
       "platform": "claude",
-      "plan_path": "agents/agent.manager/tasks/in_plan/Andrei.improvement.6.planned/6_plan.v1.md",
+      "plan_path": "agents/agent.manager/tasks/in_plan/andrei.improvement.6.planned/6_plan.v1.md",
       "is_need_human_confirmation": true,
       "blocked_reason": "",
       "notes": "",
@@ -170,7 +170,7 @@
     "is_passed_tests": false,
     "run_test_command": "node agents/agent.manager/agent.manager.tests/collect-inline-tasks.test.js",
 
-    "assigned_user": "Andrei",
+    "assigned_user": "andrei",
     "assigned_agent": "agent.dev",
 
     "is_need_human_confirmation": true,
@@ -180,7 +180,7 @@
     "platform": "claude",
 
     "created_at": "2026-04-17T00:00:00Z",
-    "created_by": "Andrei",
+    "created_by": "andrei",
     "updated_at": "2026-04-17T20:40:00Z",
     "closed_at": ""
   }

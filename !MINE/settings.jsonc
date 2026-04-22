@@ -1,0 +1,1299 @@
+/**
+ * Claude Code — Complete Settings Reference (settings.reference.jsonc)
+ *
+ * File locations (applied in order, later sources override earlier ones):
+ *   1. Plugin settings          — lowest priority, provided by installed plugins
+ *   2. ~/.claude/settings.json  — user-global settings (or cowork_settings.json when --cowork)
+ *   3. .claude/settings.json    — project-shared settings (committed to git)
+ *   4. .claude/settings.local.json — personal project overrides (git-ignored automatically)
+ *   5. policySettings           — enterprise-managed (remote > MDM plist/HKLM > managed-settings.json > HKCU)
+ *
+ * Arrays are MERGED (deduplicated) across all sources.
+ * Scalar values from a higher-priority source WIN (override lower ones).
+ *
+ * This file uses JSONC syntax (JSON with comments). Strip comments before using
+ * as a real settings.json — Claude Code parses standard JSON, not JSONC.
+ *
+ * JSON Schema: https://raw.githubusercontent.com/anthropics/claude-code/refs/heads/main/.claude/settings.schema.json
+ */
+ {
+  // ─── JSON SCHEMA ──────────────────────────────────────────────────────────
+  // Enables editor autocomplete and inline validation in VS Code / Cursor.
+  // Must be exactly this literal URL or the field is rejected.
+  "$schema": "https://raw.githubusercontent.com/anthropics/claude-code/refs/heads/main/.claude/settings.schema.json",
+
+  // ─── AUTHENTICATION ───────────────────────────────────────────────────────
+
+  // apiKeyHelper — path to an executable that prints authentication headers to stdout.
+  // Claude Code runs this script before each API call and uses the output as-is.
+  // Useful for short-lived tokens (AWS SigV4, Vault-issued keys, etc.).
+  // The script must be executable and print "ANTHROPIC_API_KEY=sk-ant-..." on stdout.
+  // Possible values: any valid absolute or relative path to an executable script.
+  "apiKeyHelper": "/usr/local/bin/get-claude-api-key.sh",
+
+  // awsCredentialExport — path to a script that exports AWS credentials for Bedrock.
+  // Claude Code sources this script to populate AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY,
+  // and optionally AWS_SESSION_TOKEN before making Bedrock API calls.
+  // Possible values: any valid path to a shell script.
+  "awsCredentialExport": "~/.config/claude/aws-creds.sh",
+
+  // awsAuthRefresh — path to a script that refreshes AWS authentication.
+  // Called when Bedrock returns a 401/403 so Claude can re-authenticate
+  // without requiring a full restart. Different from awsCredentialExport:
+  // this is called ON auth failure, not before every call.
+  // Possible values: any valid path to an executable.
+  "awsAuthRefresh": "~/.config/claude/refresh-aws-token.sh",
+
+  // gcpAuthRefresh — shell command (not just a path) that refreshes GCP credentials.
+  // Run when Vertex AI returns an auth error. The command is executed in a shell
+  // so pipes, redirects, and compound commands work.
+  // Possible values: any shell command string.
+  "gcpAuthRefresh": "gcloud auth application-default login --quiet",
+
+  // xaaIdp — XAA (SEP-990) Identity Provider connection.
+  // Only parsed when the environment variable CLAUDE_CODE_ENABLE_XAA=1 is set.
+  // Configures OpenID Connect login so Claude Code can obtain short-lived tokens
+  // from your corporate IdP instead of storing long-lived API keys.
+  // Configure once; all XAA-enabled MCP servers in the session reuse this config.
+  "xaaIdp": {
+    // issuer — OIDC discovery base URL. Claude Code appends "/.well-known/openid-configuration"
+    // to discover token/auth endpoints automatically.
+    // Must be a valid https:// URL.
+    "issuer": "https://sso.corp.example.com",
+
+    // clientId — The client_id registered at your IdP for Claude Code.
+    // Obtain this from your IdP admin. Used in the PKCE authorization code flow.
+    "clientId": "claude-code-desktop-client",
+
+    // callbackPort — Fixed loopback port for the OIDC redirect_uri.
+    // Only needed when your IdP does NOT honor RFC 8252 (dynamic port assignment).
+    // Range: 1–65535. Must match the redirect_uri registered at the IdP.
+    // If omitted, Claude Code picks an available port automatically.
+    "callbackPort": 8765
+  },
+
+  // ─── FILE OPERATIONS ──────────────────────────────────────────────────────
+
+  // fileSuggestion — Custom command for @ file-mention completions.
+  // When set, Claude Code runs this command to populate the file picker instead
+  // of using its built-in file listing. The command must print one file path per
+  // line to stdout. Useful for large monorepos or exotic VCS layouts.
+  // Currently only "command" type is supported.
+  "fileSuggestion": {
+    // type — must be "command".
+    // Possible values: "command"
+    "type": "command",
+
+    // command — shell command to invoke. Its stdout (newline-separated paths) is
+    // shown in the completion dropdown when the user types "@".
+    "command": "git ls-files --cached --others --exclude-standard"
+  },
+
+  // respectGitignore — controls whether the built-in file picker hides .gitignore entries.
+  // Note: .ignore files (generic ripgrep-style) are ALWAYS respected regardless of this flag.
+  // Possible values: true (default) | false
+  "respectGitignore": true,
+
+  // cleanupPeriodDays — how many days to keep chat transcript files on disk.
+  // Transcripts live in ~/.claude/projects/<project>/. Claude Code deletes entries
+  // older than this at startup.
+  // Special value 0 disables session persistence entirely:
+  //   - No new transcripts are written to disk.
+  //   - All existing transcripts are deleted at next startup.
+  // Possible values: 0 (disable persistence) | any positive integer (e.g. 7, 30, 90, 365)
+  "cleanupPeriodDays": 30,
+
+  // ─── ENVIRONMENT VARIABLES ────────────────────────────────────────────────
+
+  // env — extra environment variables injected into every Claude Code subprocess
+  // (bash hooks, MCP servers, helper scripts, etc.).
+  // Values are coerced to strings (numbers, booleans are accepted and converted).
+  // Variables set here are available in shell hooks as $VAR_NAME.
+  // These do NOT override variables already in the process environment — they supplement them.
+  "env": {
+    "NODE_ENV": "development",
+    "CUSTOM_ENDPOINT": "https://api.internal.example.com",
+    "LOG_LEVEL": "debug",
+    "ANTHROPIC_API_KEY": "sk-ant-api03-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  },
+
+  // ─── GIT ATTRIBUTION ──────────────────────────────────────────────────────
+
+  // attribution — customize the text appended to commits and PRs made by Claude.
+  // By default Claude adds "🤖 Generated with Claude Code" plus a Co-authored-by trailer.
+  // Set either field to "" to suppress attribution entirely for that surface.
+  "attribution": {
+    // commit — text added to the end of the commit message.
+    // Supports git trailers (e.g., "Signed-off-by: ...").
+    // Empty string "" removes commit attribution completely.
+    // Possible values: any string | "" (to hide)
+    "commit": "🤖 Generated with Claude Code\n\nCo-authored-by: Claude <noreply@anthropic.com>",
+
+    // pr — text appended to the pull request description body.
+    // Empty string "" removes PR attribution completely.
+    // Possible values: any string | "" (to hide)
+    "pr": "---\n*This PR was created with assistance from [Claude Code](https://claude.ai/code)*"
+  },
+
+  // includeCoAuthoredBy — DEPRECATED. Use attribution.commit / attribution.pr instead.
+  // When true (default), adds "Co-authored-by: Claude <noreply@anthropic.com>" trailer.
+  // Still works but attribution takes precedence if both are set.
+  // Possible values: true (default) | false
+  "includeCoAuthoredBy": true,
+
+  // includeGitInstructions — whether Claude's system prompt includes built-in guidance
+  // for commit messages, branch naming, and PR workflow. Disable to supply your own
+  // workflow instructions via CLAUDE.md or a custom agent.
+  // Possible values: true (default) | false
+  "includeGitInstructions": true,
+
+  // ─── PERMISSIONS ──────────────────────────────────────────────────────────
+  // Controls which Claude Code tool calls are auto-approved, blocked, or require
+  // user confirmation. Rules use permission rule syntax: Tool(pattern).
+  //
+  // Tool names: Bash, Read, Write, Edit, MultiEdit, WebFetch, WebSearch,
+  //             TodoRead, TodoWrite, Task, NotebookRead, NotebookEdit, etc.
+  // Pattern syntax examples:
+  //   "Bash(git *)"           — any git subcommand
+  //   "Read(~/.ssh/*)"        — read any file under ~/.ssh
+  //   "Edit(src/**/*.ts)"     — edit TypeScript files under src/
+  //   "WebFetch(domain:api.example.com)"  — fetch from specific domain
+  //
+  // Evaluation order: deny > ask > allow > defaultMode
+  "permissions": {
+    // allow — rules that are automatically approved without user confirmation.
+    // Claude can execute matching tool calls without interrupting the user.
+    "allow": [
+      "Bash(git status)",
+      "Bash(git log *)",
+      "Bash(git diff *)",
+      "Bash(npm run *)",
+      "Bash(npx tsc --noEmit)",
+      "Read(**/*.ts)",
+      "Read(**/*.json)",
+      "Edit(src/**)",
+      "WebFetch(domain:docs.anthropic.com)"
+    ],
+
+    // deny — rules that are permanently blocked.
+    // Claude cannot execute these even if the user explicitly asks.
+    // Takes precedence over allow and ask.
+    "deny": [
+      "Bash(rm -rf *)",
+      "Bash(sudo *)",
+      "Bash(curl * | bash)",
+      "Write(~/.ssh/*)",
+      "Write(/etc/*)"
+    ],
+
+    // ask — rules that always require explicit confirmation, even in --dangerously-skip-permissions mode.
+    // Use for high-impact, irreversible operations you want a second opinion on.
+    "ask": [
+      "Bash(git push *)",
+      "Bash(git reset --hard *)",
+      "Bash(npm publish *)"
+    ],
+
+    // defaultMode — what happens when no allow/deny/ask rule matches.
+    // Possible values:
+    //   "default"     — Claude Code decides based on context (usually asks)
+    //   "acceptEdits" — auto-approve file edits; still ask for bash/web
+    //   "bypassPermissions" — skip all permission checks (use with extreme caution)
+    //   (TRANSCRIPT_CLASSIFIER feature also adds "auto" and "plan" modes)
+    "defaultMode": "default",
+
+    // disableBypassPermissionsMode — when set to "disable", the user cannot switch
+    // to bypassPermissions mode from the UI or --dangerously-skip-permissions CLI flag.
+    // Useful in managed enterprise deployments where unattended execution is risky.
+    // Possible values: "disable" | omit the field to allow bypass
+    "disableBypassPermissionsMode": "disable",
+
+    // additionalDirectories — extra filesystem directories that Claude is allowed to
+    // operate in, beyond the current working directory. Useful for monorepos where
+    // related packages live outside the immediate project root.
+    // Possible values: array of absolute or ~ paths
+    "additionalDirectories": [
+      "~/shared-libs",
+      "/opt/internal-tools"
+    ]
+  },
+
+  // ─── MODEL SELECTION ──────────────────────────────────────────────────────
+
+  // model — override the default model for all Claude sessions.
+  // Accepts full model IDs or family aliases.
+  // Possible values: "claude-opus-4-6", "claude-sonnet-4-6", "claude-haiku-4-6",
+  //                  "claude-opus-4-5", "claude-sonnet-4-5", "claude-haiku-4-5",
+  //                  and any future Anthropic model ID
+  "model": "claude-opus-4-6",
+
+  // availableModels — enterprise allowlist of models users can switch to in the UI.
+  // Accepts full IDs, family prefixes, and family aliases.
+  // Examples:
+  //   "opus"           — all opus versions
+  //   "claude-sonnet"  — any sonnet version
+  //   "claude-opus-4-5" — only that specific version
+  // If undefined → all models available.
+  // If [] (empty array) → only the default/current model can be used.
+  // Typically set in managed-settings.json by enterprise admins.
+  "availableModels": [
+    "claude-opus-4-6",
+    "claude-sonnet-4-6",
+    "claude-haiku-4-6"
+  ],
+
+  // modelOverrides — map from Anthropic model ID to provider-specific model ID.
+  // Useful for AWS Bedrock inference profiles or Vertex AI model endpoints.
+  // Key: Anthropic model ID (e.g. "claude-opus-4-6")
+  // Value: provider ARN, resource name, or endpoint (e.g. Bedrock cross-region inference profile ARN)
+  "modelOverrides": {
+    "claude-opus-4-6": "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-opus-4-6-20250514-v1:0",
+    "claude-sonnet-4-6": "arn:aws:bedrock:us-west-2::foundation-model/anthropic.claude-sonnet-4-6-20250514-v1:0"
+  },
+
+  // ─── MCP (MODEL CONTEXT PROTOCOL) SERVERS ────────────────────────────────
+
+  // enableAllProjectMcpServers — when true, automatically trust and start all MCP
+  // servers declared in .mcp.json without asking the user for confirmation.
+  // Potential security risk: a compromised .mcp.json could inject malicious servers.
+  // Recommended only in controlled enterprise environments.
+  // Possible values: true | false (default)
+  "enableAllProjectMcpServers": false,
+
+  // enabledMcpjsonServers — list of MCP server names (keys in .mcp.json) that have
+  // been individually approved by the user to start automatically. Claude Code maintains
+  // this list when the user clicks "Always allow" in the MCP approval dialog.
+  // Possible values: array of server name strings matching keys in .mcp.json
+  "enabledMcpjsonServers": [
+    "filesystem",
+    "github",
+    "postgres"
+  ],
+
+  // disabledMcpjsonServers — list of MCP server names that have been individually
+  // rejected. Entries here take precedence over enabledMcpjsonServers.
+  // Possible values: array of server name strings
+  "disabledMcpjsonServers": [
+    "experimental-server"
+  ],
+
+  // allowedMcpServers — enterprise allowlist of permitted MCP servers.
+  // Applies to ALL scopes including enterprise servers from managed-mcp.json.
+  // Each entry matches by exactly ONE of: serverName, serverCommand, or serverUrl.
+  // If undefined → all servers allowed.
+  // If [] (empty array) → no MCP servers allowed at all.
+  // Denylist (deniedMcpServers) always takes precedence over this allowlist.
+  "allowedMcpServers": [
+    {
+      // serverName — match by registered MCP server name.
+      // Only letters, numbers, hyphens, underscores allowed.
+      "serverName": "filesystem"
+    },
+    {
+      // serverCommand — match by exact command array [command, ...args].
+      // The full array must match exactly (no wildcards).
+      "serverCommand": ["npx", "-y", "@modelcontextprotocol/server-github"]
+    },
+    {
+      // serverUrl — URL pattern with wildcard support.
+      // * matches any single path segment or subdomain component.
+      "serverUrl": "https://*.internal.example.com/mcp/*"
+    }
+  ],
+
+  // deniedMcpServers — enterprise denylist; blocked servers are never started.
+  // Takes precedence over allowedMcpServers if a server appears on both lists.
+  "deniedMcpServers": [
+    {
+      "serverName": "untrusted-external-server"
+    },
+    {
+      "serverUrl": "https://malicious.example.com/*"
+    }
+  ],
+
+  // ─── HOOKS ────────────────────────────────────────────────────────────────
+  // Hooks let you run custom logic at specific points in Claude's lifecycle.
+  // Structure: { "<HookEvent>": [ { matcher?: "...", hooks: [...] } ] }
+  //
+  // Hook events (all available keys):
+  //   PreToolUse     — before any tool call; can block execution (exit 2 = block)
+  //   PostToolUse    — after any tool call completes
+  //   Notification   — when Claude sends a system notification to the user
+  //   UserPromptSubmit — when the user submits a message
+  //   SessionStart   — once at the beginning of a session
+  //   SessionEnd     — once when a session ends
+  //   Stop           — when Claude finishes its turn
+  //   SubagentStop   — when a subagent finishes
+  //   PreCompact     — before context window compaction
+  //   PostCompact    — after context window compaction
+  //   TeammateIdle   — teammate has been idle (cowork mode)
+  //   TaskCreated    — a new task was created
+  //   TaskCompleted  — a task was completed
+  //
+  // Hook types: "command" | "prompt" | "http" | "agent"
+  //
+  // matcher — optional permission-rule-syntax string to filter which tool calls
+  //   trigger the hook (e.g. "Bash(git *)" only fires on git bash calls).
+  //   If omitted, the hook fires for every occurrence of the event.
+  "hooks": {
+    // PreToolUse — runs before Claude executes a tool.
+    // Exit code 2 from a command hook blocks the tool call (error shown to Claude).
+    // Other non-zero exit codes log a warning but don't block.
+    "PreToolUse": [
+      {
+        // matcher filters to Bash commands containing "git push"
+        "matcher": "Bash(git push *)",
+        "hooks": [
+          {
+            // command hook — runs a shell command
+            "type": "command",
+            // command — the shell command to execute.
+            // Receives hook context via stdin as JSON: { tool_name, tool_input, ... }
+            "command": "echo 'About to push to remote. Verify branch and target.' && git status --short",
+            // shell — interpreter to use. "bash" uses $SHELL (bash/zsh/sh), "powershell" uses pwsh.
+            // Possible values: "bash" (default) | "powershell"
+            "shell": "bash",
+            // timeout — max seconds before the hook is killed. Default: 60.
+            // Possible values: any positive number (e.g. 10, 30, 120)
+            "timeout": 30,
+            // statusMessage — displayed in the spinner while the hook runs.
+            // Possible values: any string
+            "statusMessage": "Validating push...",
+            // once — if true, hook is auto-removed after running once.
+            // Possible values: true | false (default)
+            "once": false,
+            // async — if true, hook runs in background and doesn't block Claude.
+            // Possible values: true | false (default)
+            "async": false,
+            // asyncRewake — runs async but wakes Claude on exit code 2 (blocking error).
+            // Implies async: true.
+            // Possible values: true | false (default)
+            "asyncRewake": false,
+            // if — conditional filter using permission rule syntax.
+            // Hook only runs when the tool call matches this pattern.
+            // If omitted, hook always runs for this hook event.
+            "if": "Bash(git push *)"
+          }
+        ]
+      },
+      {
+        // No matcher = fires for every PreToolUse event
+        "hooks": [
+          {
+            // http hook — sends the hook input as JSON via HTTP POST
+            "type": "http",
+            // url — must be a valid https:// URL
+            "url": "https://hooks.internal.example.com/claude/pre-tool",
+            // headers — additional HTTP headers. Values may reference env vars via $VAR or ${VAR}.
+            // Only variables listed in allowedEnvVars will be interpolated.
+            "headers": {
+              "Authorization": "Bearer $HOOK_SECRET_TOKEN",
+              "X-Workspace": "my-project",
+              "Content-Type": "application/json"
+            },
+            // allowedEnvVars — env var names whose values may be interpolated in header values.
+            // Variables NOT in this list are left as empty strings even if $VAR syntax is used.
+            "allowedEnvVars": ["HOOK_SECRET_TOKEN"],
+            "timeout": 10,
+            "statusMessage": "Auditing tool call...",
+            "once": false
+          }
+        ]
+      }
+    ],
+
+    // PostToolUse — runs after a tool completes. Cannot block; return value is ignored.
+    "PostToolUse": [
+      {
+        "matcher": "Edit(*)",
+        "hooks": [
+          {
+            "type": "command",
+            // $ARGUMENTS in the command is replaced with the hook input JSON string.
+            "command": "echo $ARGUMENTS | jq -r '.tool_input.file_path' >> ~/.claude/edited-files.log",
+            "async": true
+          }
+        ]
+      }
+    ],
+
+    // SessionStart — fires once when a new Claude session begins.
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "date '+%Y-%m-%d %H:%M:%S' >> ~/.claude/sessions.log && echo 'Session started'",
+            "async": true,
+            "statusMessage": "Initializing session..."
+          }
+        ]
+      }
+    ],
+
+    // SessionEnd — fires once when a session ends (user exits, /quit, etc.)
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'Session ended at' $(date) >> ~/.claude/sessions.log",
+            "async": true
+          }
+        ]
+      }
+    ],
+
+    // Stop — fires when Claude finishes its reasoning turn.
+    // Useful for notifications, logging, CI integrations.
+    "Stop": [
+      {
+        "hooks": [
+          {
+            // prompt hook — evaluates an LLM prompt instead of running a command.
+            // Use $ARGUMENTS placeholder to inject the hook input JSON.
+            "type": "prompt",
+            "prompt": "Summarize what was just completed in one sentence based on: $ARGUMENTS",
+            // model — model to use for this prompt. Defaults to a small fast model.
+            // Possible values: any valid model ID (e.g. "claude-haiku-4-6")
+            "model": "claude-haiku-4-6",
+            "timeout": 30,
+            "statusMessage": "Summarizing..."
+          }
+        ]
+      }
+    ],
+
+    // PreCompact — fires before context window compaction runs.
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            // agent hook — launches a mini Claude agent to verify/validate something.
+            // Ideal for "does this change break the build?" checks before compaction.
+            "type": "agent",
+            // prompt — instructions for the verifier agent.
+            // Use $ARGUMENTS placeholder for hook input JSON.
+            "prompt": "Verify that the workspace is in a clean state before compacting context. Check for any unsaved files or uncommitted changes. Return a brief status report.",
+            "model": "claude-haiku-4-6",
+            // timeout — seconds for the agent to complete. Default: 60.
+            "timeout": 60,
+            "statusMessage": "Verifying workspace state..."
+          }
+        ]
+      }
+    ],
+
+    // Notification — fires when Claude sends a desktop notification.
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            // On macOS: use osascript. On Linux: use notify-send.
+            "command": "osascript -e 'display notification \"Claude needs your attention\" with title \"Claude Code\"'",
+            "async": true
+          }
+        ]
+      }
+    ]
+  },
+
+  // ─── GIT WORKTREE ─────────────────────────────────────────────────────────
+
+  // worktree — configuration for git worktrees created with the --worktree flag.
+  // Worktrees let Claude work on isolated branches without contaminating your
+  // main working tree.
+  "worktree": {
+    // symlinkDirectories — directories symlinked from the main repo into worktrees.
+    // Avoids duplicating large build caches. No directories are symlinked by default.
+    // Common examples: "node_modules", ".cache", ".venv", ".bin", "vendor"
+    // Possible values: array of directory name strings (relative to project root)
+    "symlinkDirectories": [
+      "node_modules",
+      ".cache",
+      ".next/cache"
+    ],
+
+    // sparsePaths — only these directories are written to disk when creating a worktree.
+    // Uses git sparse-checkout (cone mode). Dramatically speeds up worktree creation
+    // in large monorepos by skipping unneeded packages.
+    // Possible values: array of directory path strings (relative to repo root)
+    "sparsePaths": [
+      "packages/api",
+      "packages/shared",
+      "tools"
+    ]
+  },
+
+  // ─── HOOK GOVERNANCE ──────────────────────────────────────────────────────
+
+  // disableAllHooks — when true, all hooks and statusLine are completely disabled.
+  // Useful for debugging hook interference or in air-gapped environments.
+  // Possible values: true | false (default)
+  "disableAllHooks": false,
+
+  // defaultShell — which shell backs the ! (bang) input-box quick-execute feature.
+  // Does NOT affect hooks; hooks use the "shell" field per-hook.
+  // Possible values: "bash" (default, uses $SHELL — bash/zsh/sh) | "powershell" (pwsh)
+  "defaultShell": "bash",
+
+  // allowManagedHooksOnly — when true AND set in managed/policy settings,
+  // only hooks from managed-settings.json are executed.
+  // Hooks in user settings, project settings, and local settings are ignored.
+  // Possible values: true | false (default)
+  "allowManagedHooksOnly": false,
+
+  // allowedHttpHookUrls — URL patterns that HTTP hooks may POST to.
+  // Supports * wildcard (matches any substring, not just a path segment).
+  // If undefined → all URLs are allowed.
+  // If [] (empty array) → no HTTP hooks are allowed to fire.
+  // Arrays from different settings sources are merged and deduplicated.
+  "allowedHttpHookUrls": [
+    "https://hooks.internal.example.com/*",
+    "https://audit.corp.example.com/claude-events"
+  ],
+
+  // httpHookAllowedEnvVars — names of environment variables that HTTP hook header
+  // values are permitted to interpolate. Intersection with each hook's own
+  // allowedEnvVars is used (most restrictive wins).
+  // If undefined → no restriction is applied at the policy level.
+  // Possible values: array of env var name strings (e.g. ["API_TOKEN", "AUDIT_KEY"])
+  "httpHookAllowedEnvVars": [
+    "HOOK_SECRET_TOKEN",
+    "AUDIT_API_KEY"
+  ],
+
+  // ─── ENTERPRISE POLICY LOCKS ──────────────────────────────────────────────
+
+  // allowManagedPermissionRulesOnly — when true AND set in managed settings,
+  // only permission rules (allow/deny/ask) from managed-settings.json are applied.
+  // User, project, local, and CLI-arg permission rules are completely ignored.
+  // Possible values: true | false (default)
+  "allowManagedPermissionRulesOnly": false,
+
+  // allowManagedMcpServersOnly — when true AND set in managed settings, the
+  // allowedMcpServers allowlist is ONLY read from managed settings.
+  // Users can still add their own MCP servers, but only the admin-defined allowlist applies.
+  // deniedMcpServers still merges from all sources (users can deny servers for themselves).
+  // Possible values: true | false (default)
+  "allowManagedMcpServersOnly": false,
+
+  // strictPluginOnlyCustomization — forces certain customization surfaces to be
+  // provided exclusively via plugins (no user/project config files).
+  //
+  // Surfaces: "skills" | "agents" | "hooks" | "mcp"
+  //
+  // What gets blocked when a surface is locked:
+  //   "skills" → ~/.claude/skills/ and .claude/skills/ directories are ignored
+  //   "agents" → ~/.claude/agents/ and .claude/agents/ directories are ignored
+  //   "hooks"  → hooks in user/project/local settings.json are ignored
+  //   "mcp"    → .mcp.json files in project directories are ignored
+  //
+  // NOT blocked: managed (policySettings) sources, plugin-provided customizations.
+  //
+  // Possible values:
+  //   true              — lock all four surfaces
+  //   false             — explicit no-op (equivalent to omitting this field)
+  //   ["skills", "mcp"] — lock only specific surfaces
+  //   ["agents", "hooks", "mcp", "skills"] — lock all surfaces (same as true)
+  "strictPluginOnlyCustomization": ["hooks", "mcp"],
+
+  // ─── STATUS LINE ──────────────────────────────────────────────────────────
+
+  // statusLine — a custom status strip displayed above the CLI input prompt.
+  // Run a command periodically; its stdout is shown as the status line text.
+  // Useful for displaying branch name, test status, build state, or custom metrics.
+  "statusLine": {
+    // type — must be "command".
+    // Possible values: "command"
+    "type": "command",
+
+    // command — shell command whose stdout becomes the status line content.
+    // Runs in the project directory. Should complete quickly (< 1 second).
+    "command": "git branch --show-current 2>/dev/null | awk '{print \"⎇  \" $0}' && echo -n \" | \" && git status --porcelain | wc -l | awk '{print $1 \" changed\"}'",
+
+    // padding — number of blank lines above the status line for visual spacing.
+    // Possible values: any non-negative integer (default: 0)
+    "padding": 1
+  },
+
+  // ─── PLUGINS & MARKETPLACES ───────────────────────────────────────────────
+
+  // enabledPlugins — record of installed/enabled plugins.
+  // Key format: "plugin-name@marketplace-name"
+  // Value: true (enabled, all versions) | false (disabled) | string[] (version constraints)
+  "enabledPlugins": {
+    // true → enable this plugin unconditionally
+    "code-formatter@anthropic-tools": true,
+    // false → explicitly disable (overrides lower-priority sources that enable it)
+    "experimental-plugin@anthropic-tools": false,
+    // string[] → version constraint list (semver ranges)
+    "db-assistant@company-internal": ["^2.0.0"]
+  },
+
+  // extraKnownMarketplaces — additional plugin marketplaces to register for this project.
+  // Key = marketplace name (must match source.name for "settings"-type sources).
+  // Typically placed in project .claude/settings.json so all team members get the source.
+  "extraKnownMarketplaces": {
+    // GitHub-hosted marketplace (fetches .claude-plugin/marketplace.json from the repo)
+    "company-internal": {
+      "source": {
+        // source — where to fetch the marketplace.
+        // Possible values: "github" | "git" | "url" | "npm" | "file" | "directory"
+        //                  "settings" | "hostPattern" | "pathPattern"
+        "source": "github",
+        // repo — "owner/repo" format for GitHub sources
+        "repo": "acme-corp/claude-plugins",
+        // ref — git branch or tag. Defaults to the repository default branch.
+        "ref": "main",
+        // path — path to marketplace.json inside the repo.
+        // Defaults to ".claude-plugin/marketplace.json"
+        "path": ".claude-plugin/marketplace.json"
+      },
+      // autoUpdate — auto-refresh this marketplace and update installed plugins at startup.
+      // Possible values: true | false (default for non-official marketplaces)
+      "autoUpdate": true
+    },
+
+    // URL-hosted marketplace (direct HTTPS link to marketplace.json)
+    "partner-tools": {
+      "source": {
+        "source": "url",
+        "url": "https://plugins.partner.example.com/marketplace.json",
+        "headers": {
+          "X-API-Key": "partner-marketplace-access-key"
+        }
+      },
+      "autoUpdate": false
+    }
+  },
+
+  // strictKnownMarketplaces — enterprise allowlist of permitted marketplace sources.
+  // When set in managed settings, ONLY these sources can be registered as marketplaces.
+  // The check happens BEFORE downloading — blocked sources never touch the filesystem.
+  // Does NOT auto-register these marketplaces; use extraKnownMarketplaces for that.
+  "strictKnownMarketplaces": [
+    {
+      // Allow any marketplace hosted on the company's GitHub Enterprise instance
+      "source": "hostPattern",
+      "hostPattern": "^github\\.acme-corp\\.com$"
+    },
+    {
+      // Also allow official Anthropic GitHub marketplace
+      "source": "github",
+      "repo": "anthropics/claude-code-marketplace"
+    },
+    {
+      // Allow file-based (local) marketplaces only in /opt/approved-plugins/
+      "source": "pathPattern",
+      "pathPattern": "^/opt/approved-plugins/"
+    }
+  ],
+
+  // blockedMarketplaces — enterprise blocklist of forbidden marketplace sources.
+  // When set in managed settings, these sources are blocked BEFORE downloading.
+  "blockedMarketplaces": [
+    {
+      "source": "url",
+      "url": "https://untrusted-plugins.example.com/marketplace.json"
+    },
+    {
+      "source": "hostPattern",
+      "hostPattern": "^.*\\.suspicious-domain\\.com$"
+    }
+  ],
+
+  // ─── LOGIN & AUTH ─────────────────────────────────────────────────────────
+
+  // forceLoginMethod — lock Claude Code to a specific authentication flow.
+  // "claudeai" → Claude Pro/Max subscription (claude.ai OAuth)
+  // "console"  → Anthropic Console billing (console.anthropic.com OAuth)
+  // If omitted, the user can choose at login time.
+  // Possible values: "claudeai" | "console" | omit
+  "forceLoginMethod": "console",
+
+  // forceLoginOrgUUID — Anthropic organization UUID to pre-fill in the OAuth URL.
+  // Users belonging to multiple orgs are taken directly to the correct org's login.
+  // Obtain this UUID from Anthropic Console → Settings → Organization.
+  // Possible values: any UUID string (e.g. "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
+  "forceLoginOrgUUID": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+
+  // ─── OBSERVABILITY ────────────────────────────────────────────────────────
+
+  // otelHeadersHelper — path to a script that outputs OpenTelemetry export headers.
+  // Claude Code calls this script and uses the output as HTTP headers when exporting
+  // traces/metrics to an OTLP collector. Useful for short-lived bearer tokens.
+  // Script must print "Header-Name: value" lines to stdout.
+  // Possible values: any valid executable path
+  "otelHeadersHelper": "/usr/local/bin/get-otel-headers.sh",
+
+  // ─── DISPLAY & OUTPUT ─────────────────────────────────────────────────────
+
+  // outputStyle — controls the visual formatting of Claude's assistant responses.
+  // When set to a plugin-provided output style name, Claude wraps responses
+  // in that style's template (e.g. custom markdown flavors, ANSI themes).
+  // Possible values: any installed output style name (e.g. "minimal", "rich", "compact")
+  "outputStyle": "default",
+
+  // language — preferred natural language for Claude's responses and voice dictation.
+  // Claude will try to respond in the specified language by default.
+  // Possible values: any language name string (e.g. "english", "japanese", "spanish",
+  //                  "french", "german", "mandarin", "portuguese", "arabic")
+  "language": "english",
+
+  // syntaxHighlightingDisabled — disable ANSI syntax highlighting in diff output.
+  // Useful in terminals that don't support 256-color mode or when piping output.
+  // Possible values: true | false (default)
+  "syntaxHighlightingDisabled": false,
+
+  // terminalTitleFromRename — when true (default), the /rename command updates
+  // the terminal tab title to the new session name.
+  // Set to false to keep the auto-generated topic title in the terminal tab.
+  // Possible values: true (default) | false
+  "terminalTitleFromRename": true,
+
+  // prefersReducedMotion — disable animated effects for accessibility.
+  // Suppresses spinner shimmer animation, flash effects, and other motion.
+  // Respects OS-level "Reduce Motion" setting if this field is omitted.
+  // Possible values: true | false
+  "prefersReducedMotion": false,
+
+  // ─── WEB FETCH ────────────────────────────────────────────────────────────
+
+  // skipWebFetchPreflight — skip the built-in URL blocklist check before WebFetch calls.
+  // The blocklist prevents fetching known phishing/malware URLs.
+  // Set to true in enterprise environments with their own network-layer security.
+  // Possible values: true | false (default)
+  "skipWebFetchPreflight": false,
+
+  // ─── SANDBOX ──────────────────────────────────────────────────────────────
+  // Sandbox runs Claude's bash commands inside a restricted OS-level sandbox
+  // (macOS sandbox-exec or Linux seccomp+namespaces) to limit blast radius.
+  "sandbox": {
+    // enabled — enable the sandbox for bash command execution.
+    // Possible values: true | false (default)
+    "enabled": true,
+
+    // failIfUnavailable — exit with an error if sandbox can't start
+    // (missing deps, unsupported platform). Default: false (show warning and continue).
+    // Intended for managed deployments requiring sandboxing as a hard gate.
+    // Possible values: true | false (default)
+    "failIfUnavailable": false,
+
+    // autoAllowBashIfSandboxed — when the sandbox is active, automatically approve
+    // bash commands that don't match any deny rule. Reduces confirmation prompts
+    // in environments where the sandbox itself is the primary security boundary.
+    // Possible values: true | false (default)
+    "autoAllowBashIfSandboxed": false,
+
+    // allowUnsandboxedCommands — allow tools to opt out of the sandbox via the
+    // dangerouslyDisableSandbox parameter. Default: true.
+    // Set to false to force ALL commands to run sandboxed with no escape hatch.
+    // Possible values: true (default) | false
+    "allowUnsandboxedCommands": true,
+
+    // network — network access policy inside the sandbox.
+    "network": {
+      // allowedDomains — hostnames (or IPs) that sandboxed processes may reach.
+      // If omitted, the sandbox's default network policy applies (usually deny-all).
+      // Supports exact hostnames; wildcards are NOT supported here.
+      "allowedDomains": [
+        "api.anthropic.com",
+        "registry.npmjs.org",
+        "github.com",
+        "raw.githubusercontent.com"
+      ],
+
+      // allowManagedDomainsOnly — when true AND set in managed settings, only domains
+      // from policySettings allowedDomains are used. User/project/local domains ignored.
+      // Denied domains are still merged from all sources.
+      // Possible values: true | false (default)
+      "allowManagedDomainsOnly": false,
+
+      // allowUnixSockets — macOS only. Unix socket paths that sandboxed processes may connect to.
+      // Ignored on Linux (seccomp cannot filter by path).
+      "allowUnixSockets": [
+        "/var/run/docker.sock",
+        "/tmp/my-local-service.sock"
+      ],
+
+      // allowAllUnixSockets — disable blocking of all Unix sockets on both platforms.
+      // Possible values: true | false (default)
+      "allowAllUnixSockets": false,
+
+      // allowLocalBinding — allow sandboxed processes to bind to localhost ports.
+      // Needed for dev servers, test runners that bind to 127.0.0.1.
+      // Possible values: true | false (default)
+      "allowLocalBinding": true,
+
+      // httpProxyPort — route sandboxed HTTP(S) traffic through this localhost proxy.
+      // Useful for MITM inspection / enterprise proxy integration.
+      // Possible values: 1–65535 port number
+      "httpProxyPort": 8080,
+
+      // socksProxyPort — route sandboxed traffic through a SOCKS5 proxy on this port.
+      // Possible values: 1–65535 port number
+      "socksProxyPort": 1080
+    },
+
+    // filesystem — filesystem read/write access inside the sandbox.
+    "filesystem": {
+      // allowWrite — additional paths the sandbox may write to.
+      // Merged with paths from Edit(...) allow permission rules.
+      // Supports glob patterns.
+      "allowWrite": [
+        "/tmp/**",
+        "~/.cache/npm/**"
+      ],
+
+      // denyWrite — paths the sandbox may NOT write to.
+      // Merged with Edit(...) deny permission rules.
+      "denyWrite": [
+        "~/.ssh/**",
+        "/etc/**",
+        "~/.aws/**"
+      ],
+
+      // denyRead — paths the sandbox may NOT read.
+      // Merged with Read(...) deny permission rules.
+      "denyRead": [
+        "~/.gnupg/**"
+      ],
+
+      // allowRead — paths re-allowed within denyRead regions (takes precedence over denyRead).
+      // Useful for allow-listing specific files inside a broadly denied directory.
+      "allowRead": [
+        "~/.gnupg/pubring.kbx"
+      ],
+
+      // allowManagedReadPathsOnly — when true AND set in managed settings,
+      // only allowRead paths from policySettings are honoured.
+      // Possible values: true | false (default)
+      "allowManagedReadPathsOnly": false
+    },
+
+    // ignoreViolations — suppress specific sandbox violation categories for known-safe tools.
+    // Key: tool name or category. Value: array of violation type strings.
+    // Only use this for tools you've audited and trust explicitly.
+    "ignoreViolations": {
+      "node": ["network-outbound"]
+    },
+
+    // enableWeakerNestedSandbox — allow nested sandbox (sandbox-within-sandbox) with
+    // weaker isolation. Needed when running Docker or VMs inside Claude's sandbox.
+    // Possible values: true | false (default)
+    "enableWeakerNestedSandbox": false,
+
+    // enableWeakerNetworkIsolation — macOS only. Allow access to com.apple.trustd.agent
+    // inside the sandbox. Required for Go-based CLI tools (gh, gcloud, terraform)
+    // to verify TLS certificates when using httpProxyPort with a custom CA.
+    // WARNING: reduces security — opens a potential data exfiltration vector.
+    // Possible values: true | false (default)
+    "enableWeakerNetworkIsolation": false,
+
+    // excludedCommands — commands that bypass the sandbox entirely.
+    // Use sparingly; each entry is a full command string or glob.
+    "excludedCommands": [
+      "docker build *",
+      "podman *"
+    ],
+
+    // ripgrep — custom ripgrep binary configuration for sandboxed search.
+    // Useful in environments where the bundled ripgrep binary can't execute.
+    "ripgrep": {
+      // command — path to the ripgrep binary.
+      "command": "/usr/local/bin/rg",
+      // args — extra flags always passed to ripgrep.
+      "args": ["--no-ignore-parent"]
+    }
+  },
+
+  // ─── SPINNER / UI ─────────────────────────────────────────────────────────
+
+  // feedbackSurveyRate — probability (0–1) that the session quality survey appears
+  // at session end when the user is eligible. 0 disables surveys entirely.
+  // 1 shows the survey every eligible session.
+  // Possible values: 0.0 – 1.0 (e.g. 0.05 = 5% of sessions)
+  "feedbackSurveyRate": 0.05,
+
+  // spinnerTipsEnabled — show rotating tip text in the "thinking" spinner.
+  // Possible values: true (default) | false
+  "spinnerTipsEnabled": true,
+
+  // spinnerVerbs — customize the action verbs shown in the spinner ("Thinking...", etc.).
+  // mode "append" adds your verbs to the built-in list.
+  // mode "replace" uses ONLY your verbs (disables the built-in list entirely).
+  "spinnerVerbs": {
+    // mode — how custom verbs are combined with defaults.
+    // Possible values: "append" | "replace"
+    "mode": "append",
+    // verbs — your custom spinner verb strings (without trailing "...").
+    "verbs": [
+      "Refactoring",
+      "Architecting",
+      "Optimizing",
+      "Reasoning"
+    ]
+  },
+
+  // spinnerTipsOverride — override the tip messages that appear in the spinner.
+  "spinnerTipsOverride": {
+    // excludeDefault — if true, ONLY your custom tips are shown (default tips hidden).
+    // Possible values: true | false (default)
+    "excludeDefault": false,
+    // tips — custom tip strings shown while Claude is thinking.
+    "tips": [
+      "Tip: Use /compact to reduce context when conversation grows long.",
+      "Tip: Add .claude/CLAUDE.md to give Claude project-specific context.",
+      "Tip: Type /status to see active settings and permission sources."
+    ]
+  },
+
+  // ─── THINKING / REASONING ─────────────────────────────────────────────────
+
+  // alwaysThinkingEnabled — controls extended thinking (visible reasoning tokens).
+  // false → disable thinking even on models that support it.
+  // true (default) → enable thinking automatically when the model supports it.
+  // Possible values: true (default) | false
+  "alwaysThinkingEnabled": true,
+
+  // showThinkingSummaries — show the AI's reasoning process (thinking summaries)
+  // in the transcript view (ctrl+o). Helps understand why Claude made certain decisions.
+  // Default: false.
+  // Possible values: true | false (default)
+  "showThinkingSummaries": false,
+
+  // effortLevel — preset effort level for supported models.
+  // Controls the trade-off between response speed and thoroughness.
+  // "low"    → faster, less token budget for thinking
+  // "medium" → balanced (default when omitted)
+  // "high"   → slower, more thorough reasoning
+  // Possible values: "low" | "medium" | "high"
+  "effortLevel": "high",
+
+  // ─── FAST MODE ────────────────────────────────────────────────────────────
+
+  // fastMode — enable fast mode (uses a smaller/faster model for eligible tasks).
+  // When true, Claude routes simpler requests to a faster model automatically.
+  // Possible values: true | false (default)
+  "fastMode": false,
+
+  // fastModePerSessionOptIn — when true, fast mode doesn't persist across sessions.
+  // Each new session starts with fast mode off, requiring the user to re-enable it.
+  // Possible values: true | false (default)
+  "fastModePerSessionOptIn": false,
+
+  // advisorModel — model used for the server-side advisor tool.
+  // The advisor reviews Claude's plan before execution in certain agentic flows.
+  // Possible values: any valid model ID (e.g. "claude-haiku-4-6")
+  "advisorModel": "claude-haiku-4-6",
+
+  // ─── PLAN MODE ────────────────────────────────────────────────────────────
+
+  // showClearContextOnPlanAccept — when true, the plan-approval dialog includes a
+  // "clear context and continue" option so the user can start fresh after approving a plan.
+  // Default: false.
+  // Possible values: true | false (default)
+  "showClearContextOnPlanAccept": false,
+
+  // plansDirectory — custom directory for plan files (created by plan mode).
+  // Relative paths are resolved from the project root.
+  // ~ prefix expands to home directory.
+  // Default when omitted: ~/.claude/plans/
+  // Possible values: any valid directory path string
+  "plansDirectory": ".claude/plans",
+
+  // ─── PROMPT SUGGESTIONS ───────────────────────────────────────────────────
+
+  // promptSuggestionEnabled — show prompt completions/suggestions while typing.
+  // false disables the suggestion dropdown above the input box.
+  // Possible values: true (default) | false
+  "promptSuggestionEnabled": true,
+
+  // ─── AGENT ────────────────────────────────────────────────────────────────
+
+  // agent — name of the built-in or custom agent to use as the main Claude agent.
+  // Agents define system prompts, tool restrictions, and model preferences.
+  // Built-in agents: "default", "minimal", "strict"
+  // Custom agents: match the filename of an agent in ~/.claude/agents/ or .claude/agents/
+  // Possible values: any valid agent name string
+  "agent": "default",
+
+  // ─── COMPANY ANNOUNCEMENTS ────────────────────────────────────────────────
+
+  // companyAnnouncements — messages displayed at Claude startup.
+  // One announcement is randomly selected from the array each session.
+  // Useful in enterprise deployments for compliance reminders or team notices.
+  "companyAnnouncements": [
+    "Reminder: Do not share proprietary customer data with Claude Code.",
+    "Security tip: Review the generated code before committing to production."
+  ],
+
+  // ─── PLUGIN CONFIGURATION ────────────────────────────────────────────────
+
+  // pluginConfigs — per-plugin user configuration values.
+  // Key format: "plugin-name@marketplace-name"
+  // Non-sensitive values are stored here; sensitive values go to the OS keychain.
+  "pluginConfigs": {
+    "db-assistant@company-internal": {
+      // mcpServers — user config values injected into the plugin's MCP server configs.
+      // Key: MCP server name as declared in the plugin manifest.
+      // Value: record of config key → value (string | number | boolean | string[]).
+      "mcpServers": {
+        "postgres-server": {
+          "host": "db.internal.example.com",
+          "port": 5432,
+          "database": "production",
+          "sslMode": "require"
+        }
+      },
+      // options — non-sensitive option values from the plugin's userConfig declaration.
+      // Keyed by option name (must match keys in the plugin manifest's userConfig).
+      "options": {
+        "defaultSchema": "public",
+        "maxRowsPerQuery": 1000,
+        "readOnly": true
+      }
+    },
+    "code-formatter@anthropic-tools": {
+      "options": {
+        "indentSize": 2,
+        "useTabs": false,
+        "lineLength": 100
+      }
+    }
+  },
+
+  // ─── REMOTE SESSIONS ──────────────────────────────────────────────────────
+
+  // remote — configuration for Claude Code remote session environments.
+  "remote": {
+    // defaultEnvironmentId — the environment ID pre-selected when launching a remote session.
+    // Obtain environment IDs from the Claude Code dashboard.
+    // Possible values: any valid environment ID string
+    "defaultEnvironmentId": "env-prod-us-east-1-abc123"
+  },
+
+  // ─── SSH CONNECTIONS ──────────────────────────────────────────────────────
+
+  // sshConfigs — pre-configured SSH connections for remote environments.
+  // Typically set in managed-settings.json by enterprise admins so team members
+  // have ready-to-use SSH shortcuts.
+  "sshConfigs": [
+    {
+      // id — unique identifier used to match configs across settings sources.
+      // Used by `claude ssh <id>` to select this config.
+      // Possible values: any unique string (no spaces)
+      "id": "dev-server-east",
+
+      // name — human-readable display name shown in the SSH picker UI.
+      "name": "Development Server (East)",
+
+      // sshHost — SSH target in "user@hostname" or "hostname" format,
+      // or an alias defined in ~/.ssh/config.
+      // Possible values: "user@hostname" | "hostname" | "~/.ssh/config alias"
+      "sshHost": "deploy@dev.east.example.com",
+
+      // sshPort — SSH port. Default: 22.
+      // Possible values: 1–65535
+      "sshPort": 22,
+
+      // sshIdentityFile — path to the SSH private key for this connection.
+      // Supports ~ expansion.
+      "sshIdentityFile": "~/.ssh/id_ed25519_corp",
+
+      // startDirectory — default working directory on the remote host after connecting.
+      // Supports ~ expansion. Overridable by `claude ssh <config> [dir]` positional arg.
+      // Default: remote user's home directory.
+      "startDirectory": "~/projects/main-app"
+    },
+    {
+      "id": "prod-readonly",
+      "name": "Production (Read-Only)",
+      "sshHost": "readonly@prod.example.com",
+      "sshPort": 2222,
+      "sshIdentityFile": "~/.ssh/id_rsa_prod_ro"
+    }
+  ],
+
+  // ─── MEMORY ───────────────────────────────────────────────────────────────
+
+  // autoMemoryEnabled — enable Claude's auto-memory for this project.
+  // When true, Claude reads from and writes to a persistent memory directory
+  // to remember facts across sessions.
+  // When false, Claude does not use auto-memory even if globally enabled.
+  // Possible values: true | false
+  "autoMemoryEnabled": true,
+
+  // autoMemoryDirectory — custom path for auto-memory storage.
+  // Supports ~/  prefix. IGNORED if set in project settings (.claude/settings.json)
+  // for security reasons (prevents malicious projects from redirecting memory).
+  // Default: ~/.claude/projects/<sanitized-cwd>/memory/
+  // Possible values: any valid directory path
+  "autoMemoryDirectory": "~/.claude/my-project-memory",
+
+  // autoDreamEnabled — enable background memory consolidation ("dreaming").
+  // When set, overrides the server-side default for this session.
+  // Dreaming compacts and reorganizes memory during idle time.
+  // Possible values: true | false
+  "autoDreamEnabled": true,
+
+  // ─── AUTO-UPDATES ─────────────────────────────────────────────────────────
+
+  // autoUpdatesChannel — release channel for automatic Claude Code updates.
+  // "latest" → pre-release / cutting edge updates
+  // "stable" → production-ready, thoroughly tested releases
+  // Possible values: "latest" | "stable"
+  "autoUpdatesChannel": "stable",
+
+  // minimumVersion — floor version to stay on, preventing downgrades.
+  // Useful when switching from "latest" to "stable" but needing to keep a
+  // recent feature that hasn't landed in the stable channel yet.
+  // Possible values: any semantic version string (e.g. "1.5.0", "2.0.0-beta.3")
+  "minimumVersion": "1.0.0",
+
+  // ─── CHANNELS (ENTERPRISE / TEAMS) ────────────────────────────────────────
+
+  // channelsEnabled — enable MCP servers with the "claude/channel" capability to
+  // push inbound messages into the conversation (Slack, Telegram, Discord bots, etc.).
+  // Default: false. Users then select servers via --channels or the UI.
+  // Possible values: true | false (default)
+  "channelsEnabled": false,
+
+  // allowedChannelPlugins — replace Anthropic's default ledger of trusted channel plugins
+  // with your own org-level allowlist. When set, ONLY the listed plugins may act as channels.
+  // Each entry: { marketplace: "marketplace-name", plugin: "plugin-name" }
+  // Requires channelsEnabled: true to have any effect.
+  "allowedChannelPlugins": [
+    {
+      "marketplace": "company-internal",
+      "plugin": "slack-channel"
+    },
+    {
+      "marketplace": "company-internal",
+      "plugin": "teams-channel"
+    }
+  ],
+
+  // ─── PERMISSIONS / DANGEROUS MODE ─────────────────────────────────────────
+
+  // skipDangerousModePermissionPrompt — when true, suppresses the confirmation dialog
+  // shown before entering bypassPermissions mode.
+  // Only read from trusted sources (user, local, flag, policy settings).
+  // projectSettings is intentionally excluded — a malicious .claude/settings.json
+  // could otherwise auto-bypass the dialog (RCE risk).
+  // Possible values: true | false (default)
+  "skipDangerousModePermissionPrompt": false,
+
+  // disableAutoMode — disable auto mode globally.
+  // When set to "disable", the auto mode toggle is hidden and non-functional.
+  // Possible values: "disable" | omit to allow auto mode
+  "disableAutoMode": "disable",
+
+  // ─── CLAUDE.MD EXCLUSIONS ─────────────────────────────────────────────────
+
+  // claudeMdExcludes — glob patterns or absolute paths of CLAUDE.md files to skip
+  // when loading project memory. Matched against absolute paths using picomatch.
+  // Only affects User, Project, and Local memory types.
+  // Managed/policy CLAUDE.md files cannot be excluded.
+  // Possible values: array of glob patterns or absolute paths
+  "claudeMdExcludes": [
+    "/home/user/monorepo/CLAUDE.md",
+    "**/legacy-code/CLAUDE.md",
+    "**/third-party/.claude/rules/**"
+  ],
+
+  // ─── ENTERPRISE MESSAGING ─────────────────────────────────────────────────
+
+  // pluginTrustMessage — custom text appended to the plugin trust warning dialog
+  // shown before installing a plugin. Only read from policy/managed settings.
+  // Useful for enterprise admins to add org-specific context or approval links.
+  // Possible values: any string
+  "pluginTrustMessage": "All plugins from our internal marketplace have been reviewed and approved by the Security team. For external plugins, please open a ticket at security-review@example.com before installing.",
+
+  // ─── FEATURE-GATED SETTINGS ───────────────────────────────────────────────
+  // The settings below are only active when specific feature flags are enabled.
+  // They are safe to include in any settings file — unknown keys are preserved
+  // (.passthrough()) and the feature gate prevents unexpected behavior.
+
+  // disableDeepLinkRegistration — prevent claude-cli:// protocol handler registration
+  // with the OS. Only active when the LODESTONE feature flag is enabled.
+  // Possible values: "disable" | omit
+  "disableDeepLinkRegistration": "disable",
+
+  // voiceEnabled — enable hold-to-talk voice dictation mode.
+  // Only active when the VOICE_MODE feature flag is enabled.
+  // Possible values: true | false (default)
+  "voiceEnabled": false,
+
+  // assistant — start Claude in assistant mode with a custom system prompt,
+  // brief view, and scheduled check-in skills.
+  // Only active when the KAIROS feature flag is enabled.
+  // Possible values: true | false (default)
+  "assistant": false,
+
+  // assistantName — display name for the assistant in the claude.ai session list.
+  // Only active when the KAIROS feature flag is enabled.
+  // Possible values: any string
+  "assistantName": "DevBot",
+
+  // defaultView — default transcript display mode.
+  // "chat"       → show only SendUserMessage checkpoints (conversation view)
+  // "transcript" → show all events (full verbose view, ctrl+o in CLI)
+  // Only active when KAIROS or KAIROS_BRIEF feature flag is enabled.
+  // Possible values: "chat" | "transcript"
+  "defaultView": "chat",
+
+  // minSleepDurationMs — minimum milliseconds the Sleep tool must sleep.
+  // Throttles proactive tick frequency (prevents busy-looping).
+  // Only active when PROACTIVE or KAIROS feature flag is enabled.
+  // Possible values: 0 or any positive integer (e.g. 5000 = 5 seconds minimum)
+  "minSleepDurationMs": 5000,
+
+  // maxSleepDurationMs — maximum milliseconds the Sleep tool can sleep.
+  // -1 → indefinite sleep (Sleep blocks until user input).
+  // Limits idle time in remote/managed environments.
+  // Only active when PROACTIVE or KAIROS feature flag is enabled.
+  // Possible values: -1 (indefinite) | any positive integer (e.g. 300000 = 5 minutes)
+  "maxSleepDurationMs": 300000,
+
+  // skipAutoPermissionPrompt — suppress the "opt-in to auto mode" confirmation dialog.
+  // Only read from trusted sources (not projectSettings) to prevent RCE via auto-bypass.
+  // Only active when the TRANSCRIPT_CLASSIFIER feature flag is enabled.
+  // Possible values: true | false (default)
+  "skipAutoPermissionPrompt": false,
+
+  // useAutoModeDuringPlan — whether plan mode uses auto-mode semantics when
+  // auto mode is available. Default: true.
+  // Only active when the TRANSCRIPT_CLASSIFIER feature flag is enabled.
+  // Possible values: true (default) | false
+  "useAutoModeDuringPlan": true,
+
+  // autoMode — customize the auto-mode classifier's allow/deny/environment rules.
+  // Only active when the TRANSCRIPT_CLASSIFIER feature flag is enabled.
+  // Only read from trusted sources (user, local, flag, policy — NOT project settings).
+  "autoMode": {
+    // allow — permission-rule-syntax patterns that auto mode always approves.
+    // Possible values: array of permission rule strings
+    "allow": [
+      "Bash(git *)",
+      "Read(**/*.ts)",
+      "Edit(src/**)"
+    ],
+    // soft_deny — patterns that auto mode asks about rather than auto-approving.
+    // Possible values: array of permission rule strings
+    "soft_deny": [
+      "Bash(curl *)",
+      "Bash(wget *)"
+    ],
+    // environment — additional context strings injected into the classifier's
+    // environment section to influence auto-mode decisions.
+    // Possible values: array of context description strings
+    "environment": [
+      "This is a TypeScript monorepo with strict linting.",
+      "Production deployments require manual approval."
+    ]
+  }
+}

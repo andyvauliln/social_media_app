@@ -1,0 +1,7 @@
+{
+  "name": "agent-manager-local",
+  "private": true,
+  "scripts": {
+    "task-management": "bun x tsx ./scripts.manager/task-management.script.ts"
+  }
+}

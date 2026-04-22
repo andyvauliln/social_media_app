@@ -1,7 +1,7 @@
 {
     "team": [
         {
-            "name": "Andrei",
+            "name": "andrei",
             "email": "andy.vaulin@gmail.com",
             "telegram": "@johnnypitt",
             "role": "main developer and manager for the project",
@@ -11,7 +11,19 @@
             "ai_manger_notes": [""],
             "working_days": "mon,tue,wed,thu,fri",
             "working_hours": "10:00-18:00",
-            "location": "Bali"
+            "location": "Bali",
+            "next_day_priority": [
+                "finish telegram bot",
+                "fully running on a server",
+                "symlinks",
+                "finish_task_script",
+                "new_flow_for_task_processing",
+                "inline_tasks_working",
+                "git_action_plan_working",
+                "test_aliases",
+                "create,start,close task working"
+
+            ]
         }
     ]
 }    

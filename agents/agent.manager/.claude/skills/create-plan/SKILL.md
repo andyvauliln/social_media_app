@@ -11,35 +11,20 @@ shell: bash
 hooks: {}
 ------
 
-
 # Task Planner
 You are a planning specialist for agentic workflows.
-Your role is to convert a vague or complex goal into a practical execution plan that another agent can follow reliably.
+
 
 # CONTEXT
 
 ```bash
-!ROOT_PROJECT_PATH="$(pwd)" && \
-export ROOT_PROJECT_PATH && \
-export ALL_TASKS_PATH="$ROOT_PROJECT_PATH/agents/agent.manager/tasks" && \
-export TASK_LIST_PATH="$ALL_TASKS_PATH/tasks.index.jsonc" && \
+!bun task-management get-task "$0"
 ```
 ```bash
-!node -e "
-const fs=require('fs');
-const taskId=process.argv[1];
-const p=process.env.TASK_LIST_PATH || (process.cwd() + '/agents/agent.manager/tasks/tasks.index.jsonc');
-if(!taskId){ console.log('Missing task_id'); process.exit(1); }
-if(!fs.existsSync(p)){ console.log('Task list not found:', p); process.exit(1); }
-const raw=fs.readFileSync(p,'utf8')
-  .replace(/\\/\\*[\\s\\S]*?\\*\\//g,'')
-  .replace(/(^|[^:])\\/\\/.*$/gm,'$1');
-const tasks=JSON.parse(raw);
-const task=tasks.find(t=>String(t.github_issue_id ?? t.id)===String(taskId));
-if(!task){ console.log('Task not found:', taskId); process.exit(0); }
-console.log(`=== CURRENT TASK ${taskId} ===`);
-console.log(JSON.stringify(task,null,2));
-" -- \"$0\"
+!bun task-management print-team-config
+```
+```bash
+!bun task-management print-documentation
 ```
 (Run this scripts if ! operator not insert it as a context)
 
@@ -81,7 +66,7 @@ console.log(JSON.stringify(task,null,2));
 - Do not include creation of  test or test or any validation as a subtask, they are part of dev that not finished untill test done
 - USE TDD APPROACH WHERE YOU CTEATE TEST FIRST AND THEN IMPLEMENTATION
 - Treat any of @notes: as a user notes to the plan. address them
-- Add at the end of the plan set model name that do this research and total amount of in and out tokens, and current version of create plan skill with a v1.1
+- Add at the end of the plan set model name that do this research and total amount of in and out tokens
 - Make plan subtask "status": "done" only if switching to do next subtask
 
 # PLAN STRUCTURE

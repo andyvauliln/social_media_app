@@ -5,7 +5,8 @@
       "args": ["run", "${CLAUDE_PLUGIN_ROOT}/server.ts"],
       "env": {
         "TELEGRAM_BOT_TOKEN": "${TELEGRAM_BOT_TOKEN}",
-        "TELEGRAM_STATE_DIR": "${TELEGRAM_STATE_DIR}"
+        "TELEGRAM_STATE_DIR": "${TELEGRAM_STATE_DIR}",
+        "GROQ_API_KEY": "${GROQ_API_KEY}"
       }
     }
   }

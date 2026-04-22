@@ -1,0 +1,813 @@
+// =============================================================================
+// Claude Code — Slash Commands Reference
+// =============================================================================
+//
+// All commands are typed as:  /command [args]
+// Arguments are a single trailing string passed to the handler.
+// MCP-variant form:           /command (MCP) args
+//
+// Categories:
+//   CONVERSATION  — manage conversation state & history
+//   AI SETTINGS   — control model, effort, advisor
+//   NAVIGATION    — browse sessions, branches, plans
+//   WORKSPACE     — dirs, files, memory, context
+//   TOOLS & MCP   — servers, permissions, plugins
+//   PAYMENTS      — x402 crypto micro-payments
+//   UI & DISPLAY  — themes, color, output, statusline
+//   SYSTEM        — diagnostics, upgrade, session info
+//   AUTH          — login, logout, passes
+//   DEV / INTERNAL— commit, review, hooks (some ant-only)
+// =============================================================================
+
+{
+  // ---------------------------------------------------------------------------
+  // CONVERSATION
+  // ---------------------------------------------------------------------------
+
+  "commands": {
+
+    // ── /clear ────────────────────────────────────────────────────────────────
+    "clear": {
+      "aliases": ["reset", "new"],
+      "description": "Wipe the current conversation and start a completely fresh session. Also clears internal caches.",
+      "params": "none",
+      "example": "/clear",
+      "notes": "Use when context window is overloaded or you want a clean slate."
+    },
+
+    // ── /compact ──────────────────────────────────────────────────────────────
+    "compact": {
+      "aliases": [],
+      "description": "Compress the conversation history into a summary and continue from that point. Frees up context window without losing thread.",
+      "params": "[instructions]  — optional natural-language instructions that guide what to emphasise in the summary",
+      "examples": [
+        "/compact",
+        "/compact focus only on the authentication changes, discard UI edits"
+      ],
+      "notes": "Disable entirely by setting env DISABLE_COMPACT=true."
+    },
+
+    // ── /copy ─────────────────────────────────────────────────────────────────
+    "copy": {
+      "aliases": [],
+      "description": "Copy the last assistant response to the clipboard.",
+      "params": "none",
+      "example": "/copy"
+    },
+
+    // ── /export ───────────────────────────────────────────────────────────────
+    "export": {
+      "aliases": [],
+      "description": "Export the full current conversation to a file or clipboard.",
+      "params": "[filename]  — target file path; omit to copy to clipboard",
+      "examples": [
+        "/export",
+        "/export ~/Desktop/chat-2026-04-20.md"
+      ]
+    },
+
+    // ── /rewind ───────────────────────────────────────────────────────────────
+    "rewind": {
+      "aliases": ["checkpoint"],
+      "description": "Roll back the conversation to a previous checkpoint (undo recent messages).",
+      "params": "none (interactive selector shown)",
+      "example": "/rewind",
+      "notes": "Useful after a bad response — select the turn to restore from the interactive list."
+    },
+
+    // ── /diff ─────────────────────────────────────────────────────────────────
+    "diff": {
+      "aliases": [],
+      "description": "Show a diff of all file changes made in the current session.",
+      "params": "none",
+      "example": "/diff"
+    },
+
+    // ── /cost ─────────────────────────────────────────────────────────────────
+    "cost": {
+      "aliases": [],
+      "description": "Display token usage and estimated cost for the current session.",
+      "params": "none",
+      "example": "/cost"
+    },
+
+    // ── /stats ────────────────────────────────────────────────────────────────
+    "stats": {
+      "aliases": [],
+      "description": "Show detailed session statistics: token counts, tool calls, turn count, elapsed time.",
+      "params": "none",
+      "example": "/stats"
+    },
+
+    // ── /status ───────────────────────────────────────────────────────────────
+    "status": {
+      "aliases": [],
+      "description": "Quick one-liner showing current model, effort level, context %, and active tools.",
+      "params": "none",
+      "example": "/status"
+    },
+
+    // ---------------------------------------------------------------------------
+    // AI SETTINGS
+    // ---------------------------------------------------------------------------
+
+    // ── /model ────────────────────────────────────────────────────────────────
+    "model": {
+      "aliases": [],
+      "description": "Switch the AI model used for inference. Opens an interactive picker when no arg is given.",
+      "params": "[model]  — model identifier string (e.g. claude-opus-4-7, claude-sonnet-4)",
+      "examples": [
+        "/model",
+        "/model claude-opus-4-7",
+        "/model claude-sonnet-4"
+      ],
+      "notes": "The current model is shown in the command description and in /status."
+    },
+
+    // ── /effort ───────────────────────────────────────────────────────────────
+    "effort": {
+      "aliases": [],
+      "description": "Control how much thinking budget (extended thinking tokens) the model uses.",
+      "params": "[low|medium|high|max|auto]",
+      "examples": [
+        "/effort low",
+        "/effort max",
+        "/effort auto"
+      ],
+      "notes": "Higher effort = more thorough reasoning but slower and more expensive. 'auto' lets Claude decide."
+    },
+
+    // ── /fast ─────────────────────────────────────────────────────────────────
+    "fast": {
+      "aliases": [],
+      "description": "Toggle fast mode (disables extended thinking, uses a faster cheaper model variant).",
+      "params": "[on|off]  — omit to toggle",
+      "examples": [
+        "/fast on",
+        "/fast off",
+        "/fast"
+      ]
+    },
+
+    // ── /advisor ──────────────────────────────────────────────────────────────
+    "advisor": {
+      "aliases": [],
+      "description": "Set a secondary 'advisor' model that provides critique/review on responses before they are sent.",
+      "params": "[model|off|unset]  — model name to enable, 'off'/'unset' to disable, no arg to show current",
+      "examples": [
+        "/advisor",
+        "/advisor claude-opus-4-7",
+        "/advisor off"
+      ],
+      "notes": "Only compatible with certain base models. Check /status if advisor shows as inactive."
+    },
+
+    // ── /think-back ───────────────────────────────────────────────────────────
+    "think-back": {
+      "aliases": [],
+      "description": "Ask Claude to re-examine its last reasoning chain and correct itself (feature-gated).",
+      "params": "none",
+      "example": "/think-back"
+    },
+
+    // ---------------------------------------------------------------------------
+    // NAVIGATION
+    // ---------------------------------------------------------------------------
+
+    // ── /resume ───────────────────────────────────────────────────────────────
+    "resume": {
+      "aliases": ["continue"],
+      "description": "Resume a previous conversation by ID or fuzzy-search term. Opens an interactive picker when no arg is given.",
+      "params": "[conversation-id | search-term]",
+      "examples": [
+        "/resume",
+        "/resume abc123",
+        "/resume refactor auth module"
+      ]
+    },
+
+    // ── /branch ───────────────────────────────────────────────────────────────
+    "branch": {
+      "aliases": ["fork"],
+      "description": "Fork the current conversation at this point into a new parallel branch, preserving the original.",
+      "params": "[name]  — optional label for the new branch",
+      "examples": [
+        "/branch",
+        "/branch try-postgres-approach"
+      ],
+      "notes": "Great for exploring two different solutions without losing the first."
+    },
+
+    // ── /plan ─────────────────────────────────────────────────────────────────
+    "plan": {
+      "aliases": [],
+      "description": "Open the plan view or enter plan mode where Claude creates a structured task plan before executing.",
+      "params": "[open | <description>]",
+      "examples": [
+        "/plan",
+        "/plan open",
+        "/plan refactor the payments module to use the new Stripe SDK"
+      ]
+    },
+
+    // ── /rename ───────────────────────────────────────────────────────────────
+    "rename": {
+      "aliases": [],
+      "description": "Rename the current session. Also updates the terminal title when terminalTitleFromRename is enabled.",
+      "params": "[name]  — new session name; omit for auto-generated name",
+      "examples": [
+        "/rename",
+        "/rename stripe-integration-debug"
+      ]
+    },
+
+    // ── /tag ──────────────────────────────────────────────────────────────────
+    "tag": {
+      "aliases": [],
+      "description": "Add or remove a searchable tag on the current session (internal/ant accounts only).",
+      "params": "<tag-name>  — required tag string",
+      "example": "/tag auth-refactor"
+    },
+
+    // ---------------------------------------------------------------------------
+    // WORKSPACE
+    // ---------------------------------------------------------------------------
+
+    // ── /add-dir ──────────────────────────────────────────────────────────────
+    "add-dir": {
+      "aliases": [],
+      "description": "Add an additional working directory so Claude can read and write files from it.",
+      "params": "<path>  — absolute or relative directory path",
+      "examples": [
+        "/add-dir ../backend",
+        "/add-dir /Users/me/shared-libs"
+      ]
+    },
+
+    // ── /files ────────────────────────────────────────────────────────────────
+    "files": {
+      "aliases": [],
+      "description": "Browse and manage files tracked in the current working directories.",
+      "params": "none",
+      "example": "/files"
+    },
+
+    // ── /memory ───────────────────────────────────────────────────────────────
+    "memory": {
+      "aliases": [],
+      "description": "View and manage persistent memory entries (facts Claude remembers across sessions).",
+      "params": "none (interactive UI)",
+      "example": "/memory"
+    },
+
+    // ── /context ──────────────────────────────────────────────────────────────
+    "context": {
+      "aliases": [],
+      "description": "Inspect what is currently in the context window, or pass -p to output a plain-text summary.",
+      "params": "[-p]  — print non-interactive plain output",
+      "examples": [
+        "/context",
+        "/context -p"
+      ]
+    },
+
+    // ── /init ─────────────────────────────────────────────────────────────────
+    "init": {
+      "aliases": [],
+      "description": "Bootstrap a project: scans the repo and generates a CLAUDE.md with project overview, skills, and an initial plan.",
+      "params": "none",
+      "example": "/init",
+      "notes": "Run once per project. Produces a CLAUDE.md that Claude will automatically load in future sessions."
+    },
+
+    // ---------------------------------------------------------------------------
+    // TOOLS & MCP
+    // ---------------------------------------------------------------------------
+
+    // ── /mcp ──────────────────────────────────────────────────────────────────
+    "mcp": {
+      "aliases": [],
+      "description": "List, enable, or disable MCP (Model Context Protocol) servers.",
+      "params": "[enable | disable [server-name]]",
+      "examples": [
+        "/mcp",
+        "/mcp enable github",
+        "/mcp disable firecrawl",
+        "/mcp enable"
+      ],
+      "notes": "Runs immediately without waiting for the current turn to finish."
+    },
+
+    // ── /permissions ──────────────────────────────────────────────────────────
+    "permissions": {
+      "aliases": ["allowed-tools"],
+      "description": "View and manage which tools Claude is allowed to use in this session.",
+      "params": "none (interactive UI)",
+      "example": "/permissions"
+    },
+
+    // ── /hooks ────────────────────────────────────────────────────────────────
+    "hooks": {
+      "aliases": [],
+      "description": "View and configure automation hooks (scripts that run on agent events like tool calls or session end).",
+      "params": "none (interactive UI)",
+      "example": "/hooks"
+    },
+
+    // ── /tasks ────────────────────────────────────────────────────────────────
+    "tasks": {
+      "aliases": ["bashes"],
+      "description": "List background bash tasks that are currently running or queued.",
+      "params": "none",
+      "example": "/tasks"
+    },
+
+    // ── /sandbox ──────────────────────────────────────────────────────────────
+    "sandbox": {
+      "aliases": [],
+      "description": "Manage the command execution sandbox — add exclusion patterns so certain shell commands bypass the sandbox.",
+      "params": "exclude \"<command pattern>\"",
+      "examples": [
+        "/sandbox",
+        "/sandbox exclude \"npm run *\""
+      ],
+      "notes": "Hidden when the sandbox is not supported on this platform."
+    },
+
+    // ── /plugin ───────────────────────────────────────────────────────────────
+    "plugin": {
+      "aliases": ["plugins", "marketplace"],
+      "description": "Open the plugin marketplace to install, update, or remove Claude Code plugins.",
+      "params": "none (interactive UI)",
+      "example": "/plugin"
+    },
+
+    // ── /reload-plugins ───────────────────────────────────────────────────────
+    "reload-plugins": {
+      "aliases": [],
+      "description": "Hot-reload all installed plugins without restarting Claude Code.",
+      "params": "none",
+      "example": "/reload-plugins"
+    },
+
+    // ── /skills ───────────────────────────────────────────────────────────────
+    "skills": {
+      "aliases": [],
+      "description": "List all available skills (custom prompt-backed commands loaded from SKILL.md files).",
+      "params": "none",
+      "example": "/skills"
+    },
+
+    // ---------------------------------------------------------------------------
+    // PAYMENTS (x402)
+    // ---------------------------------------------------------------------------
+
+    // ── /x402 ─────────────────────────────────────────────────────────────────
+    "x402": {
+      "aliases": ["wallet", "pay"],
+      "description": "Manage the built-in x402 crypto micro-payment wallet (USDC on Base). Used for HTTP 402 Payment Required API calls.",
+      "subcommands": {
+        "setup": {
+          "params": "[private-key]  — omit to generate a new wallet, or pass an existing hex private key to import",
+          "examples": [
+            "/x402 setup",
+            "/x402 setup 0xabc123..."
+          ]
+        },
+        "status": {
+          "params": "none",
+          "example": "/x402 status",
+          "description": "Show wallet address, balance, and session payment history."
+        },
+        "enable": {
+          "params": "none",
+          "example": "/x402 enable"
+        },
+        "disable": {
+          "params": "none",
+          "example": "/x402 disable"
+        },
+        "set-limit": {
+          "params": "<amount>  — max USD spend per request",
+          "example": "/x402 set-limit 0.25"
+        },
+        "set-session": {
+          "params": "<amount>  — max USD spend for the entire session",
+          "example": "/x402 set-session 5.00"
+        },
+        "network": {
+          "params": "<base | base-sepolia | ethereum | ethereum-sepolia>",
+          "examples": [
+            "/x402 network base",
+            "/x402 network base-sepolia"
+          ]
+        },
+        "remove": {
+          "params": "none",
+          "example": "/x402 remove",
+          "description": "Delete the stored wallet and disable payments."
+        }
+      },
+      "env": "X402_PRIVATE_KEY — override wallet key for CI/automation"
+    },
+
+    // ---------------------------------------------------------------------------
+    // UI & DISPLAY
+    // ---------------------------------------------------------------------------
+
+    // ── /theme ────────────────────────────────────────────────────────────────
+    "theme": {
+      "aliases": [],
+      "description": "Pick a color theme for the Claude Code UI (interactive picker).",
+      "params": "none",
+      "example": "/theme"
+    },
+
+    // ── /color ────────────────────────────────────────────────────────────────
+    "color": {
+      "aliases": [],
+      "description": "Set the prompt bar accent color for this session.",
+      "params": "<color | default>  — CSS color name, hex value, or 'default' to reset",
+      "examples": [
+        "/color default",
+        "/color #6366f1",
+        "/color teal"
+      ]
+    },
+
+    // ── /output-style ─────────────────────────────────────────────────────────
+    "output-style": {
+      "aliases": [],
+      "description": "Change how Claude formats its responses (concise / verbose / streaming, etc.).",
+      "params": "none (interactive picker)",
+      "example": "/output-style"
+    },
+
+    // ── /statusline ───────────────────────────────────────────────────────────
+    "statusline": {
+      "aliases": [],
+      "description": "Configure or toggle the custom CLI status line shown above the prompt.",
+      "params": "none",
+      "example": "/statusline"
+    },
+
+    // ── /stickers ─────────────────────────────────────────────────────────────
+    "stickers": {
+      "aliases": [],
+      "description": "Manage decorative stickers shown in the UI.",
+      "params": "none",
+      "example": "/stickers"
+    },
+
+    // ── /keybindings ──────────────────────────────────────────────────────────
+    "keybindings": {
+      "aliases": [],
+      "description": "View and customise keyboard shortcuts.",
+      "params": "none",
+      "example": "/keybindings"
+    },
+
+    // ── /vim ──────────────────────────────────────────────────────────────────
+    "vim": {
+      "aliases": [],
+      "description": "Toggle vim-mode keybindings in the input prompt.",
+      "params": "none",
+      "example": "/vim"
+    },
+
+    // ---------------------------------------------------------------------------
+    // SYSTEM
+    // ---------------------------------------------------------------------------
+
+    // ── /help ─────────────────────────────────────────────────────────────────
+    "help": {
+      "aliases": [],
+      "description": "Show the full list of available slash commands with short descriptions.",
+      "params": "none",
+      "example": "/help"
+    },
+
+    // ── /config ───────────────────────────────────────────────────────────────
+    "config": {
+      "aliases": ["settings"],
+      "description": "Open the interactive settings/config editor.",
+      "params": "none",
+      "example": "/config"
+    },
+
+    // ── /doctor ───────────────────────────────────────────────────────────────
+    "doctor": {
+      "aliases": [],
+      "description": "Run a health-check: verifies environment, permissions, MCP connectivity, and reports issues.",
+      "params": "none",
+      "example": "/doctor"
+    },
+
+    // ── /upgrade ──────────────────────────────────────────────────────────────
+    "upgrade": {
+      "aliases": [],
+      "description": "Check for and install the latest version of Claude Code.",
+      "params": "none",
+      "example": "/upgrade"
+    },
+
+    // ── /release-notes ────────────────────────────────────────────────────────
+    "release-notes": {
+      "aliases": [],
+      "description": "Show the changelog / release notes for the current or recent versions.",
+      "params": "none",
+      "example": "/release-notes"
+    },
+
+    // ── /ide ──────────────────────────────────────────────────────────────────
+    "ide": {
+      "aliases": [],
+      "description": "Connect to or open the IDE integration (Cursor / VS Code bridge).",
+      "params": "[open]  — pass 'open' to launch the IDE",
+      "examples": [
+        "/ide",
+        "/ide open"
+      ]
+    },
+
+    // ── /session ──────────────────────────────────────────────────────────────
+    "session": {
+      "aliases": ["remote"],
+      "description": "Manage remote/cloud Claude sessions.",
+      "params": "none (interactive UI)",
+      "example": "/session"
+    },
+
+    // ── /agents ───────────────────────────────────────────────────────────────
+    "agents": {
+      "aliases": [],
+      "description": "View running or recent sub-agent tasks spawned within the session.",
+      "params": "none",
+      "example": "/agents"
+    },
+
+    // ── /btw ──────────────────────────────────────────────────────────────────
+    "btw": {
+      "aliases": [],
+      "description": "Ask Claude a quick side question without it becoming part of the main task context.",
+      "params": "<question>  — required question string",
+      "example": "/btw what is the default port for Postgres?"
+    },
+
+    // ── /pr-comments ──────────────────────────────────────────────────────────
+    "pr-comments": {
+      "aliases": [],
+      "description": "Fetch and display unresolved review comments on the current pull request.",
+      "params": "none",
+      "example": "/pr-comments"
+    },
+
+    // ── /review ───────────────────────────────────────────────────────────────
+    "review": {
+      "aliases": [],
+      "description": "Ask Claude to perform a code review on a pull request.",
+      "params": "[PR-number | PR-URL]",
+      "examples": [
+        "/review",
+        "/review 42",
+        "/review https://github.com/owner/repo/pull/42"
+      ]
+    },
+
+    // ── /install-github-app ───────────────────────────────────────────────────
+    "install-github-app": {
+      "aliases": [],
+      "description": "Walk through installing the Claude GitHub App to enable automated PR review workflows.",
+      "params": "none",
+      "example": "/install-github-app"
+    },
+
+    // ── /install-slack-app ────────────────────────────────────────────────────
+    "install-slack-app": {
+      "aliases": [],
+      "description": "Walk through installing the Claude Slack App.",
+      "params": "none",
+      "example": "/install-slack-app"
+    },
+
+    // ── /terminal-setup ───────────────────────────────────────────────────────
+    "terminal-setup": {
+      "aliases": [],
+      "description": "Run the interactive terminal setup wizard (fonts, shell integration, colors).",
+      "params": "none",
+      "example": "/terminal-setup"
+    },
+
+    // ── /desktop ──────────────────────────────────────────────────────────────
+    "desktop": {
+      "aliases": ["app"],
+      "description": "Open the Claude desktop app or switch to the desktop UI.",
+      "params": "none",
+      "example": "/desktop"
+    },
+
+    // ── /mobile ───────────────────────────────────────────────────────────────
+    "mobile": {
+      "aliases": ["ios", "android"],
+      "description": "Open the Claude mobile app (shows QR code / deep link).",
+      "params": "none",
+      "example": "/mobile"
+    },
+
+    // ── /chrome ───────────────────────────────────────────────────────────────
+    "chrome": {
+      "aliases": [],
+      "description": "Open the Claude Chrome extension setup page.",
+      "params": "none",
+      "example": "/chrome"
+    },
+
+    // ── /remote-env ───────────────────────────────────────────────────────────
+    "remote-env": {
+      "aliases": [],
+      "description": "Manage environment variables forwarded to remote Claude sessions.",
+      "params": "none (interactive UI)",
+      "example": "/remote-env"
+    },
+
+    // ── /heapdump ─────────────────────────────────────────────────────────────
+    "heapdump": {
+      "aliases": [],
+      "description": "Capture a V8 heap snapshot for debugging memory leaks (developer use).",
+      "params": "none",
+      "example": "/heapdump"
+    },
+
+    // ---------------------------------------------------------------------------
+    // AUTH
+    // ---------------------------------------------------------------------------
+
+    // ── /login ────────────────────────────────────────────────────────────────
+    "login": {
+      "aliases": [],
+      "description": "Authenticate with Anthropic (opens browser OAuth flow).",
+      "params": "none",
+      "example": "/login"
+    },
+
+    // ── /logout ───────────────────────────────────────────────────────────────
+    "logout": {
+      "aliases": [],
+      "description": "Sign out and remove stored credentials.",
+      "params": "none",
+      "example": "/logout"
+    },
+
+    // ── /passes ───────────────────────────────────────────────────────────────
+    "passes": {
+      "aliases": [],
+      "description": "View and manage Claude Max / Pro subscription passes.",
+      "params": "none",
+      "example": "/passes"
+    },
+
+    // ── /usage ────────────────────────────────────────────────────────────────
+    "usage": {
+      "aliases": [],
+      "description": "Show API usage and billing information for the current billing period.",
+      "params": "none",
+      "example": "/usage"
+    },
+
+    // ── /extra-usage ──────────────────────────────────────────────────────────
+    "extra-usage": {
+      "aliases": [],
+      "description": "Show extended usage breakdown (interactive or plain depending on session mode).",
+      "params": "none",
+      "example": "/extra-usage"
+    },
+
+    // ── /rate-limit-options ───────────────────────────────────────────────────
+    "rate-limit-options": {
+      "aliases": [],
+      "description": "Configure what happens when you hit rate limits (queue, pause, notify, etc.).",
+      "params": "none (interactive UI)",
+      "example": "/rate-limit-options"
+    },
+
+    // ── /insights ─────────────────────────────────────────────────────────────
+    "insights": {
+      "aliases": [],
+      "description": "Display an aggregated usage report across all sessions.",
+      "params": "none",
+      "example": "/insights"
+    },
+
+    // ── /privacy-settings ─────────────────────────────────────────────────────
+    "privacy-settings": {
+      "aliases": [],
+      "description": "Manage data-retention and privacy preferences.",
+      "params": "none (interactive UI)",
+      "example": "/privacy-settings"
+    },
+
+    // ── /feedback ─────────────────────────────────────────────────────────────
+    "feedback": {
+      "aliases": ["bug"],
+      "description": "Send feedback or file a bug report to Anthropic.",
+      "params": "[report]  — optional text to pre-fill the report",
+      "examples": [
+        "/feedback",
+        "/feedback /compact crashes when conversation has images"
+      ]
+    },
+
+    // ── /exit ─────────────────────────────────────────────────────────────────
+    "exit": {
+      "aliases": ["quit"],
+      "description": "End the Claude Code session.",
+      "params": "none",
+      "example": "/exit"
+    },
+
+    // ---------------------------------------------------------------------------
+    // DEV / INTERNAL  (available when USER_TYPE=ant or specific env flags are set)
+    // ---------------------------------------------------------------------------
+
+    // ── /commit ───────────────────────────────────────────────────────────────
+    "commit": {
+      "availability": "ant accounts only",
+      "description": "Generate and apply a conventional commit for staged changes.",
+      "params": "none (Claude infers message from diff)",
+      "example": "/commit"
+    },
+
+    // ── /commit-push-pr ───────────────────────────────────────────────────────
+    "commit-push-pr": {
+      "availability": "ant accounts only",
+      "description": "Commit staged changes, push the branch, and open a pull request — all in one step.",
+      "params": "none",
+      "example": "/commit-push-pr"
+    },
+
+    // ── /version ──────────────────────────────────────────────────────────────
+    "version": {
+      "availability": "ant accounts only",
+      "description": "Bump the package version according to semantic versioning.",
+      "params": "none",
+      "example": "/version"
+    },
+
+    // ── /bridge-kick ──────────────────────────────────────────────────────────
+    "bridge-kick": {
+      "availability": "ant accounts + BRIDGE_MODE",
+      "description": "Restart / kick the IDE bridge connection.",
+      "params": "none",
+      "example": "/bridge-kick"
+    }
+
+  },
+
+  // ---------------------------------------------------------------------------
+  // MCP COMMAND FORM
+  // ---------------------------------------------------------------------------
+  //
+  // MCP-backed tools are surfaced as slash commands with the special marker:
+  //
+  //   /tool-name (MCP) [args]
+  //
+  // These are dynamically registered from enabled MCP servers and do NOT
+  // appear in /help unless the relevant server is enabled.
+  //
+  // Example with the github MCP server enabled:
+  //
+  //   /create_pull_request (MCP) owner:anthropics repo:claude-code
+  //   /search_repositories (MCP) q:claude-code language:typescript
+  //
+  // Use /mcp to see which servers are active and their available tools.
+  // ---------------------------------------------------------------------------
+
+  // ---------------------------------------------------------------------------
+  // ARGUMENT CONVENTIONS
+  // ---------------------------------------------------------------------------
+  //
+  //  <arg>        Required argument — command will fail / show help without it.
+  //  [arg]        Optional argument — command works without it.
+  //  a|b|c        Enumerated choices — exactly one of the listed values.
+  //  [a|b]        Optional enumerated choice.
+  //  [text]       Optional free-form string.
+  //  <text>       Required free-form string.
+  //
+  // Arguments are a single trailing string — no flags parsing unless the
+  // command explicitly splits on spaces or keywords internally.
+  // ---------------------------------------------------------------------------
+
+  // ---------------------------------------------------------------------------
+  // SPECIAL VARIABLES (inside skill / prompt commands)
+  // ---------------------------------------------------------------------------
+  //
+  //  $ARGUMENTS   — the full argument string passed after the command name
+  //
+  // Used in SKILL.md prompt templates, e.g.:
+  //
+  //   PROMPT: "Summarise the following: $ARGUMENTS"
+  //
+  // Then invoked as: /my-skill This is the text I want summarised
+  // ---------------------------------------------------------------------------
+
+}

@@ -90,7 +90,7 @@ Always exclude `status` of `"done"`, `"cancelled"` unless explicitly filtered.
 
 #2  [HIGH]   Add push notification opt-in       (#9)
     scope: app.mobile | when: today | est: 2h
-    status: pending | assigned: Andrei
+    status: pending | assigned: andrei
 
 ─────────────────────────────────────────────
   2 tasks shown

@@ -822,9 +822,40 @@ bot.on('message:document', async ctx => {
   })
 })
 
+async function transcribeVoice(file_id: string): Promise<string | undefined> {
+  const groqKey = process.env.GROQ_API_KEY
+  if (!groqKey) return undefined
+  try {
+    const file = await bot.api.getFile(file_id)
+    if (!file.file_path) return undefined
+    const url = `https://api.telegram.org/file/bot${TOKEN}/${file.file_path}`
+    const res = await fetch(url)
+    const buf = Buffer.from(await res.arrayBuffer())
+    const ext = file.file_path.split('.').pop() ?? 'ogg'
+    const formData = new FormData()
+    formData.append('file', new Blob([buf], { type: 'audio/ogg' }), `voice.${ext}`)
+    formData.append('model', 'whisper-large-v3-turbo')
+    formData.append('response_format', 'text')
+    const transcRes = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${groqKey}` },
+      body: formData,
+    })
+    if (!transcRes.ok) {
+      process.stderr.write(`telegram channel: groq transcription failed: ${transcRes.status}\n`)
+      return undefined
+    }
+    return (await transcRes.text()).trim()
+  } catch (err) {
+    process.stderr.write(`telegram channel: transcription error: ${err}\n`)
+    return undefined
+  }
+}
+
 bot.on('message:voice', async ctx => {
   const voice = ctx.message.voice
-  const text = ctx.message.caption ?? '(voice message)'
+  const transcribed = await transcribeVoice(voice.file_id)
+  const text = transcribed ?? ctx.message.caption ?? '(voice message — transcription unavailable)'
   await handleInbound(ctx, text, undefined, {
     kind: 'voice',
     file_id: voice.file_id,

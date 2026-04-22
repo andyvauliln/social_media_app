@@ -130,7 +130,7 @@ if (fs.existsSync(tasksFile)) {
 ✓ Task #12 started
 
   branch:   feature/12-user-profile-photo  (created & checked out)
-  assigned: Andrei
+  assigned: andrei
   status:   in-progress
   plan:     agents/agent.manager/tasks/in_plan/12.agent.manager.feature.andrei/plan.md
 

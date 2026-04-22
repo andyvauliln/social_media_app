@@ -17,11 +17,21 @@ if [[ ! -f "$CONFIG" ]]; then
 fi
 
 echo "[init] --- local root scaffolding ---"
-mkdir -p "$ROOT/mine/rot/claude"
+mkdir -p "$ROOT/!MINE/rot/claude"
 mkdir -p "$ROOT/.claude"
-touch "$ROOT/mine/rot/claude/local.md"
+touch "$ROOT/!MINE/rot/claude/local.md"
 if [[ ! -f "$ROOT/.claude/settings.local.json" ]]; then
   printf "{}\n" > "$ROOT/.claude/settings.local.json"
+fi
+
+echo "[init] --- shell aliases ---"
+if [[ -f "$ROOT/scripts/install-shell-aliases.sh" ]]; then
+  chmod +x "$ROOT/scripts/install-shell-aliases.sh"
+  if ! bash "$ROOT/scripts/install-shell-aliases.sh"; then
+    echo "[init] WARN: shell alias setup failed; continuing" >&2
+  fi
+else
+  echo "[init] WARN: alias installer not found; skipping" >&2
 fi
 
 echo "[init] --- root common (bun) ---"

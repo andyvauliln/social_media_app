@@ -13,6 +13,6 @@
   "scripts": {
     "init": "./script.init.sh",
     "start": "./start.sh",
-    "task-management": "npx tsx ./scripts/task-management.ts"
+    "task-management": "npx tsx ./agents/agent.manager/scripts.manager/task-management.script.ts"
   }
 }

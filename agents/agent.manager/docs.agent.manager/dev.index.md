@@ -105,7 +105,7 @@
     "is_passed_tests": false,
     "run_test_command": "",
 
-    "assigned_user": "Andrei",
+    "assigned_user": "andrei",
     "assigned_agent": "agent.manager",
 
     "is_need_human_confirmation": true,
@@ -115,7 +115,7 @@
     "platform": "claude",
 
     "created_at": "2026-04-16T16:30:24Z",
-    "created_by": "Andrei",
+    "created_by": "andrei",
     "updated_at": "2026-04-16T16:30:24Z",
     "closed_at": ""
   },
