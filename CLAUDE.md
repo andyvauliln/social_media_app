@@ -1,6 +1,7 @@
-YOU NAME: MAIN (MANAGER)
+YOU NAME: MAIN (ROOT)
 dont' use global root path if you reference in the file in a documents
-prefer separate any logic by files, don't keep a lot of function in one file
+prefer separate any logic by files, don't keep a lot of function in one file, file per function
+prefer define root dir by git top level
 # SKILL CREATION RULES
 1. prefier for skill creation use !. as insert it in a CONTEXT SECTION  
 Example: 

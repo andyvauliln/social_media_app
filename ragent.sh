@@ -233,7 +233,8 @@
 
 ########## ENV LOADING ########## from envs/root.env and envs/agents*.env
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-ENVS_DIR="${SCRIPT_DIR}/envs"
+ROOT_DIR="$(git rev-parse --show-toplevel 2>/dev/null || printf '%s' "${SCRIPT_DIR}")"
+ENVS_DIR="${ROOT_DIR}/envs"
 
 load_env_file() {
   local env_file="$1"
@@ -254,7 +255,57 @@ if [[ -d "${ENVS_DIR}" ]]; then
   done < <(printf '%s\n' "${ENVS_DIR}"/agents*.env | sort)
 fi
 
+ACCESS_CONFIG_FILE="${TELEGRAM_ACCESS_CONFIG:-${ENVS_DIR}/main.telegram/access.json}"
+if [[ -f "${ACCESS_CONFIG_FILE}" ]]; then
+  if command -v node >/dev/null 2>&1; then
+    TELEGRAM_STATE_DIR_FROM_CONFIG="$(
+      node -e '
+const fs = require("fs");
+try {
+  const raw = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+  if (typeof raw.stateDir === "string" && raw.stateDir.trim()) {
+    process.stdout.write(raw.stateDir.trim());
+  }
+} catch {}
+' "${ACCESS_CONFIG_FILE}"
+    )"
+    TELEGRAM_BOT_TOKEN_FROM_CONFIG="$(
+      node -e '
+const fs = require("fs");
+try {
+  const raw = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+  if (typeof raw.botToken === "string" && raw.botToken.trim()) {
+    process.stdout.write(raw.botToken.trim());
+  }
+} catch {}
+' "${ACCESS_CONFIG_FILE}"
+    )"
+
+    if [[ -n "${TELEGRAM_STATE_DIR_FROM_CONFIG}" ]]; then
+      if [[ "${TELEGRAM_STATE_DIR_FROM_CONFIG}" = /* ]]; then
+        export TELEGRAM_STATE_DIR="${TELEGRAM_STATE_DIR_FROM_CONFIG}"
+      else
+        export TELEGRAM_STATE_DIR="${ROOT_DIR}/${TELEGRAM_STATE_DIR_FROM_CONFIG#./}"
+      fi
+    fi
+    if [[ -n "${TELEGRAM_BOT_TOKEN_FROM_CONFIG}" ]]; then
+      export TELEGRAM_BOT_TOKEN="${TELEGRAM_BOT_TOKEN_FROM_CONFIG}"
+    fi
+  fi
+fi
+
 TELEGRAM_CHANNEL="${TELEGRAM_CHANNEL:-plugin:telegram@inline}"
+
+########## STALE SESSION CLEANUP ##########
+# kill stale telegram bot process so a fresh instance can bind cleanly.
+TELEGRAM_BOT_PID_FILE="${TELEGRAM_BOT_PID_FILE:-${ENVS_DIR}/main.telegram/bot.pid}"
+if [[ -f "${TELEGRAM_BOT_PID_FILE}" ]]; then
+  _OLD_BOT_PID="$(<"${TELEGRAM_BOT_PID_FILE}")"
+  if [[ -n "${_OLD_BOT_PID}" ]] && kill -0 "${_OLD_BOT_PID}" 2>/dev/null; then
+    echo "ragent: killing stale telegram bot (pid=${_OLD_BOT_PID})" >&2
+    kill "${_OLD_BOT_PID}" 2>/dev/null || true
+  fi
+fi
 
 # --plugin-dir sync with /sync-plugins dev agent  before every pr and with a command /sync-plugins.dev on a root
 args=(

@@ -231,9 +231,9 @@
 
 
 
-########## ENV LOADING ########## from envs/root.env and envs/agents*.env
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-ENVS_DIR="${SCRIPT_DIR}/envs"
+########## ENV LOADING ########## from root envs/ + telegram.manager.env override
+ROOT_DIR="$(git rev-parse --show-toplevel)"
+ENVS_DIR="${ROOT_DIR}/envs"
 
 load_env_file() {
   local env_file="$1"
@@ -248,43 +248,71 @@ load_env_file() {
 
 if [[ -d "${ENVS_DIR}" ]]; then
   load_env_file "${ENVS_DIR}/root.env"
+  load_env_file "${ENVS_DIR}/telegram.manager.env"
+fi
 
-  while IFS= read -r env_path; do
-    load_env_file "${env_path}"
-  done < <(printf '%s\n' "${ENVS_DIR}"/agents*.env | sort)
+ACCESS_CONFIG_FILE="${ENVS_DIR}/manager.telegram/access.json"
+if [[ -f "${ACCESS_CONFIG_FILE}" ]]; then
+  if command -v node >/dev/null 2>&1; then
+    TELEGRAM_STATE_DIR_FROM_CONFIG="$(
+      node -e '
+const fs = require("fs");
+try {
+  const raw = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+  if (typeof raw.stateDir === "string" && raw.stateDir.trim()) {
+    process.stdout.write(raw.stateDir.trim());
+  }
+} catch {}
+' "${ACCESS_CONFIG_FILE}"
+    )"
+    TELEGRAM_BOT_TOKEN_FROM_CONFIG="$(
+      node -e '
+const fs = require("fs");
+try {
+  const raw = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+  if (typeof raw.botToken === "string" && raw.botToken.trim()) {
+    process.stdout.write(raw.botToken.trim());
+  }
+} catch {}
+' "${ACCESS_CONFIG_FILE}"
+    )"
+
+    if [[ -n "${TELEGRAM_STATE_DIR_FROM_CONFIG}" ]]; then
+      if [[ "${TELEGRAM_STATE_DIR_FROM_CONFIG}" = /* ]]; then
+        export TELEGRAM_STATE_DIR="${TELEGRAM_STATE_DIR_FROM_CONFIG}"
+      else
+        export TELEGRAM_STATE_DIR="${ROOT_DIR}/${TELEGRAM_STATE_DIR_FROM_CONFIG#./}"
+      fi
+    fi
+    if [[ -n "${TELEGRAM_BOT_TOKEN_FROM_CONFIG}" ]]; then
+      export TELEGRAM_BOT_TOKEN="${TELEGRAM_BOT_TOKEN_FROM_CONFIG}"
+    fi
+  fi
 fi
 
 TELEGRAM_CHANNEL="${TELEGRAM_CHANNEL:-plugin:telegram@inline}"
 
+AGENT_DIR="${ROOT_DIR}/agents/agent.manager"
+
+########## STALE SESSION CLEANUP ##########
+# kill stale telegram bot process so a fresh instance can bind cleanly.
+TELEGRAM_BOT_PID_FILE="${TELEGRAM_BOT_PID_FILE:-${ENVS_DIR}/manager.telegram/bot.pid}"
+if [[ -f "${TELEGRAM_BOT_PID_FILE}" ]]; then
+  _OLD_BOT_PID="$(<"${TELEGRAM_BOT_PID_FILE}")"
+  if [[ -n "${_OLD_BOT_PID}" ]] && kill -0 "${_OLD_BOT_PID}" 2>/dev/null; then
+    echo "ragent.manager: killing stale telegram bot (pid=${_OLD_BOT_PID})" >&2
+    kill "${_OLD_BOT_PID}" 2>/dev/null || true
+  fi
+fi
+
 # --plugin-dir sync with /sync-plugins dev agent  before every pr and with a command /sync-plugins.dev on a root
 args=(
   --verbose
-  --plugin-dir "./plugins/ai-firstify/1.1.0"
-  --plugin-dir "./plugins/ai-plugins/1.0.0"
-  --plugin-dir "./plugins/analyze-codebase/1.0.0"
-  --plugin-dir "./plugins/claude-code-setup"
-  --plugin-dir "./plugins/claude-md-management"
-  --plugin-dir "./plugins/code-simplifier"
-  --plugin-dir "./plugins/codebase-documenter/1.0.0"
-  --plugin-dir "./plugins/context7"
-  --plugin-dir "./plugins/context7-docs-fetcher/1.0.0"
-  # need configure
-  --plugin-dir "./plugins/fakechat/0.0.1"
-  --plugin-dir "./plugins/hookify/unknown"
-  --plugin-dir "./plugins/playwright"
-  --plugin-dir "./plugins/postman/1.0.0"
-  --plugin-dir "./plugins/python-expert/1.0.0"
-  --plugin-dir "./plugins/ralph-loop"
-  --plugin-dir "./plugins/skill-creator"
-  # need configure
-  --plugin-dir "./plugins/telegram"
-  --plugin-dir "./plugins/ui5/0.1.0"
-  # need auth vercel (later)
-  --plugin-dir "./plugins/vercel/0.40.0"
+  --plugin-dir "${ROOT_DIR}/plugins/telegram"
   --debug
   --dangerously-skip-permissions
   --dangerously-load-development-channels server:plugin:fakechat:fakechat "${TELEGRAM_CHANNEL}"
   --permission-mode bypassPermissions
-  
+
 )
-exec claude "${args[@]}" "$@"
+cd "${AGENT_DIR}" && exec claude "${args[@]}" "$@"

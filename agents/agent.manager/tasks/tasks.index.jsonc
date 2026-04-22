@@ -69,7 +69,7 @@
 
     "is_need_human_confirmation": true,
 
-    "notes": "Should be one telegram bot for root agent and if i run for example manager agent with a manager.ragent.sh it has own own config with setuped bot and this 2 bots both working",
+    "notes": "Should be one telegram bot for root agent and if i run for example manager agent with a ragent.manager.sh it has own own config with setuped bot and this 2 bots both working",
 
     "platform": "claude",
 
