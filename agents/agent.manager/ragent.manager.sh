@@ -288,9 +288,9 @@ try {
     fi
   fi
 fi
-# NOTES: WE NOT USE OFFICIAL TELEGRAM PLUGIN NAME telegram@claude-plugins-official` as we have out telegram plugin in a our ./plugins/telegram directory
-# Default: marketplace channel (allowlisted). Use plugin:telegram@inline + --plugin-dir for local dev only.
-TELEGRAM_CHANNEL="${TELEGRAM_CHANNEL:-plugin:telegram@inline}"
+# Default: official marketplace channel (allowlisted) — uses --channels, no confirmation prompt, no local ./plugins/telegram required.
+# Local dev: set TELEGRAM_CHANNEL=plugin:telegram@inline (or server:<name>) to load ./plugins/telegram via --dangerously-load-development-channels (interactive confirm required).
+TELEGRAM_CHANNEL="${TELEGRAM_CHANNEL:-plugin:telegram@claude-plugins-official}"
 
 AGENT_DIR="${ROOT_DIR}/agents/agent.manager"
 
@@ -329,8 +329,12 @@ if [[ "${ENVIRONMENT:-}" != "production" ]]; then
 fi
 if [[ "${enable_telegram}" == "true" ]]; then
   if [[ "${TELEGRAM_CHANNEL}" == *"@inline"* ]] || [[ "${TELEGRAM_CHANNEL}" == server:* ]]; then
+    # Dev mode: load local plugin and accept the dangerous dev-channel confirmation prompt (interactive only).
     args+=(--plugin-dir "${ROOT_DIR}/plugins/telegram")
     args+=(--dangerously-load-development-channels "${TELEGRAM_CHANNEL}")
+  else
+    # Marketplace/approved channel — allowlisted, no confirmation prompt, no local plugin dir needed. Works under nohup/rstart.sh.
+    args+=(--channels "${TELEGRAM_CHANNEL}")
   fi
 fi
 cd "${AGENT_DIR}" && exec claude "${args[@]}" "${forwarded_args[@]}"
