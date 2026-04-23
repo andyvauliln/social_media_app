@@ -55,6 +55,19 @@ for s in config.get('services', []):
 " "$1"
 }
 
+# Kill a process and all its descendants. Walks the pgrep tree bottom-up so
+# children are gone before parents, then does a SIGKILL pass for anything that
+# survived SIGTERM.
+kill_tree() {
+  local root=$1
+  local children
+  children=$(pgrep -P "$root" 2>/dev/null || true)
+  for child in $children; do
+    kill_tree "$child"
+  done
+  kill "$root" 2>/dev/null || true
+}
+
 started_count=0
 while IFS=$'\t' read -r name type development_enabled svc_path init_cmd start_cmd service_managed production_enabled env_files; do
   # Development: start services flagged for dev. Production: start services flagged for prod.
@@ -110,14 +123,14 @@ while IFS=$'\t' read -r name type development_enabled svc_path init_cmd start_cm
     env_load_cmd+="if [[ -f ${_efq} ]]; then set -a; source ${_efq}; set +a; fi; "
   done
 
-  # Kill previous instance if a PID file exists.
+  # Kill previous instance and its full process tree if a PID file exists.
   pid_file="$PIDS_DIR/$name.pid"
   if [[ -f "$pid_file" ]]; then
     old_pid="$(<"$pid_file")"
     if [[ -n "$old_pid" ]] && kill -0 "$old_pid" 2>/dev/null; then
       echo "[start] stopping previous ${name} (pid=${old_pid})" >&2
-      kill "$old_pid" 2>/dev/null || true
-      # Wait up to 5 s for it to exit.
+      kill_tree "$old_pid"
+      # Wait up to 5 s for root to exit, then SIGKILL anything left.
       for _ in 1 2 3 4 5; do
         kill -0 "$old_pid" 2>/dev/null || break
         sleep 1

@@ -22,7 +22,7 @@
     "status": "pending",
 
     // phase_N | week | today
-    "when": "phase_1",
+    "when": "week",
     "when_date": "",
 
     "blocked_reason": "",
@@ -101,7 +101,7 @@
     "status": "in_progress",
 
     // phase_N | week | today
-    "when": "phase_1",
+    "when": "week",
     "when_date": "",
 
     "blocked_reason": "",

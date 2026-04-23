@@ -294,6 +294,7 @@ try {
   fi
 fi
 
+# NOTES: WE NOT USE OFFICIAL TELEGRAM PLUGIN NAME telegram@claude-plugins-official` as we have out telegram plugin in a our ./plugins/telegram directory
 # Default: marketplace channel (allowlisted). Use plugin:telegram@inline + --plugin-dir for local dev only.
 TELEGRAM_CHANNEL="${TELEGRAM_CHANNEL:-plugin:telegram@inline}"
 
@@ -321,6 +322,7 @@ if [[ "${enable_telegram}" == "true" ]]; then
 fi
 
 # --plugin-dir sync with /sync-plugins dev agent  before every pr and with a command /sync-plugins.dev on a root
+#AI_TODO: need somehow give claude know that if added new plugin we need possible udpate this file @week
 args=(
   --verbose
   --plugin-dir "./plugins/ai-firstify/1.1.0"
@@ -354,9 +356,7 @@ if [[ "${enable_telegram}" == "true" ]]; then
   if [[ "${TELEGRAM_CHANNEL}" == *"@inline"* ]] || [[ "${TELEGRAM_CHANNEL}" == server:* ]]; then
     args+=(--plugin-dir "./plugins/telegram")
     args+=(--dangerously-load-development-channels "${TELEGRAM_CHANNEL}")
-  else
-    # Official plugin: install once with `claude plugin install telegram@claude-plugins-official` then --channels only.
-    args+=(--channels "${TELEGRAM_CHANNEL}")
+
   fi
 fi
 

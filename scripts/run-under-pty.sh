@@ -18,6 +18,9 @@ if command -v python3 >/dev/null 2>&1; then
 import pty, os, sys, time, re
 
 ANSI_RE = re.compile(rb'\x1b(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+# Debug: also dump RAW stream so we can see everything claude emits.
+RAW_FILE = os.environ.get('PTY_RAW_DUMP')
+raw_fd = open(RAW_FILE, 'ab') if RAW_FILE else None
 
 cmd = sys.argv[1]
 confirmed = False
@@ -27,12 +30,18 @@ def master_read(fd):
     global confirmed, buf
     data = os.read(fd, 4096)
     buf += data
-    if not confirmed and b'2026l' in buf:
+    if raw_fd:
+        raw_fd.write(data)
+        raw_fd.flush()
+    if not confirmed and b'confirm' in buf:
         confirmed = True
         buf = b''
-        time.sleep(0.05)
+        time.sleep(0.1)
         try:
             os.write(fd, b'\r')
+            if raw_fd:
+                raw_fd.write(b'\n<<< AUTO-CONFIRM SENT \\r >>>\n')
+                raw_fd.flush()
         except OSError:
             pass
     return ANSI_RE.sub(b'', data)
@@ -41,6 +50,8 @@ try:
     pty.spawn(['sh', '-c', cmd], master_read)
 except OSError:
     pass
+if raw_fd:
+    raw_fd.close()
 PYEOF
   exit $?
 fi

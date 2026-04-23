@@ -3,7 +3,6 @@ name: collect-inline-tasks
 description: Scan codebase for ai_todo inline comments, create tasks from them via create-task, and remove processed comments. Use when the user runs collect-inline-tasks or asks to gather TODO items from code.
 argument-hint: "[path optional]"
 user-invocable: true
-model: claude-haiku-4-6
 effort: low
 context: fork
 agent: ""

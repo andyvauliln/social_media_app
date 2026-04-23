@@ -288,7 +288,8 @@ try {
     fi
   fi
 fi
-
+# NOTES: WE NOT USE OFFICIAL TELEGRAM PLUGIN NAME telegram@claude-plugins-official` as we have out telegram plugin in a our ./plugins/telegram directory
+# Default: marketplace channel (allowlisted). Use plugin:telegram@inline + --plugin-dir for local dev only.
 TELEGRAM_CHANNEL="${TELEGRAM_CHANNEL:-plugin:telegram@inline}"
 
 AGENT_DIR="${ROOT_DIR}/agents/agent.manager"
@@ -330,8 +331,6 @@ if [[ "${enable_telegram}" == "true" ]]; then
   if [[ "${TELEGRAM_CHANNEL}" == *"@inline"* ]] || [[ "${TELEGRAM_CHANNEL}" == server:* ]]; then
     args+=(--plugin-dir "${ROOT_DIR}/plugins/telegram")
     args+=(--dangerously-load-development-channels "${TELEGRAM_CHANNEL}")
-  else
-    args+=(--channels "${TELEGRAM_CHANNEL}")
   fi
 fi
 cd "${AGENT_DIR}" && exec claude "${args[@]}" "${forwarded_args[@]}"

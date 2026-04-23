@@ -18,8 +18,10 @@ fi
 
 echo "[init] --- local root scaffolding ---"
 mkdir -p "$ROOT/!MINE/rot/claude"
+mkdir -p "$ROOT/main"
 mkdir -p "$ROOT/.claude"
 touch "$ROOT/!MINE/rot/claude/local.md"
+touch "$ROOT/CLAUDE.local.md"
 if [[ ! -f "$ROOT/.claude/settings.local.json" ]]; then
   printf "{}\n" > "$ROOT/.claude/settings.local.json"
 fi
@@ -62,7 +64,7 @@ if [[ -d "$plugins_dir" ]]; then
       echo "[init] FAILED: $plugin_name" >&2
       failed=1
     fi
-  done < <(find "$plugins_dir" -type f -name package.json | sort)
+  done < <(find "$plugins_dir" -type d -name node_modules -prune -o -type f -name package.json -print | sort)
 else
   echo "[init] skip plugins: directory $plugins_dir not found" >&2
 fi

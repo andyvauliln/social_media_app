@@ -40,16 +40,16 @@
         },
         {
             "name": "collect-inline-tasks",
-            "description": "run every 10 minutes to collect all inline tasks from files and put them in a system",
-            "schedule": "0 0 * * *",
+            "description": "run every 5 minutes; if ai_todo exists (after excludes), trigger collect-inline-tasks skill",
+            "schedule": "*/5 * * * *",
             "enabled": true,
             "production": true,
             "development": true,
             "runLocation": "supervisor",
             "run": {
-                "type": "claude",
-                "cwd": "agents/agent.manager",
-                "prompt": "/collect-inline-tasks"
+                "type": "shell",
+                "cwd": ".",
+                "command": "bash apps/cron-supervisor/scripts/collect-inline-tasks-if-needed.sh"
             }
         },
         {

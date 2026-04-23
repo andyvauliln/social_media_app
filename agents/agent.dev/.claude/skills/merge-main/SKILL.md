@@ -1,7 +1,7 @@
 ---
 name: merge-main
 description: Merge the latest main branch into the current branch. Use when updating a feature branch with main.
-argument-hint: ""
+argument-hint: "[branch-name or branch hash]"
 user-invocable: true
 model: claude-haiku-4-6
 effort: low

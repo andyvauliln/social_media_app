@@ -13,17 +13,6 @@
       "start": "bun index.mjs"
     },
     {
-      "name": "telegram-bot",
-      "description": "Telegram bot for notifications and commands",
-      "type": "app",
-      "developmentEnabled": false,
-      "productionEnabled": false,
-      "envFiles": [],
-      "path": "apps/telegram-bot",
-      "init": "pip install -r requirements.txt",
-      "start": "python3 main.py"
-    },
-    {
       "name": "open-screen",
       "description": "OpenScreen content factory UI",
       "type": "github-project",

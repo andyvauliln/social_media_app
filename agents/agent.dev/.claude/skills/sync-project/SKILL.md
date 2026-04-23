@@ -18,3 +18,5 @@ GOAL TO MAKE SURE THAT ALL SYMLINKS CREATED
 MAP
 1) Validate if all paths that contains symlink
 2) get symlink config from config.project.jsonc
+
+.... come up with a full list
