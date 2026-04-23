@@ -69,6 +69,22 @@ else
   echo "[init] skip plugins: directory $plugins_dir not found" >&2
 fi
 
+echo "[init] --- telegram plugin cache sync ---"
+TELEGRAM_PLUGIN_DIR="$ROOT/plugins/telegram"
+TELEGRAM_CACHE_BASE="/home/superuser/.claude/plugins/cache/claude-plugins-official/telegram"
+if [[ -d "$TELEGRAM_PLUGIN_DIR" ]] && [[ -d "$TELEGRAM_CACHE_BASE" ]]; then
+  TELEGRAM_CACHE_VERSION_DIR="$(find "$TELEGRAM_CACHE_BASE" -mindepth 1 -maxdepth 1 -type d | sort | head -n1)"
+  if [[ -n "$TELEGRAM_CACHE_VERSION_DIR" ]]; then
+    echo "[init] telegram: syncing local plugin -> $TELEGRAM_CACHE_VERSION_DIR"
+    rsync -a --exclude='.git' --exclude='node_modules' \
+      "$TELEGRAM_PLUGIN_DIR/" "$TELEGRAM_CACHE_VERSION_DIR/"
+  else
+    echo "[init] WARN: no version folder found in $TELEGRAM_CACHE_BASE, skipping sync" >&2
+  fi
+else
+  echo "[init] skip telegram sync: plugin or cache dir not found" >&2
+fi
+
 parse_services() {
   # Parse JSONC config and flatten service init metadata.
   python3 -c "

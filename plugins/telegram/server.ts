@@ -20,10 +20,21 @@ import { Bot, GrammyError, InlineKeyboard, InputFile, type Context } from 'gramm
 import type { ReactionTypeEmoji } from 'grammy/types'
 import { randomBytes } from 'crypto'
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, rmSync, statSync, renameSync, realpathSync, appendFileSync } from 'fs'
-import { homedir } from 'os'
 import { join, extname, sep } from 'path'
 
-const STATE_DIR = process.env.TELEGRAM_STATE_DIR
+function resolveStateDir(): string {
+  const raw = process.env.TELEGRAM_STATE_DIR?.trim()
+  if (!raw || raw.includes('${')) {
+    process.stderr.write(
+      `telegram channel: TELEGRAM_STATE_DIR is missing or was not expanded by the host (got ${raw ? JSON.stringify(raw) : 'empty'}).\n` +
+        `  Export a real path before starting Claude (e.g. run via ragent.manager.sh --telegram, or set stateDir in access.json and load it into the environment).\n`,
+    )
+    process.exit(1)
+  }
+  return raw
+}
+
+const STATE_DIR = resolveStateDir()
 const ACCESS_FILE = join(STATE_DIR, 'access.json')
 const APPROVED_DIR = join(STATE_DIR, 'approved')
 

@@ -294,8 +294,6 @@ try {
   fi
 fi
 
-# Default: official marketplace channel (allowlisted) — uses --channels, no confirmation prompt, no local ./plugins/telegram required.
-# Local dev: set TELEGRAM_CHANNEL=plugin:telegram@inline (or server:<name>) to load ./plugins/telegram via --dangerously-load-development-channels (interactive confirm required).
 TELEGRAM_CHANNEL="${TELEGRAM_CHANNEL:-plugin:telegram@claude-plugins-official}"
 
 enable_telegram=false
