@@ -18,7 +18,8 @@ if [[ ! -f "$CONFIG" ]]; then
   exit 1
 fi
 
-mkdir -p "$LOGS_DIR"
+PIDS_DIR="$ROOT/logs/start/pids"
+mkdir -p "$LOGS_DIR" "$PIDS_DIR"
 
 if [[ ! -f "$ROOT/envs/root.env" ]]; then
   echo "[start] warning: ${ROOT}/envs/root.env missing; nohup children will not load API keys from that file." >&2
@@ -109,6 +110,23 @@ while IFS=$'\t' read -r name type development_enabled svc_path init_cmd start_cm
     env_load_cmd+="if [[ -f ${_efq} ]]; then set -a; source ${_efq}; set +a; fi; "
   done
 
+  # Kill previous instance if a PID file exists.
+  pid_file="$PIDS_DIR/$name.pid"
+  if [[ -f "$pid_file" ]]; then
+    old_pid="$(<"$pid_file")"
+    if [[ -n "$old_pid" ]] && kill -0 "$old_pid" 2>/dev/null; then
+      echo "[start] stopping previous ${name} (pid=${old_pid})" >&2
+      kill "$old_pid" 2>/dev/null || true
+      # Wait up to 5 s for it to exit.
+      for _ in 1 2 3 4 5; do
+        kill -0 "$old_pid" 2>/dev/null || break
+        sleep 1
+      done
+      kill -9 "$old_pid" 2>/dev/null || true
+    fi
+    rm -f "$pid_file"
+  fi
+
   echo "[start] launching ${name}: ${start_cmd} (cwd=${cwd}, log=${log_file})" >&2
   _pty="${ROOT}/scripts/run-under-pty.sh"
   if [[ "${type}" == "agent" ]] && [[ -f "${_pty}" ]] && command -v script >/dev/null 2>&1; then
@@ -125,6 +143,7 @@ while IFS=$'\t' read -r name type development_enabled svc_path init_cmd start_cm
     fi
     nohup bash -c "${env_load_cmd}cd $(printf '%q' "$cwd") && ${start_cmd}" >> "$log_file" 2>&1 &
   fi
+  echo "$!" > "$pid_file"
   started_count=$((started_count + 1))
 done < <(parse_config "$CONFIG")
 

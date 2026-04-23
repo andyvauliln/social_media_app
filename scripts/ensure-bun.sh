@@ -4,12 +4,26 @@ set -euo pipefail
 
 _bun_home="${BUN_INSTALL:-${HOME:-}/.bun}"
 _bun_bin="$_bun_home/bin"
+_local_bin="${HOME:-}/.local/bin"
+
+# Link bun into ~/.local/bin so it's on PATH in all shells and subprocesses
+# without needing PATH exports (e.g. when Claude Code spawns plugin processes).
+link_bun_to_local_bin() {
+  if [[ -x "$_bun_bin/bun" ]] && [[ -d "$_local_bin" ]]; then
+    if [[ ! -e "$_local_bin/bun" ]]; then
+      ln -sf "$_bun_bin/bun" "$_local_bin/bun"
+      echo "[init] bun linked: $_local_bin/bun -> $_bun_bin/bun" >&2
+    fi
+  fi
+}
 
 if command -v bun >/dev/null 2>&1; then
+  link_bun_to_local_bin
   exit 0
 fi
 
 if [[ -x "$_bun_bin/bun" ]]; then
+  link_bun_to_local_bin
   printf 'export PATH=%q:$PATH\n' "$_bun_bin"
   exit 0
 fi
@@ -96,6 +110,7 @@ else
 fi
 
 if [[ -x "$_bun_bin/bun" ]]; then
+  link_bun_to_local_bin
   printf 'export PATH=%q:$PATH\n' "$_bun_bin"
   exit 0
 fi

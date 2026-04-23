@@ -51,6 +51,22 @@ if [[ -f "$ROOT/scripts/ensure-claude.sh" ]]; then
   [[ -n "${_claude_env:-}" ]] && eval "$_claude_env"
 fi
 
+echo "[init] --- plugins ---"
+plugins_dir="$ROOT/plugins"
+if [[ -d "$plugins_dir" ]]; then
+  while IFS= read -r package_json; do
+    plugin_dir="$(dirname "$package_json")"
+    plugin_name="${plugin_dir#"$ROOT/"}"
+    echo "[init] $plugin_name: bun install"
+    if ! (cd "$plugin_dir" && bun install); then
+      echo "[init] FAILED: $plugin_name" >&2
+      failed=1
+    fi
+  done < <(find "$plugins_dir" -type f -name package.json | sort)
+else
+  echo "[init] skip plugins: directory $plugins_dir not found" >&2
+fi
+
 parse_services() {
   # Parse JSONC config and flatten service init metadata.
   python3 -c "

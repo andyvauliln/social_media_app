@@ -359,4 +359,14 @@ if [[ "${enable_telegram}" == "true" ]]; then
     args+=(--channels "${TELEGRAM_CHANNEL}")
   fi
 fi
+
+# Claude installer commonly places the binary in ~/.local/bin, which may not be
+# present in non-login shells. Bun lives in ~/.bun/bin.
+export PATH="${HOME}/.local/bin:${HOME}/.bun/bin:${PATH}"
+
+if ! command -v claude >/dev/null 2>&1; then
+  echo "ragent: claude CLI not found in PATH. Try: bash scripts/ensure-claude.sh" >&2
+  exit 127
+fi
+
 exec claude "${args[@]}" "${forwarded_args[@]}"
