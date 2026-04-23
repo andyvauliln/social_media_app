@@ -26,16 +26,16 @@
         },
         {
             "name": "sync-project",
-            "description": "run every 10 minutes to check if it's any updates in a main branch and merge it to the project",
+            "description": "fetch origin/main, rebase or merge main into current branch, then push (skip if working tree dirty)",
             "schedule": "0 0 * * *",
             "enabled": true,
             "production": false,
             "development": true,
             "runLocation": "supervisor",
             "run": {
-                "type": "claude",
-                "cwd": "agents/agent.dev",
-                "prompt": "/sync-project"
+                "type": "shell",
+                "cwd": ".",
+                "command": "bash scripts/git-sync-pull-push.sh"
             }
         },
         {

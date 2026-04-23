@@ -1,6 +1,6 @@
 ---
 name: sync-project
-description: sync all project data
+description: Git sync with origin/main plus symlink checks for local dev
 argument-hint: ""
 user-invocable: true
 model: claude-haiku-4-6
@@ -12,11 +12,22 @@ shell: bash
 hooks: {}
 ---
 
-SYMLINKS
+# Git (automated cron uses this too)
 
-GOAL TO MAKE SURE THAT ALL SYMLINKS CREATED
-MAP
-1) Validate if all paths that contains symlink
-2) get symlink config from config.project.jsonc
+The supervisor cron `sync-project` runs from repo root:
 
-.... come up with a full list
+`bash scripts/git-sync-pull-push.sh`
+
+That script skips if the index or working tree is dirty, then `git fetch`, `git pull --rebase origin main` on `main` (else `git merge origin/main --no-edit`), then `git push`.
+
+For a one-off in shell (clean tree only):
+
+```bash
+ROOT=$(git rev-parse --show-toplevel)
+bash "$ROOT/scripts/git-sync-pull-push.sh"
+```
+
+# Symlinks (manual / follow-up)
+
+1) Validate paths that should be symlinks
+2) Read symlink expectations from `config.project.jsonc` (or project config) and fix missing links

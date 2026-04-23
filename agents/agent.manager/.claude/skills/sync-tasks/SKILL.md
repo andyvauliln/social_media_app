@@ -33,6 +33,7 @@ PLAN_DIR="$MANAGER_TASKS/in_plan"
 CURRENT_BRANCH=$(git branch --show-current)
 REMOTE_BRANCH="main"
 REMOTE_TASKS_TMP=$(mktemp)
+export TASKS_FILE PLAN_DIR REMOTE_BRANCH REMOTE_TASKS_TMP
 ```
 
 ---
@@ -55,6 +56,7 @@ If both the local `tasks.index.jsonc` and the remote are empty/missing → print
 ## Step 2 — Merge local + remote tasks.index.jsonc (field-level)
 ```bash
 CONFLICTS_TMP=$(mktemp)
+export CONFLICTS_TMP
 
 node -e "
 const fs = require('fs');
@@ -181,7 +183,16 @@ if git diff --cached --quiet "$MANAGER_TASKS/"; then
 fi
 
 git commit -m "sync-tasks: $(today_iso)"
-git push origin HEAD 2>/dev/null || true
+if ! git pull --rebase origin "$REMOTE_BRANCH"; then
+    echo "sync-tasks: pull --rebase failed — resolve conflicts and retry" >&2
+    rm -f "$REMOTE_TASKS_TMP" "$CONFLICTS_TMP"
+    exit 1
+fi
+if ! git push origin HEAD; then
+    echo "sync-tasks: push failed" >&2
+    rm -f "$REMOTE_TASKS_TMP" "$CONFLICTS_TMP"
+    exit 1
+fi
 rm -f "$REMOTE_TASKS_TMP" "$CONFLICTS_TMP"
 ```
 
