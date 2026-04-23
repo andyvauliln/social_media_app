@@ -289,7 +289,7 @@ try {
   fi
 fi
 
-TELEGRAM_CHANNEL="${TELEGRAM_CHANNEL:-plugin:telegram@claude-plugins-official}"
+TELEGRAM_CHANNEL="${TELEGRAM_CHANNEL:-plugin:telegram@inline}"
 
 AGENT_DIR="${ROOT_DIR}/agents/agent.dante"
 

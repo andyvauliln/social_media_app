@@ -295,7 +295,7 @@ try {
 fi
 
 # Default: marketplace channel (allowlisted). Use plugin:telegram@inline + --plugin-dir for local dev only.
-TELEGRAM_CHANNEL="${TELEGRAM_CHANNEL:-plugin:telegram@claude-plugins-official}"
+TELEGRAM_CHANNEL="${TELEGRAM_CHANNEL:-plugin:telegram@inline}"
 
 enable_telegram=false
 forwarded_args=()

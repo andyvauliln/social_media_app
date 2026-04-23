@@ -23,6 +23,7 @@ default_aliases=(
   "sma.knowledge-base=bash \"$ROOT_DIR/agents/agent.knowledge-base/ragent.knowledge-base.sh\""
   "sma.db=bash \"$ROOT_DIR/agents/agent.db/ragent.db.sh\""
   "sma.logs=bash \"$ROOT_DIR/agents/agent.logs/ragent.logs.sh\""
+  "sma.kill_telegram=bash \"$ROOT_DIR/scripts/kill-telegram-env-pids.sh\""
 
 )
 
