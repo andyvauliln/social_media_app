@@ -55,6 +55,7 @@ CLAUDE.local.md
 
 # ---- Personal / local ----
 mine/
+\!MINE/
 
 # Local GitHub clones / checkouts (track project wrapper files, ignore cloned repo dir)
 github-projects/**
