@@ -75,3 +75,6 @@ envs/root.env
 *.env*
 envs/*
 
+!WORKTREES/
+
+*logs*
