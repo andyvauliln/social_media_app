@@ -24,6 +24,8 @@ default_aliases=(
   "sma.db=bash \"$ROOT_DIR/agents/agent.db/ragent.db.sh\""
   "sma.logs=bash \"$ROOT_DIR/agents/agent.logs/ragent.logs.sh\""
   "sma.kill_telegram=bash \"$ROOT_DIR/scripts/kill-telegram-env-pids.sh\""
+  # Cron supervisor: same as apps/cron-supervisor/acron.sh (start|stop|status|logs|…)
+  "sma.acron=bash \"$ROOT_DIR/apps/cron-supervisor/acron.sh\""
 
 )
 

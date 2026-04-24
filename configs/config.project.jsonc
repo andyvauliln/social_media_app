@@ -1,28 +1,4 @@
 {   
-    "available_hooks": [
-        {
-            "name": "on_file_created",
-            "description": "Add ai metadata to file",
-            "enabled": true,
-            "supported-platforms": [ 
-                {"platform": "claude", "name": "real name on platform"}, 
-                {"platform": "cursor", "name": "real name on platform"}
-            ],
-            "commands": [ "/add_ai_metadata_to_file" ] //commands or skills that ll be run on this hook
-        },
-        {
-            "name": "before-commit",
-            "description": "Run before commit to update related files",
-            "enabled": true,
-            "commands": [ "/update-related-files" ]
-        },
-        {
-            "name": "before-commit",
-            "description": "Run before commit to update related files",
-            "enabled": true,
-            "commands": [ "/remove-sensitive-data" ]
-        }
-    ],
     "ai_file_metadata_template": {
         "path": "./configs/project.configs.jsonc",
         "description": "Configurations for all project's configs",

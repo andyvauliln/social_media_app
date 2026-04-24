@@ -11,20 +11,6 @@
     },
     "crons": [
         {
-            "name": "update-related-files",
-            "description": "run every 10 minutes to get files changed and update related ",
-            "schedule": "0 0 * * *",
-            "enabled": true,
-            "production": true,
-            "development": true,
-            "runLocation": "supervisor",
-            "run": {
-                "type": "claude",
-                "cwd": "agents/agent.dev",
-                "prompt": "/update-related-files"
-            }
-        },
-        {
             "name": "sync-project",
             "description": "fetch origin/main, rebase or merge main into current branch, then push (skip if working tree dirty)",
             "schedule": "0 0 * * *",

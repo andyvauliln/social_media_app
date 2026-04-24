@@ -18,7 +18,6 @@ fi
 
 echo "[init] --- local root scaffolding ---"
 mkdir -p "$ROOT/!MINE/rot/claude"
-mkdir -p "$ROOT/main"
 mkdir -p "$ROOT/.claude"
 touch "$ROOT/!MINE/rot/claude/local.md"
 touch "$ROOT/CLAUDE.local.md"
@@ -184,11 +183,7 @@ if ! bash "$ROOT/apps/cron-supervisor/scripts/setup-service.sh"; then
   echo "[init] WARN: cron supervisor service setup failed; continuing" >&2
 fi
 
-echo "[init] --- acron CLI ---"
-if ln -sf "$ROOT/apps/cron-supervisor/acron.sh" /usr/local/bin/acron; then
-  echo "[init] acron linked: /usr/local/bin/acron"
-else
-  echo "[init] WARN: could not link /usr/local/bin/acron; continuing" >&2
-fi
+echo "[init] --- acron CLI (shell alias) ---"
+echo "[init] use: sma.acron <command>   (after: source ~/.bashrc or ~/.zshrc — installed by install-shell-aliases.sh above)"
 
 echo "[init] done"
