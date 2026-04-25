@@ -39,6 +39,8 @@ echo "MAIN_DOCUMENTATION_FILE=$(cat "$DOCS_AGENT_MANAGER_PATH")"
 ---
 # STEPS
 
+## Step 0 Check if you are in a right worktree and branch if not switch
+- worktrees are in a folder !WORKTREES/branch-name
 
 ## Step 1 — Read and validate task
 - Find the task in `tasks.index.jsonc` where `github_issue_id` equals `{task-id}`. if not provided with a prompt.
@@ -57,6 +59,11 @@ echo "MAIN_DOCUMENTATION_FILE=$(cat "$DOCS_AGENT_MANAGER_PATH")"
 ---
 
 ## Step 2.1 — Merge main to current branch
+
+- Resolve the task branch/worktree from the task object's `branch_name`.
+- Run `agent.dev /merge-and_solve {task-id}` from the task worktree/branch before creating or updating the PR.
+- If conflicts happen, `/merge-and_solve` must resolve them automatically. When the agent is not \
+- Continue only when `git status --short` has no unmerged paths.
 
 ## Step 3 — Create pull request (status → `in_review`)
 
@@ -121,7 +128,7 @@ Write updated task back to `TASKS_FILE`. Then run `agent.manager /sync-tasks ski
 ## Rules
 
 - Never force-push or delete branches that others may depend on
-- If PR has merge conflicts, report them and stop — do not auto-resolve
+- Resolve merge conflicts through `agent.dev /merge-and_solve`; stop only if that skill reports unresolved unmerged paths
 - Allowed writes: `tasks/tasks.index.jsonc`, `tasks/in_plan/**`, `tasks/done/**`
 - Use `parse_jsonc` from `task-helpers.sh` for all reads
 - Always run `/sync-tasks` at the end

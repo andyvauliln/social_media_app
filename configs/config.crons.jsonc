@@ -12,7 +12,7 @@
     "crons": [
         {
             "name": "sync-project",
-            "description": "fetch origin/main, rebase or merge main into current branch, then push (skip if working tree dirty)",
+            "description": "sync current remote main state with a local main branch",
             "schedule": "0 0 * * *",
             "enabled": true,
             "production": false,

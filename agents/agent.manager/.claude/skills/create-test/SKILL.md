@@ -1,5 +1,5 @@
 ---
-name: create-plan
+name: create-test
 description: create plan for a task in plan mode
 argument-hint: "[task id] [prompt optional] [@v - version of the plan optional]"
 user-invocable: true
