@@ -28,9 +28,9 @@
             "name": "collect-inline-tasks",
             "description": "run every 5 minutes; if ai_todo exists (after excludes), trigger collect-inline-tasks skill",
             "schedule": "*/5 * * * *",
-            "enabled": true,
-            "production": true,
-            "development": true,
+            "enabled": false,
+            "production": false,
+            "development": false,
             "runLocation": "supervisor",
             "run": {
                 "type": "shell",

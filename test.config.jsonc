@@ -1,0 +1,16 @@
+[
+    {
+        "name": "test1",
+        "modeule": "dev.agent",
+        "description": "test1 description",
+        "run": "bash scripts/test1.sh",
+        "enabled": false,
+    },
+    {
+        "name": "test1",
+        "modeule": "main.agent",
+        "description": "test1 description",
+        "run": "bash scripts/test1.sh",
+        "enabled": false,
+    }
+]

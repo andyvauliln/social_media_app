@@ -333,7 +333,7 @@ args=(
   --plugin-dir "./plugins/context7"
   --plugin-dir "./plugins/context7-docs-fetcher/1.0.0"
   # need configure
-  --plugin-dir "./plugins/fakechat/0.0.1"
+  # --plugin-dir "./plugins/fakechat/0.0.1"
   --plugin-dir "./plugins/hookify/unknown"
   --plugin-dir "./plugins/playwright"
   --plugin-dir "./plugins/postman/1.0.0"
