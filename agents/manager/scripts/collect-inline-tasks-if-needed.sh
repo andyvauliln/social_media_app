@@ -22,15 +22,14 @@ exclude_dirs = {
     "agent.manager.tests",
 }
 exclude_suffixes = {
-    ".md",
     ".json",
-    ".jsonc",
 }
 exclude_filenames = {
-    "SKILL.md",
 }
 exclude_relative_paths = {
-    "apps/cron-supervisor/scripts/collect-inline-tasks-if-needed.sh",
+    "/scripts/collect-inline-tasks-if-needed.sh",
+    "!KNOWLEDGE_BASE/CODE_GUIDANCE.md",
+    "agents/manager/.claude/skills/collect-inline-tasks/SKILL.md",
 }
 
 matches = []
@@ -73,26 +72,27 @@ if [[ "$SCAN_RESULT" == "NO_MATCHES" ]]; then
   exit 0
 fi
 
-echo "[collect-inline-tasks-if-needed] ai_todo entries detected; running skill"
+echo "[collect-inline-tasks-if-needed] ai_todo entries detected; running Cursor agent"
 echo "$SCAN_RESULT"
 
 if [[ "${COLLECT_INLINE_TASKS_DRY_RUN:-0}" == "1" ]]; then
-  echo "[collect-inline-tasks-if-needed] dry-run enabled; skipping skill execution"
+  echo "[collect-inline-tasks-if-needed] dry-run enabled; skipping agent execution"
   exit 0
 fi
 
-if [[ -f "$REPO_ROOT/scripts/ensure-claude.sh" ]]; then
-  _claude_env="$(bash "$REPO_ROOT/scripts/ensure-claude.sh")" || exit 1
-  [[ -n "${_claude_env:-}" ]] && eval "$_claude_env"
+if [[ -f "$REPO_ROOT/scripts/ensure-cursor-agent.sh" ]]; then
+  _cursor_agent_env="$(bash "$REPO_ROOT/scripts/ensure-cursor-agent.sh")" || exit 1
+  [[ -n "${_cursor_agent_env:-}" ]] && eval "$_cursor_agent_env"
 fi
 
-if ! command -v claude >/dev/null 2>&1; then
-  echo "[collect-inline-tasks-if-needed] error: claude binary not found in PATH" >&2
+export PATH="${HOME}/.local/bin:${PATH:-}"
+
+if ! command -v agent >/dev/null 2>&1; then
+  echo "[collect-inline-tasks-if-needed] error: Cursor agent CLI not found in PATH" >&2
   exit 1
 fi
 
-exec bash "$REPO_ROOT/scripts/run-under-pty.sh" \
-  "$REPO_ROOT/agents/manager" \
-  'claude -p "/collect-inline-tasks"'
+cd "$REPO_ROOT" || exit 1
+exec agent --workspace "$REPO_ROOT" --print --trust --model auto /collect-inline-tasks.manager
 
 

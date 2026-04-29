@@ -17,7 +17,7 @@
 - shoule create and switch to the new branch
 - should create plan
 /collect-tasks
-- manually or by cron check all files where exist AI_TODO, {name}_todo, ai_research, ai_idea
+- manually or by cron check all files where exist ai tag comments
 /make-plan
 - plan
 /build-plan

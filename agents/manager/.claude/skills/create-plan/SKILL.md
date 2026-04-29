@@ -93,7 +93,7 @@ File: `agents/manager/.claude/skills/collect-inline-tasks/SKILL.md`
 **What exists (good — keep)**:
 - Frontmatter is correct and complete
 **What needs to change**:
-- Detection must be keyword-only (`ai_todo:` anywhere on the line), not tied to comment syntax — works in any file type including `.md`
+in any file type including `.md`
 **What possible to improve**:
 - Frontmatter is correct and complete
 

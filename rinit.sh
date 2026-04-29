@@ -49,6 +49,12 @@ if [[ -f "$ROOT/scripts/ensure-claude.sh" ]]; then
   [[ -n "${_claude_env:-}" ]] && eval "$_claude_env"
 fi
 
+echo "[init] --- root common (cursor agent CLI) ---"
+if [[ -f "$ROOT/scripts/ensure-cursor-agent.sh" ]]; then
+  _cursor_agent_env="$(bash "$ROOT/scripts/ensure-cursor-agent.sh")" || exit 1
+  [[ -n "${_cursor_agent_env:-}" ]] && eval "$_cursor_agent_env"
+fi
+
 echo "[init] --- plugins ---"
 plugins_dir="$ROOT/plugins"
 if [[ -d "$plugins_dir" ]]; then

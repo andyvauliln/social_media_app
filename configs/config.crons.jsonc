@@ -11,6 +11,20 @@
     },
     "crons": [
         {
+            "name": "health-check",
+            "description": "prints a heartbeat every minute",
+            "schedule": "* * * * *",
+            "enabled": true,
+            "production": true,
+            "development": true,
+            "runLocation": "supervisor",
+            "run": {
+                "type": "shell",
+                "cwd": ".",
+                "command": "echo \"[health-check] $(date -u +%Y-%m-%dT%H:%M:%SZ)\""
+            }
+        },
+        {
             "name": "sync-project",
             "description": "sync current remote main state with a local main branch",
             "schedule": "0 0 * * *",
@@ -26,7 +40,7 @@
         },
         {
             "name": "collect-inline-tasks",
-            "description": "run every 5 minutes; if ai_todo exists (after excludes), trigger collect-inline-tasks skill",
+            "description": "run every 5 minutes; check if exist ai comments tags and run agent to make task for them",
             "schedule": "*/5 * * * *",
             "enabled": false,
             "production": false,
@@ -35,7 +49,7 @@
             "run": {
                 "type": "shell",
                 "cwd": ".",
-                "command": "bash apps/cron-supervisor/scripts/collect-inline-tasks-if-needed.sh"
+                "command": "bash agents/manager/scripts/collect-inline-tasks-if-needed.sh"
             }
         },
         {
@@ -55,20 +69,6 @@
                 "enabled": true,
                 "workflowFile": ".github/workflows/cron-make-today-plan.yml",
                 "pushToDefaultBranch": true
-            }
-        },
-        {
-            "name": "health-check",
-            "description": "prints a heartbeat every minute",
-            "schedule": "* * * * *",
-            "enabled": true,
-            "production": true,
-            "development": true,
-            "runLocation": "supervisor",
-            "run": {
-                "type": "shell",
-                "cwd": ".",
-                "command": "echo \"[health-check] $(date -u +%Y-%m-%dT%H:%M:%SZ)\""
             }
         },
         {

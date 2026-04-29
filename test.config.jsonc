@@ -4,17 +4,15 @@
         "modeule": "dev.agent",
         "description": "test1 description",
         "run": "bash scripts/test1.sh",
-        "run_before_pr": false,
         "last_time_run": "2026-04-29 12:00:00",
         "last_time_result": "success",
-        "tags": "", // for building different set on test on different scenarious
+        "tags": ["before_pr"], // for building different set on test on different scenarious
     },
     {
         "name": "test1",
         "modeule": "main.agent",
         "description": "test1 description",
         "run": "bash scripts/test1.sh",
-        "run_before_pr": false,
         "last_time_run": "2026-04-29 12:00:00",
         "last_time_result": "success",
         "tags": "", // for building different set on test on different scenarious

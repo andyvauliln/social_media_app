@@ -16,12 +16,14 @@ default_aliases=(
   "sma.shell=bash \"$ROOT_DIR/scripts/install-shell-aliases.sh\""
   "sma.init=bash \"$ROOT_DIR/rinit.sh\""
   "sma.start=bash \"$ROOT_DIR/rstart.sh\""
-  "sma.main=bash \"$ROOT_DIR/ragent.claude.sh\""
-  "sma.dev=bash \"$ROOT_DIR/agents/dev/ragent.claude.sh\""
-  "sma.manager=bash \"$ROOT_DIR/agents/manager/ragent.claude.sh\""
-  "sma.dante=bash \"$ROOT_DIR/agents/dante/ragent.claude.sh\""
-  "sma.knowledge-base=bash \"$ROOT_DIR/agents/knowledge-base/ragent.knowledge-base.sh\""
-  "sma.db=bash \"$ROOT_DIR/agents/db/ragent.db.sh\""
+  "sma.main.claude=bash \"$ROOT_DIR/ragent.claude.sh\""
+  "sma.main.cursor=bash \"$ROOT_DIR/ragent.cursor.sh\""
+  "sma.dev.claude=bash \"$ROOT_DIR/agents/dev/ragent.claude.sh\""
+  "sma.dev.cursor=bash \"$ROOT_DIR/agents/dev/ragent.cursor.sh\""
+  "sma.manager.claude=bash \"$ROOT_DIR/agents/manager/ragent.claude.sh\""
+  "sma.manager.cursor=bash \"$ROOT_DIR/agents/manager/ragent.cursor.sh\""
+  "sma.dante.claude=bash \"$ROOT_DIR/agents/dante/ragent.claude.sh\""
+  "sma.dante.cursor=bash \"$ROOT_DIR/agents/dante/ragent.cursor.sh\""
   "sma.logs=bash \"$ROOT_DIR/agents/logs/ragent.logs.sh\""
   "sma.kill_telegram=bash \"$ROOT_DIR/scripts/kill-telegram-env-pids.sh\""
   # Cron supervisor: same as apps/cron-supervisor/acron.sh (start|stop|status|logs|…)
@@ -37,6 +39,20 @@ fi
 
 build_alias_block() {
   printf "%s\n" "$MARKER_START"
+  # Non-login shells (typical IDE terminals) read ~/.bashrc, not ~/.profile — so ~/.local/bin must appear here too (Cursor `agent`, pip --user, …).
+  printf '%s\n' \
+    '# Ensure ~/.local/bin is on PATH (e.g. Cursor Agent CLI `agent`)' \
+    'if [ -d "$HOME/.local/bin" ]; then' \
+    '  case ":${PATH}:" in *:"$HOME/.local/bin":*) ;; *)' \
+    '    PATH="$HOME/.local/bin:$PATH"' \
+    '    export PATH' \
+    '    ;;' \
+    '  esac' \
+    'fi'
+  _agent_ws="$(printf '%q' "$ROOT_DIR")"
+  printf '%s\n' \
+    '# Cursor CLI `agent` with this repo as --workspace (pass-through args: sma.agent -p "…")' \
+    "sma.agent() { command agent --workspace ${_agent_ws} \"\$@\"; }"
   for entry in "${aliases_to_install[@]}"; do
     if [[ "$entry" != *=* ]]; then
       echo "Invalid alias format: $entry (expected name=command)" >&2

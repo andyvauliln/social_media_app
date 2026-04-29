@@ -85,7 +85,7 @@
 
     "title": "Finish collect-inline-tasks skill",
 
-    "description": "Complete and finalize the collect-inline-tasks skill for agent.manager. The skill should reliably discover inline ai_todo comments, convert each into a structured manager task, and remove processed inline items from source files. Finalizing this workflow prevents task loss and keeps code clean after extraction.",
+    "description": "Complete and finalize the collect-inline-tasks skill for agent.manager. The skill should reliably discover inline comments, convert each into a structured manager task, and remove processed inline items from source files. Finalizing this workflow prevents task loss and keeps code clean after extraction.",
 
     // Git branch name — format: {type}/{github_issue_id}-{slug}
     "branch_name": "improvement/6-finish-collect-inline-tasks-skill",
