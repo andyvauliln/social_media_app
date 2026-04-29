@@ -34,7 +34,12 @@ if (errors.length || raw == null || typeof raw !== 'object' || !Array.isArray(ra
 
 const cron = raw.crons.find((c) => c && typeof c === 'object' && c.name === name);
 
-const isProduction = () => process.env.NODE_ENV === 'production';
+const isProduction = () => {
+  const e = process.env.ENVIRONMENT;
+  if (e === 'production') return true;
+  if (e === 'development') return false;
+  return process.env.NODE_ENV === 'production';
+};
 
 /** @type {{ enabled: boolean; reason: string }} */
 let result = { enabled: false, reason: 'not_found' };

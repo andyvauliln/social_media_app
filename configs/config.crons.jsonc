@@ -5,7 +5,7 @@
     // run.type: "claude" = Claude Code print mode in run.cwd | "shell" = sh -c in run.cwd
     // runLocation: "supervisor" = local cron-supervisor | "github_actions" = not run locally (use workflows)
     // githubActions: optional. "enabled": false skips the GitHub workflow step (no Claude run → no push).
-    // Each cron uses "production" / "development" (booleans). Supervisor and gh-cron-enabled gate by NODE_ENV===production.
+    // Each cron uses "production" / "development" (booleans). Supervisor loads envs/root.env then gates by ENVIRONMENT (production vs development), else NODE_ENV===production.
     "supervisor": {
         "timezone": "Asia/Makassar"
     },
@@ -14,7 +14,7 @@
             "name": "health-check",
             "description": "prints a heartbeat every minute",
             "schedule": "* * * * *",
-            "production": true,
+            "production": false,
             "development": true,
             "runLocation": "supervisor",
             "run": {
@@ -33,7 +33,7 @@
             "run": {
                 "type": "shell",
                 "cwd": ".",
-                "command": "bash scripts/git-sync-pull-push.sh --cursor"
+                "command": "bash scripts/git-sync-pull-push.sh --cursor --resolve-local-changes"
             }
         },
         {

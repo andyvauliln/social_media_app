@@ -8,6 +8,38 @@ import { parse } from 'jsonc-parser';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
+
+/**
+ * Merge envs/root.env into process.env for keys not already set (same source as rstart.sh).
+ * Systemd/launchd do not source this file; without this, ENVIRONMENT=production is ignored.
+ */
+function applyRepoRootEnv() {
+  const p = path.join(REPO_ROOT, 'envs', 'root.env');
+  let text;
+  try {
+    text = fs.readFileSync(p, 'utf8');
+  } catch {
+    return;
+  }
+  for (const line of text.split('\n')) {
+    const t = line.trim();
+    if (!t || t.startsWith('#')) continue;
+    const eq = t.indexOf('=');
+    if (eq === -1) continue;
+    const key = t.slice(0, eq).trim();
+    if (!key || key.startsWith('#')) continue;
+    if (process.env[key] !== undefined) continue;
+    let val = t.slice(eq + 1).trim();
+    if (
+      (val.startsWith('"') && val.endsWith('"')) ||
+      (val.startsWith("'") && val.endsWith("'"))
+    ) {
+      val = val.slice(1, -1);
+    }
+    process.env[key] = val;
+  }
+}
+
 const CONFIG_PATH =
   process.env.CRON_CONFIG_PATH ||
   path.join(REPO_ROOT, 'configs', 'config.crons.jsonc');
@@ -271,6 +303,9 @@ function parseConfig(text) {
 }
 
 function isProduction() {
+  const e = process.env.ENVIRONMENT;
+  if (e === 'production') return true;
+  if (e === 'development') return false;
   return process.env.NODE_ENV === 'production';
 }
 
@@ -453,8 +488,24 @@ function reconcile(filteredJobs) {
 
 let lastGoodPayload = { supervisor, crons: [] };
 let reloadTimer = null;
+/** Digest of last successfully applied local cron definitions (order-independent). */
+let lastAppliedJobsDigest = null;
 
-function applyConfig() {
+/**
+ * @param {object[]} jobs
+ */
+function digestForJobs(jobs) {
+  return jobs
+    .map((j) => fingerprint(j))
+    .sort()
+    .join('\n');
+}
+
+/**
+ * @param {{ fromFileEvent?: boolean }} [options]
+ */
+function applyConfig(options = {}) {
+  const fromFileEvent = options.fromFileEvent === true;
   let text;
   try {
     text = loadConfigText();
@@ -470,6 +521,17 @@ function applyConfig() {
   supervisor = parsed.supervisor;
   lastGoodPayload = parsed;
   const filtered = filterForLocalSupervisor(filterForEnv(parsed.crons));
+  const digest = digestForJobs(filtered);
+
+  if (fromFileEvent && digest === lastAppliedJobsDigest) {
+    logLine(
+      'info',
+      'config reload skipped: filesystem change but effective local crons unchanged (whitespace/comments-only or identical payload)',
+    );
+    return;
+  }
+
+  lastAppliedJobsDigest = digest;
   reconcile(filtered);
 }
 
@@ -477,17 +539,23 @@ function scheduleReload() {
   if (reloadTimer) clearTimeout(reloadTimer);
   reloadTimer = setTimeout(() => {
     reloadTimer = null;
-    applyConfig();
+    applyConfig({ fromFileEvent: true });
   }, DEBOUNCE_MS);
 }
 
 function main() {
+  applyRepoRootEnv();
   try {
     fs.mkdirSync(path.dirname(supervisorLogPath()), { recursive: true });
   } catch {
     // ignore
   }
-  logLine('info', 'cron-supervisor starting', { CONFIG_PATH, REPO_ROOT });
+  logLine('info', 'cron-supervisor starting', {
+    CONFIG_PATH,
+    REPO_ROOT,
+    ENVIRONMENT: process.env.ENVIRONMENT ?? '(unset)',
+    effectiveMode: isProduction() ? 'production' : 'development',
+  });
   applyConfig();
   logLine('info', 'cron-supervisor ready', {
     cronLogsDir: CRON_LOGS_REL,

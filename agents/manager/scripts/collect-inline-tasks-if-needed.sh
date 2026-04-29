@@ -41,8 +41,6 @@ root = Path(sys.argv[1]).resolve()
 exclude_dirs = {
     ".git",
     "node_modules",
-    ".cursor",
-    ".claude",
     ".vscode",
     "logs",
     "agent.manager.tests",

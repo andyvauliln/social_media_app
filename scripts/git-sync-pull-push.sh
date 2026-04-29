@@ -6,15 +6,18 @@ ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$ROOT"
 
 # Optional: --claude (default) or --cursor chooses which runner handles resolve-conflicts.
+# Optional: --resolve-local-changes runs the conflict agent on a dirty tree instead of skipping.
 RESOLVE_AGENT="claude"
+RESOLVE_LOCAL_CHANGES=0
 _seen_claude=0
 _seen_cursor=0
 for _arg in "$@"; do
   case "$_arg" in
     --claude) _seen_claude=1 ;;
     --cursor) _seen_cursor=1 ;;
+    --resolve-local-changes) RESOLVE_LOCAL_CHANGES=1 ;;
     *)
-      echo "[git-sync] unknown option: $_arg (expected --claude or --cursor)" >&2
+      echo "[git-sync] unknown option: $_arg (expected --claude, --cursor, or --resolve-local-changes)" >&2
       exit 2
       ;;
   esac
@@ -28,6 +31,18 @@ if [[ "$_seen_cursor" -eq 1 ]]; then
 fi
 
 MAIN_BRANCH="${GIT_SYNC_MAIN_BRANCH:-main}"
+GIT_SYNC_AUTOSTASHED=0
+
+# Pop autostash from --resolve-local-changes before exiting successfully.
+git_sync_exit_ok() {
+  if [[ "${GIT_SYNC_AUTOSTASHED:-0}" -eq 1 ]]; then
+    if ! git stash pop; then
+      echo "[git-sync] warning: autostash pop failed or produced conflicts; see git stash list" >&2
+    fi
+    GIT_SYNC_AUTOSTASHED=0
+  fi
+  exit 0
+}
 
 # Check whether Git is already stuck in a merge/rebase/cherry-pick/revert.
 # In simple words: Git started combining changes earlier, but needs help to finish.
@@ -88,23 +103,39 @@ fi
 # Existing conflicts are handled before the normal dirty-tree guard because
 # conflict files are local changes, but they are exactly what this agent fixes.
 if has_git_operation_in_progress || ! git diff --diff-filter=U --quiet; then
-  run_resolve_conflicts_agent "existing interrupted Git operation or unmerged paths before sync"
+  run_resolve_conflicts_agent "existing interrupted Git operation or unmerged paths before sync" || true
   if has_git_operation_in_progress || ! git diff --diff-filter=U --quiet; then
     echo "[git-sync] conflict agent finished but Git still has an unresolved operation" >&2
     exit 1
   fi
 fi
 
-# Do not sync over normal unfinished local work.
+# Do not sync over normal unfinished local work unless asked to resolve via agent.
 if ! git diff --quiet || ! git diff --cached --quiet; then
-  echo "[git-sync] skip: working tree or index has local changes"
-  exit 0
+  if [[ "$RESOLVE_LOCAL_CHANGES" -eq 1 ]]; then
+    run_resolve_conflicts_agent "working tree or index has local changes before sync" || true
+    if has_git_operation_in_progress || ! git diff --diff-filter=U --quiet; then
+      echo "[git-sync] conflict agent finished but Git still has an unresolved operation" >&2
+      exit 1
+    fi
+    if ! git diff --quiet || ! git diff --cached --quiet; then
+      echo "[git-sync] stashing local changes before sync (--resolve-local-changes; agent left edits or none were required)" >&2
+      if ! git stash push -u -m "git-sync autostash $(date -u +%Y-%m-%dT%H:%M:%SZ)"; then
+        echo "[git-sync] autostash failed; cannot sync" >&2
+        exit 1
+      fi
+      GIT_SYNC_AUTOSTASHED=1
+    fi
+  else
+    echo "[git-sync] skip: working tree or index has local changes"
+    exit 0
+  fi
 fi
 
 # origin is the shared remote repository, usually GitHub.
 if ! git remote get-url origin >/dev/null 2>&1; then
   echo "[git-sync] skip: no origin remote" >&2
-  exit 0
+  git_sync_exit_ok
 fi
 
 # Fetch updates remote branch information without changing local files yet.
@@ -114,20 +145,20 @@ current="$(git branch --show-current 2>/dev/null || true)"
 # Detached HEAD means Git is not on a named branch, so we do not know what to update.
 if [[ -z "${current}" ]]; then
   echo "[git-sync] skip: detached HEAD" >&2
-  exit 0
+  git_sync_exit_ok
 fi
 
 # If the remote main branch does not exist, there is nothing safe to sync with.
 if ! git show-ref --verify --quiet "refs/remotes/origin/$MAIN_BRANCH"; then
   echo "[git-sync] skip: origin/$MAIN_BRANCH not found" >&2
-  exit 0
+  git_sync_exit_ok
 fi
 
 # If local main is missing, create it from origin/main.
 if ! git show-ref --verify --quiet "refs/heads/$MAIN_BRANCH"; then
   git branch "$MAIN_BRANCH" "origin/$MAIN_BRANCH"
   echo "[git-sync] ok created local $MAIN_BRANCH from origin/$MAIN_BRANCH"
-  exit 0
+  git_sync_exit_ok
 fi
 
 # Compare local main and origin/main so we know whether to pull, push, or resolve.
@@ -137,7 +168,7 @@ origin_anc_of_main="$(git merge-base --is-ancestor "origin/$MAIN_BRANCH" "$MAIN_
 # Both checks true means both branches point to the same history.
 if [[ "$main_anc_of_origin" == 1 && "$origin_anc_of_main" == 1 ]]; then
   echo "[git-sync] ok $MAIN_BRANCH already synced"
-  exit 0
+  git_sync_exit_ok
 fi
 
 # origin/main is ahead: safe pull case.
@@ -148,7 +179,7 @@ if [[ "$main_anc_of_origin" == 1 ]]; then
     git branch -f "$MAIN_BRANCH" "origin/$MAIN_BRANCH"
   fi
   echo "[git-sync] ok fast-forwarded local $MAIN_BRANCH from origin/$MAIN_BRANCH"
-  exit 0
+  git_sync_exit_ok
 fi
 
 # local main is ahead: safe push case.
@@ -156,7 +187,7 @@ if [[ "$origin_anc_of_main" == 1 ]]; then
   if ! git push origin "$MAIN_BRANCH"; then
     # A push can fail if the remote changed after our fetch. Let the agent inspect it.
     echo "[git-sync] push $MAIN_BRANCH failed" >&2
-    run_resolve_conflicts_agent "push of local $MAIN_BRANCH to origin/$MAIN_BRANCH failed"
+    run_resolve_conflicts_agent "push of local $MAIN_BRANCH to origin/$MAIN_BRANCH failed" || true
     if ! git diff --quiet || ! git diff --cached --quiet; then
       echo "[git-sync] conflict agent left uncommitted changes; not pushing" >&2
       exit 1
@@ -165,13 +196,13 @@ if [[ "$origin_anc_of_main" == 1 ]]; then
     if git merge-base --is-ancestor "origin/$MAIN_BRANCH" "$MAIN_BRANCH"; then
       git push origin "$MAIN_BRANCH"
       echo "[git-sync] ok pushed local $MAIN_BRANCH to origin/$MAIN_BRANCH after conflict agent"
-      exit 0
+      git_sync_exit_ok
     fi
     echo "[git-sync] push $MAIN_BRANCH still not safe after conflict agent" >&2
     exit 1
   fi
   echo "[git-sync] ok pushed local $MAIN_BRANCH to origin/$MAIN_BRANCH"
-  exit 0
+  git_sync_exit_ok
 fi
 
 # Both sides have different new commits. Prefer a non-interactive merge in this shell (real Git
@@ -202,14 +233,14 @@ if [[ "${GIT_SYNC_AUTO_MERGE:-1}" == "1" ]]; then
   if try_auto_merge_diverged_main "$current"; then
     git push origin "$MAIN_BRANCH"
     echo "[git-sync] ok auto-merged origin/$MAIN_BRANCH into $MAIN_BRANCH and pushed"
-    exit 0
+    git_sync_exit_ok
   fi
   echo "[git-sync] auto-merge had conflicts; running /resolve-conflicts agent" >&2
 else
   echo "[git-sync] local $MAIN_BRANCH and origin/$MAIN_BRANCH diverged; GIT_SYNC_AUTO_MERGE=0, running agent" >&2
 fi
 
-run_resolve_conflicts_agent "local $MAIN_BRANCH and origin/$MAIN_BRANCH diverged (after auto-merge failed or disabled)"
+run_resolve_conflicts_agent "local $MAIN_BRANCH and origin/$MAIN_BRANCH diverged (after auto-merge failed or disabled)" || true
 
 # The agent must leave Git with no unfinished conflict operation.
 if has_git_operation_in_progress || ! git diff --diff-filter=U --quiet; then
@@ -236,14 +267,14 @@ origin_anc_of_main="$(git merge-base --is-ancestor "origin/$MAIN_BRANCH" "$MAIN_
 # If the agent made the branches match, the sync is done.
 if [[ "$main_anc_of_origin" == 1 && "$origin_anc_of_main" == 1 ]]; then
   echo "[git-sync] ok $MAIN_BRANCH synced after conflict agent"
-  exit 0
+  git_sync_exit_ok
 fi
 
 # If local main is now safely ahead, push it.
 if [[ "$origin_anc_of_main" == 1 ]]; then
   git push origin "$MAIN_BRANCH"
   echo "[git-sync] ok pushed local $MAIN_BRANCH to origin/$MAIN_BRANCH after conflict agent"
-  exit 0
+  git_sync_exit_ok
 fi
 
 # If origin/main is now safely ahead, fast-forward local main.
@@ -254,7 +285,7 @@ if [[ "$main_anc_of_origin" == 1 ]]; then
     git branch -f "$MAIN_BRANCH" "origin/$MAIN_BRANCH"
   fi
   echo "[git-sync] ok fast-forwarded local $MAIN_BRANCH from origin/$MAIN_BRANCH after conflict agent"
-  exit 0
+  git_sync_exit_ok
 fi
 
 # Still diverged means it is safer to stop than guess.

@@ -88,14 +88,6 @@ Per `MAIN_DOCUMENTATION_FILE`: paths the human/agent should ground on.
 | Contains `@c` or `@context` with path(s) | Non-empty: those paths (and `file:line` if given), normalized like `./path/to/file` as in examples |
 | **No** `@c` / `@context` | `""` (empty string) |
 
-Do **not** auto-fill `context` with the source file and line where a prompt came from (e.g. inline `ai_todo` location) unless the originating comment included `@c` or `@context`. For `/collect-inline-tasks`, that means: only set `context` when those tags appear in the `ai_todo`.
-
-### `notes` (task JSON field)
-
-| Origin | `notes` value |
-|--------|----------------|
-| **`/collect-inline-tasks`** (inline `ai_todo` → `/create-task`) | Exactly **`Inline collected`** — do not add source path or “Collected from inline ai_todo in …”. |
-| Other `/create-task` invocations | User-supplied free text if given; otherwise `""` unless you must record something explicit. |
 
 ### `@when` resolution (order of precedence)
 

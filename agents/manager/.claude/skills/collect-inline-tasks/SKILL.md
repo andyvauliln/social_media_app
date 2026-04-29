@@ -35,8 +35,6 @@ echo "=== AI_TODO MATCHES ===" && \
 rg -n -i '\bai_todo\s*:' "$ROOT_PROJECT_PATH" \
   --glob '!**/.git/**' \
   --glob '!**/node_modules/**' \
-  --glob '!**/.cursor/**' \
-  --glob '!**/.claude/**' \
   --glob '!**/.vscode/**' \
   --glob '!**/logs/**' \
   --glob '!**/agent.manager.tests/**' \
@@ -47,7 +45,7 @@ rg -n -i '\bai_todo\s*:' "$ROOT_PROJECT_PATH" \
   2>/dev/null || echo "NO_MATCHES"
 ```
 
-**Excluded path segments (any file whose relative path contains this directory name):** `.git`, `node_modules`, `.cursor`, `.claude`, `.vscode`, `logs`, `agent.manager.tests`.
+**Excluded path segments (any file whose relative path contains this directory name):** `.git`, `node_modules`, `.vscode`, `logs`, `agent.manager.tests`.
 
 **Excluded file suffix:** `.json` only (**.jsonc is scanned**, e.g. manager config).
 

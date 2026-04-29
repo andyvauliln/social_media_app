@@ -85,6 +85,7 @@ WorkingDirectory=$APP_DIR
 ExecStart=$BUN_BIN $APP_DIR/index.mjs
 Restart=always
 RestartSec=5
+EnvironmentFile=-$REPO_ROOT/envs/root.env
 Environment=NODE_ENV=development
 Environment=PATH=/usr/local/bin:/usr/bin:/bin
 
