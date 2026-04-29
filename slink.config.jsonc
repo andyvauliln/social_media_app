@@ -28,7 +28,7 @@
   },
   {
     "name": "ENVS: content-factory",
-    "source_path": "./agents/agent.content-factory/.env",
+    "source_path": "./agents/content-factory/.env",
     "target_path": "./envs/agents.content-factory.symlink.env"
   },
   {
@@ -40,5 +40,53 @@
     "name": "LOGS: content-factory",
     "source_path": "./agents/content-factory/tests",
     "target_path": "./tests/agents/content-factory.symlink"
+  },
+  {
+    "name": "TEST FILES: content factory",
+    "source_root": "./agents/content-factory/scripts",
+    "source_glob": "**/*.test.*",
+    "target_dir": "./agents/content-factory/tests",
+    "target_postfix": ".symlink",
+    "keep_folder_structure": false
   }
+  // DEV AGENT
+  {
+    "name": "DOCS: dev",
+    "source_path": "./agents/dev/docs",
+    "target_path": "./!KNOWLEDGE_BASE/agents.docs/dev.symlink"
+  },
+  {
+    "name": "CONFIGS: dev",
+    "source_path": "./agents/dev/configs/",
+    "target_path": "./configs/agents/dev.symlink"
+  },
+  {
+    "name": "SCRIPTS: dev",
+    "source_path": "./agents/dev/scripts",
+    "target_path": "./scripts/agents/dev.symlink"
+  },
+  {
+    "name": "ENVS: dev",
+    "source_path": "./agents/dev/.env",
+    "target_path": "./envs/agents.dev.symlink.env"
+  },
+  {
+    "name": "TESTS: dev",
+    "source_path": "./agents/dev/tests",
+    "target_path": "./tests/agents/dev.symlink"
+  },
+  {
+    "name": "LOGS: dev",
+    "source_path": "./agents/dev/tests",
+    "target_path": "./tests/agents/dev.symlink"
+  },
+  {
+    "name": "TEST FILES: dev",
+    "source_root": "./agents/dev/scripts",
+    "source_glob": "**/*.test.*",
+    "target_dir": "./agents/dev/tests",
+    "target_postfix": ".symlink",
+    "keep_folder_structure": false
+  },
+  // DB AGENT
 ]

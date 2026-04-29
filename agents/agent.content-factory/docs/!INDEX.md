@@ -1,1 +1,0 @@
-in a folder cotent collection represent field on a content db record tags so one content could be in a different collection by symlink from sessions . should be script that sync and /command
