@@ -5,7 +5,7 @@
     // run.type: "claude" = Claude Code print mode in run.cwd | "shell" = sh -c in run.cwd
     // runLocation: "supervisor" = local cron-supervisor | "github_actions" = not run locally (use workflows)
     // githubActions: optional. "enabled": false skips the GitHub workflow step (no Claude run → no push).
-    // Top-level "enabled": false on the cron also skips GitHub. Supervisor still ignores runLocation github_actions locally.
+    // Each cron uses "production" / "development" (booleans). Supervisor and gh-cron-enabled gate by NODE_ENV===production.
     "supervisor": {
         "timezone": "Asia/Makassar"
     },
@@ -14,7 +14,6 @@
             "name": "health-check",
             "description": "prints a heartbeat every minute",
             "schedule": "* * * * *",
-            "enabled": true,
             "production": true,
             "development": true,
             "runLocation": "supervisor",
@@ -28,35 +27,32 @@
             "name": "sync-project",
             "description": "sync current remote main state with a local main branch",
             "schedule": "0 0 * * *",
-            "enabled": true,
             "production": false,
             "development": true,
             "runLocation": "supervisor",
             "run": {
                 "type": "shell",
                 "cwd": ".",
-                "command": "bash scripts/git-sync-pull-push.sh"
+                "command": "bash scripts/git-sync-pull-push.sh --claude"
             }
         },
         {
             "name": "collect-inline-tasks",
             "description": "run every 5 minutes; check if exist ai comments tags and run agent to make task for them",
             "schedule": "*/5 * * * *",
-            "enabled": false,
-            "production": false,
-            "development": false,
+            "production": true,
+            "development": true,
             "runLocation": "supervisor",
             "run": {
                 "type": "shell",
                 "cwd": ".",
-                "command": "bash agents/manager/scripts/collect-inline-tasks-if-needed.sh"
+                "command": "bash agents/manager/scripts/collect-inline-tasks-if-needed.sh --cursor"
             }
         },
         {
             "name": "make-today-plan",
             "description": "every day at 07:00 Bali (WITA); GitHub: 23:00 UTC previous calendar day",
             "schedule": "0 0 * * *",
-            "enabled": true,
             "production": false,
             "development": true,
             "runLocation": "github_actions",
@@ -75,7 +71,6 @@
             "name": "make-week-plan",
             "description": "weekly plan 07:00 Bali; GitHub: Sunday 23:00 UTC ≈ Monday 07:00 WITA",
             "schedule": "0 0 * * *",
-            "enabled": true,
             "production": false,
             "development": true,
             "runLocation": "github_actions",

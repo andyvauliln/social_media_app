@@ -5,6 +5,28 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 REPO_ROOT="$(cd "$APP_DIR/../.." && pwd)"
 
+# Optional: --cursor (default) or --claude selects the agent CLI.
+COLLECT_AGENT="cursor"
+_seen_claude=0
+_seen_cursor=0
+for _arg in "$@"; do
+  case "$_arg" in
+    --claude) _seen_claude=1 ;;
+    --cursor) _seen_cursor=1 ;;
+    *)
+      echo "[collect-inline-tasks-if-needed] unknown option: $_arg (expected --claude or --cursor)" >&2
+      exit 2
+      ;;
+  esac
+done
+if [[ "$_seen_claude" -eq 1 && "$_seen_cursor" -eq 1 ]]; then
+  echo "[collect-inline-tasks-if-needed] use only one of --claude or --cursor" >&2
+  exit 2
+fi
+if [[ "$_seen_claude" -eq 1 ]]; then
+  COLLECT_AGENT="claude"
+fi
+
 # Scan logic and excludes must stay aligned with
 # agents/manager/.claude/skills/collect-inline-tasks/SKILL.md (CONTEXT + RULES).
 
@@ -192,7 +214,23 @@ if [[ "${COLLECT_INLINE_TASKS_DRY_RUN:-0}" == "1" ]]; then
   exit 0
 fi
 
-echo "[collect-inline-tasks-if-needed] summary: matches=$MATCH_COUNT, agent=starting"
+echo "[collect-inline-tasks-if-needed] summary: matches=$MATCH_COUNT, agent=starting ($COLLECT_AGENT)"
+
+if [[ "$COLLECT_AGENT" == "claude" ]]; then
+  export PATH="${HOME}/.local/bin:${HOME}/.bun/bin:${PATH:-}"
+  if [[ ! -f "$REPO_ROOT/agents/manager/ragent.claude.sh" ]]; then
+    echo "[collect-inline-tasks-if-needed] error: agents/manager/ragent.claude.sh not found" >&2
+    echo "[collect-inline-tasks-if-needed] summary: matches=$MATCH_COUNT, agent=failed (no launcher)" >&2
+    exit 1
+  fi
+  if ! command -v claude >/dev/null 2>&1; then
+    echo "[collect-inline-tasks-if-needed] error: claude CLI not found in PATH" >&2
+    echo "[collect-inline-tasks-if-needed] summary: matches=$MATCH_COUNT, agent=failed (no CLI)" >&2
+    exit 1
+  fi
+  cd "$REPO_ROOT" || exit 1
+  exec bash "$REPO_ROOT/agents/manager/ragent.claude.sh" -p "/collect-inline-tasks"
+fi
 
 if [[ -f "$REPO_ROOT/scripts/ensure-cursor-agent.sh" ]]; then
   _cursor_agent_env="$(bash "$REPO_ROOT/scripts/ensure-cursor-agent.sh")" || exit 1

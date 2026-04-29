@@ -22,9 +22,10 @@ const crons = parsed.crons ?? [];
 
 if (action === 'list') {
   for (const cron of crons) {
-    const on = cron.enabled ? 'enabled ' : 'disabled';
+    const p = cron.production ? 'prod' : '---';
+    const d = cron.development ? 'dev ' : '---';
     const loc = cron.runLocation === 'github_actions' ? '[github]  ' : '[local]   ';
-    console.log(`  ${on}  ${loc} ${cron.schedule.padEnd(12)} ${cron.name}`);
+    console.log(`  ${p}/${d}  ${loc} ${cron.schedule.padEnd(12)} ${cron.name}`);
   }
   process.exit(0);
 }
@@ -40,12 +41,12 @@ if (action === 'enable' || action === 'disable') {
     console.error(`[acron] available: ${crons.map((c) => c.name).join(', ')}`);
     process.exit(1);
   }
-  const enabled = action === 'enable';
-  const edits = modify(text, ['crons', idx, 'enabled'], enabled, {
-    formattingOptions: { tabSize: 4, insertSpaces: true },
-  });
-  const newText = applyEdits(text, edits);
-  fs.writeFileSync(configPath, newText, 'utf8');
+  const on = action === 'enable';
+  const fmt = { formattingOptions: { tabSize: 4, insertSpaces: true } };
+  let next = text;
+  next = applyEdits(next, modify(next, ['crons', idx, 'production'], on, fmt));
+  next = applyEdits(next, modify(next, ['crons', idx, 'development'], on, fmt));
+  fs.writeFileSync(configPath, next, 'utf8');
   console.log(`[acron] ${cronName}: ${action}d`);
   process.exit(0);
 }

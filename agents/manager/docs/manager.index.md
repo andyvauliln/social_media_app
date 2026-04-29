@@ -153,11 +153,9 @@
     // "ai"          — if tag @ai, it's mean will be done automaticly without user
     // "<user_name>" — a specific human team member (must match team[].name in config)
     "assigned_user": "",
-    // Agent that will execute this task
-    // "main"          — root AI agent will pick it up
-    // "<user_name>" — a specific human team member (must match team[].name in config)
-    // "specifi ai agent" — agent.dev if it's development task, agent.db, agent.knowledgebase, agent.logs,
-    //                      if research assigned agent agent.knowledgebase 
+    // Who runs implementation (`/do-task` routing). Prefer "main" or "dev".
+    // "main" — root / default agent; "dev" — apps/implementation agent; or "agent.<name>" if explicitly tagged.
+    // Do not default to agent.manager unless the user sets it in the prompt.
     "assigned_agent": "",
 
     // Whether this task requires human confirmation at any point.

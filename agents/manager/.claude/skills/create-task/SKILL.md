@@ -63,7 +63,32 @@ Extract from the user's `{prompt}` and `@` tags:
 | **estimated_time** | AI estimate: `"30m"`, `"2h"`, `"1d"` |
 | **tags** | 2–5 relevant tags (e.g. `["upload", "s3", "media"]`) |
 | **assigned_user** | See Step 3 |
-| **assigned_agent** | See Step 3 |
+| **assigned_agent** | See **assigned_agent** and **context (task JSON)** below |
+| **context** (JSON field) | See **context (task JSON)** below — empty unless `@c` / `@context` in the prompt |
+
+### `assigned_agent` (execution agent)
+
+Stored on the task object (`main` / `dev` / a specific agent id). **Not** the same as `assigned_user`.
+
+| Prompt contains | `assigned_agent` value |
+|-----------------|------------------------|
+| `@dev` or `@agent.dev` | `"dev"` |
+| `@main` | `"main"` |
+| Explicit `@agent.<name>` (e.g. `@agent.knowledge`) | `"agent.<name>"` (strip the `@`; keep the agent id) |
+| **Omitted** | `"main"` |
+
+Do **not** default to `agent.manager` unless the user explicitly includes `@agent.manager` in the prompt.
+
+### `context` (task JSON field)
+
+Per `MAIN_DOCUMENTATION_FILE`: paths the human/agent should ground on.
+
+| Prompt | `context` field |
+|--------|----------------|
+| Contains `@c` or `@context` with path(s) | Non-empty: those paths (and `file:line` if given), normalized like `./path/to/file` as in examples |
+| **No** `@c` / `@context` | `""` (empty string) |
+
+Do **not** auto-fill `context` with the source file and line where a prompt came from (e.g. inline `ai_todo` location) unless the originating comment included `@c` or `@context`. For `/collect-inline-tasks`, that means: only set `context` when those tags appear in the `ai_todo`.
 
 ### `@when` resolution (order of precedence)
 
@@ -86,6 +111,8 @@ Optional companion field `when_date` stores a specific date (`YYYY-MM-DD`) when 
 | No tag, assigned to **user** | `"phase_1"` | `""` |
 
 **If anything is ambiguous or unclear, ask the user before proceeding.**
+
+Inline todos from `/collect-inline-tasks` should pass `@main` on `/create-task` **unless** the comment already has `@dev` / `@agent.dev` (then pass that) or another explicit `@agent.*`.
 
 ---
 
@@ -243,6 +270,7 @@ run `agents/manager  /sync-tasks skill`
 
 - If anything is ambiguous, **ask the user** before creating the task
 - If no human assignee is implied and prompt doesn't name a user, assign to `ai`
+- Default `assigned_agent` to `"main"` when no agent tag is given; use `"dev"` for `@dev` / `@agent.dev`. Leave task JSON `context` empty unless `@c` / `@context` is in the prompt.
 - `branch_name` must be git-safe: lowercase, hyphens, no spaces
 - Preserve JSONC comments when reading/writing `.jsonc` files
 - GitHub issue must be created before saving to `tasks.index.jsonc` (ID is required)

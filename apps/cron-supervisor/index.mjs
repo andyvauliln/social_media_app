@@ -192,9 +192,6 @@ function validateAndBuild(shape) {
     if (typeof j.schedule !== 'string' || !j.schedule.trim()) {
       return { ok: false, error: `crons[${i}].schedule must be a non-empty string` };
     }
-    if (typeof j.enabled !== 'boolean') {
-      return { ok: false, error: `crons[${i}].enabled must be boolean` };
-    }
     if (typeof j.production !== 'boolean' || typeof j.development !== 'boolean') {
       return { ok: false, error: `crons[${i}].production and .development must be booleans` };
     }
@@ -224,7 +221,6 @@ function validateAndBuild(shape) {
       name: name.trim(),
       description: typeof j.description === 'string' ? j.description : '',
       schedule: j.schedule.trim(),
-      enabled: j.enabled,
       production: j.production,
       development: j.development,
       runLocation: rl === 'github_actions' ? 'github_actions' : 'supervisor',
@@ -283,11 +279,7 @@ function isProduction() {
  */
 function filterForEnv(crons) {
   const prod = isProduction();
-  return crons.filter((j) => {
-    if (!j.enabled) return false;
-    if (prod) return j.production;
-    return j.development;
-  });
+  return crons.filter((j) => (prod ? j.production : j.development));
 }
 
 /**
@@ -304,7 +296,6 @@ function fingerprint(job) {
     githubActions: job.githubActions,
     production: job.production,
     development: job.development,
-    enabled: job.enabled,
     timezone: job.timezone,
     runLocation: job.runLocation,
   });

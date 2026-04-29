@@ -131,16 +131,16 @@ Commands:
   stop                  Stop the cron supervisor service
   restart               Restart the cron supervisor service
   update                Force reload with latest configs/config.crons.jsonc
-  status                Show service state + list all crons with enabled status
-  enable  <name>        Enable a cron by name, then reload
-  disable <name>        Disable a cron by name, then reload
+  status                Show service state + list crons (production/development flags)
+  enable  <name>        Set production+development true for a cron, then reload
+  disable <name>        Set production+development false for a cron, then reload
   logs    [name]        Tail supervisor.log or a specific cron log (e.g. health-check)
   setup                 (Re)install the background service (launchd / systemd)
 
 Notes:
   - Config auto-reloads on file save via chokidar — no restart needed for most changes.
   - Use 'update' to force an immediate restart and pick up latest config.
-  - enable/disable edits configs/config.crons.jsonc and triggers a reload automatically.
+  - enable/disable toggles both production and development in configs/config.crons.jsonc and reloads.
 HELP
     ;;
 esac

@@ -5,6 +5,28 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$ROOT"
 
+# Optional: --claude (default) or --cursor chooses which runner handles resolve-conflicts.
+RESOLVE_AGENT="claude"
+_seen_claude=0
+_seen_cursor=0
+for _arg in "$@"; do
+  case "$_arg" in
+    --claude) _seen_claude=1 ;;
+    --cursor) _seen_cursor=1 ;;
+    *)
+      echo "[git-sync] unknown option: $_arg (expected --claude or --cursor)" >&2
+      exit 2
+      ;;
+  esac
+done
+if [[ "$_seen_claude" -eq 1 && "$_seen_cursor" -eq 1 ]]; then
+  echo "[git-sync] use only one of --claude or --cursor" >&2
+  exit 2
+fi
+if [[ "$_seen_cursor" -eq 1 ]]; then
+  RESOLVE_AGENT="cursor"
+fi
+
 MAIN_BRANCH="${GIT_SYNC_MAIN_BRANCH:-main}"
 
 # Check whether Git is already stuck in a merge/rebase/cherry-pick/revert.
@@ -18,7 +40,7 @@ has_git_operation_in_progress() {
 }
 
 # Ask the project AI agent runner to fix a conflict situation.
-# ragent.claude.sh loads the project's normal Claude setup, plugins, env, and permissions.
+# ragent.claude.sh / ragent.cursor.sh load project setup, env, and permissions.
 run_resolve_conflicts_agent() {
   local reason="$1"
   local prompt
@@ -27,11 +49,6 @@ run_resolve_conflicts_agent() {
   if [[ "${GIT_SYNC_CONFLICT_AGENT:-1}" != "1" ]]; then
     echo "[git-sync] conflict agent disabled: $reason" >&2
     return 1
-  fi
-
-  if [[ ! -f "$ROOT/ragent.claude.sh" ]]; then
-    echo "[git-sync] cannot run conflict agent: ragent.claude.sh not found" >&2
-    return 127
   fi
 
   prompt="Run the dev resolve-conflicts skill at agents/dev/.claude/skills/resolve-conflicts/SKILL.md.
@@ -43,7 +60,22 @@ Context from scripts/git-sync-pull-push.sh:
 
 Resolve the Git conflict or divergence if one exists. You may complete the required merge/rebase/cherry-pick/revert continuation commit only when Git requires it to finish this resolution. Include unresolved_merge.md in that resolution commit when a commit is created. Do not create unrelated commits. Always create or update unresolved_merge.md in the repository root with the conflict situation. If you are unsure about a choice, keep the best valid result and mark the less confident option with @unresolved_merge."
 
-  echo "[git-sync] running resolve-conflicts agent: $reason" >&2
+  if [[ "$RESOLVE_AGENT" == "cursor" ]]; then
+    if [[ ! -f "$ROOT/ragent.cursor.sh" ]]; then
+      echo "[git-sync] cannot run conflict agent: ragent.cursor.sh not found" >&2
+      return 127
+    fi
+    echo "[git-sync] running resolve-conflicts agent (cursor): $reason" >&2
+    bash "$ROOT/ragent.cursor.sh" --print --trust --model auto -p "$prompt"
+    return
+  fi
+
+  if [[ ! -f "$ROOT/ragent.claude.sh" ]]; then
+    echo "[git-sync] cannot run conflict agent: ragent.claude.sh not found" >&2
+    return 127
+  fi
+
+  echo "[git-sync] running resolve-conflicts agent (claude): $reason" >&2
   bash "$ROOT/ragent.claude.sh" -p "$prompt"
 }
 

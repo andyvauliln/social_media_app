@@ -34,19 +34,24 @@ if (errors.length || raw == null || typeof raw !== 'object' || !Array.isArray(ra
 
 const cron = raw.crons.find((c) => c && typeof c === 'object' && c.name === name);
 
+const isProduction = () => process.env.NODE_ENV === 'production';
+
 /** @type {{ enabled: boolean; reason: string }} */
 let result = { enabled: false, reason: 'not_found' };
 if (cron) {
   if (cron.runLocation !== 'github_actions') {
     result = { enabled: false, reason: 'not_github_actions' };
-  } else if (cron.enabled === false) {
-    result = { enabled: false, reason: 'cron_enabled_false' };
   } else if (
     cron.githubActions != null &&
     typeof cron.githubActions === 'object' &&
     cron.githubActions.enabled === false
   ) {
     result = { enabled: false, reason: 'githubActions_enabled_false' };
+  } else if (isProduction() ? cron.production !== true : cron.development !== true) {
+    result = {
+      enabled: false,
+      reason: isProduction() ? 'production_false' : 'development_false',
+    };
   } else {
     result = { enabled: true, reason: 'ok' };
   }

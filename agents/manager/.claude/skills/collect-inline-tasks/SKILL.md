@@ -67,11 +67,10 @@ rg -n -i '\bai_todo\s*:' "$ROOT_PROJECT_PATH" \
 | `"<prompt>"` | yes | Task description (double quotes) *or* unquoted text after `:` until end of comment |
 | `@ai` | no | Assign to AI (default) |
 | `@<user>` | no | Assign to a team member |
-| `@c` / `@context` | no | Set task `context` field to source file:line |
+| `@c` / `@context` | no | If present → set task JSON `context` (paths or `file:line` after the tag; if tag has no path, use source `path:line`). If absent → leave `context` empty |
 | `@now` / `@today` / `@week` | no | Scheduling hint |
+| `@main` / `@dev` | no | Execution agent for `/do-task`: default passes `@main` (`assigned_agent`: `"main"`) unless todo has `@dev` / `@agent.dev` / another `@agent.*` |
 | `@high` / `@urgent` | no | Priority hint |
-
-### Supported comment styles
 ```js
 // ai_todo: "change this field name" @ai @context
 /* ai_todo: "add input validation" @ai @today */
@@ -103,9 +102,10 @@ The scanner and agent treat these as **one** todo:
    - a. **Read context** — use Read tool on the file, targeting the matched line ±8 lines (wider if the `ai_todo` sits in a multi-line `/* ... */` block). Why: need enough context to remove the **whole** comment safely.
    - b. **Parse** — from the **full** comment (single line, full `/* */` block, or consecutive `//` / `#` run produced by the multiline rules above): extract prompt text — prefer a double-quoted string (may span lines inside a block); else use everything after `ai_todo:` through the end of that comment unit, normalizing whitespace. Parse `@params` from that tail.
    - c. **Build create-task call**:
-     - If `@c` or `@context` in params → include `@context <file>:<line>` in the `/create-task` invocation so the task's `context` field records the source location.
-     - Pass all other `@params` (user, scheduling, priority) directly.
-   - d. **Call `/create-task "<prompt>" @params`** and wait for confirmation the task was created (task ID returned).
+     - Always add **`@main`** for execution agent **unless** the comment already has `@dev`, `@agent.dev`, or another explicit `@agent.*` (then pass those instead). Map to task `assigned_agent`: default `"main"`, or `"dev"` when `@dev` / `@agent.dev` is present.
+     - Put **`@context` / `@c` in the `/create-task` invocation only when** the `ai_todo` line/block contains `@c` or `@context`. Then supply paths or `relative/path:line` as appropriate. **Do not** pass source location as `@context` when those tags are missing — the task JSON `context` must stay `""`.
+     - Pass all other `@params` (user, scheduling, priority, types, etc.) from the comment.
+   - d. **Call `/create-task "<prompt>" @ai @main …`** (plus optional tags) and wait for confirmation the task was created (task ID returned).
    - e. **On success → remove the entire comment**, not just the `ai_todo:` fragment:
      - **`//`** (C/JS/TS/JSONC/etc.): delete from the `//` that starts this comment through end of line. If the line had code before `//`, keep the code and trim trailing spaces; if the line was only a comment, delete the whole line.
      - **`#` / `#!`**: delete from `#` through end of line; if the line was only a comment, delete the whole line.
@@ -119,7 +119,7 @@ The scanner and agent treat these as **one** todo:
 ```
 <id>: <title>
   <description>
-  <type, scope, when, priority, assigned_user, context — only fields that were set>
+  <type, scope, when, priority, assigned_user, assigned_agent — only fields that were set; include **context** only if `@c` / `@context` was in the todo>
   source ai_todo:
   <exact original line or block text>
 ```
@@ -132,7 +132,8 @@ Then end with counts, e.g. `N created. M failed.`
 
 - Never remove a comment unless the task was successfully created (task ID confirmed).
 - Use Edit tool for all file mutations — not sed, not fs.writeFileSync.
-- `@c` / `@context` in an `ai_todo` → sets task `context` field to `file:line`. It is NOT the `/create-task @context` flag for attaching files.
+- `@c` / `@context` in an `ai_todo` → set task JSON `context` (and pass matching `@context` / `@c` on `/create-task`). Without those tags → `context: ""`; never invent `path:line` from the scan location.
+- Default `assigned_agent` for created tasks: **`main`**; use **`dev`** when the todo includes `@dev` or `@agent.dev`, or another explicit `@agent.*` when given.
 - Excludes and the `\bai_todo\s*:` rule must match `collect-inline-tasks-if-needed.sh` (see CONTEXT and the list above). Do not skip `.jsonc` files.
 - For JSONC manipulation use `jsonc-parser` from `packages/node.common` — not task-helpers.sh.
 - Process matches one at a time — each needs its own `/create-task` call.
@@ -142,7 +143,7 @@ Then end with counts, e.g. `N created. M failed.`
 ```
 42: Fix symlink bootstrap in init
   Add config and installer script; wire into rinit and shell alias.
-  type: feature | scope: agent.manager | when: week | assigned_user: ai | context: agents/manager/configs/config.manager.jsonc:31
+  type: feature | scope: main | when: week | assigned_user: ai | assigned_agent: main
   source ai_todo:
   //ai_todo: "add config for symlinks..." @week
 
