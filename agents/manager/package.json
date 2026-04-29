@@ -1,0 +1,8 @@
+{
+  "name": "agent-manager-local",
+  "private": true,
+  "scripts": {
+    "start": "bash ./ragent.manager.sh",
+    "task-management": "bun x tsx ./scripts.manager/script.task-management.ts"
+  }
+}

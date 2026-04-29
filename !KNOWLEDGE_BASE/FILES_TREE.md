@@ -236,7 +236,7 @@ Current repository tree snapshot (`node_modules` and `.git` excluded):
 │   │   │   ├── manager.index.md
 │   │   │   └── ROAD_MAP.md
 │   │   ├── scripts.agent.manager/
-│   │   │   └── task-management.script.ts
+│   │   │   └── script.task-management.ts
 │   │   ├── tasks/
 │   │   │   ├── in_plan/
 │   │   │   │   ├── andrei.feature.8.pending/

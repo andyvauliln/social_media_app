@@ -38,17 +38,24 @@
   },
   {
     "name": "LOGS: content-factory",
-    "source_path": "./agents/content-factory/tests",
-    "target_path": "./tests/agents/content-factory.symlink"
+    "source_path": "./agents/content-factory/logs",
+    "target_path": "./logs/agents/content-factory.symlink"
+  },
+  {
+    "name": "DATA: content-factory",
+    "source_path": "./agents/content-factory/data",
+    "target_path": "./data/agents/content-factory.symlink"
   },
   {
     "name": "TEST FILES: content factory",
-    "source_root": "./agents/content-factory/scripts",
+    "source_roots": [
+      "./agents/content-factory/"
+    ],
     "source_glob": "**/*.test.*",
     "target_dir": "./agents/content-factory/tests",
     "target_postfix": ".symlink",
     "keep_folder_structure": false
-  }
+  },
   // DEV AGENT
   {
     "name": "DOCS: dev",
@@ -71,22 +78,74 @@
     "target_path": "./envs/agents.dev.symlink.env"
   },
   {
+    "name": "DATA: dev",
+    "source_path": "./agents/dev/data",
+    "target_path": "./data/agents/dev.symlink"
+  },
+  {
     "name": "TESTS: dev",
     "source_path": "./agents/dev/tests",
     "target_path": "./tests/agents/dev.symlink"
   },
   {
     "name": "LOGS: dev",
-    "source_path": "./agents/dev/tests",
-    "target_path": "./tests/agents/dev.symlink"
+    "source_path": "./agents/dev/logs",
+    "target_path": "./logs/agents/dev.symlink"
   },
   {
     "name": "TEST FILES: dev",
-    "source_root": "./agents/dev/scripts",
+    "source_roots": [
+      "./agents/dev/"
+    ],
     "source_glob": "**/*.test.*",
     "target_dir": "./agents/dev/tests",
     "target_postfix": ".symlink",
     "keep_folder_structure": false
   },
-  // DB AGENT
+  // MANAGER AGENT
+  {
+    "name": "DOCS: manager",
+    "source_path": "./agents/manager/docs",
+    "target_path": "./!KNOWLEDGE_BASE/agents.docs/manager.symlink"
+  },
+  {
+    "name": "CONFIGS: manager",
+    "source_path": "./agents/manager/configs/",
+    "target_path": "./configs/agents/manager.symlink"
+  },
+  {
+    "name": "SCRIPTS: manager",
+    "source_path": "./agents/manager/scripts",
+    "target_path": "./scripts/agents/manager.symlink"
+  },
+  {
+    "name": "ENVS: manager",
+    "source_path": "./agents/manager/.env",
+    "target_path": "./envs/agents.manager.symlink.env"
+  },
+  {
+    "name": "DATA: manager",
+    "source_path": "./agents/manager/data",
+    "target_path": "./data/agents/manager.symlink"
+  },
+  {
+    "name": "TESTS: manager",
+    "source_path": "./agents/manager/tests",
+    "target_path": "./tests/agents/manager.symlink"
+  },
+  {
+    "name": "LOGS: manager",
+    "source_path": "./agents/manager/logs",
+    "target_path": "./logs/agents/manager.symlink"
+  },
+  {
+    "name": "TEST FILES: manager",
+    "source_roots": [
+      "./agents/manager/scripts"
+    ],
+    "source_glob": "**/*.test.*",
+    "target_dir": "./agents/manager/tests",
+    "target_postfix": ".symlink",
+    "keep_folder_structure": false
+  }
 ]

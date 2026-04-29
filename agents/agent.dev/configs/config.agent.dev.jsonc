@@ -1,7 +1,0 @@
-{
-    "supported_agents_providers": [
-        "claude",
-        // "cursor",
-        // "codex"
-    ]
-}
