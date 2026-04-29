@@ -32,7 +32,7 @@
       "envFiles": [],
       "path": ".",
       "init": "bun install",
-      "start": "bash ./ragent.sh --telegram"
+      "start": "bash ./ragent.claude.sh --telegram"
     },
     {
       "name": "manager",

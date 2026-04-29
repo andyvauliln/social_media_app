@@ -1,0 +1,18 @@
+[ 
+    {
+        "name": "global claude",
+        "source_path": "~/.claude",
+        "targe_path": "./configs/global-claude.symlink",
+    },
+    {
+        "name": "global cursor",
+        "source_path": "~/.cursor",
+        "targe_path": "./configs/global-cursor.symlink"
+    },
+    {
+        "name": "tasks",
+        "source_path": "agents/agent.manager/tasks/",
+        "targe_path": "./tasks.symlink"
+    },
+  
+]

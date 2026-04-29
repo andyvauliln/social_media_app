@@ -18,7 +18,7 @@ has_git_operation_in_progress() {
 }
 
 # Ask the project AI agent runner to fix a conflict situation.
-# ragent.sh loads the project's normal Claude setup, plugins, env, and permissions.
+# ragent.claude.sh loads the project's normal Claude setup, plugins, env, and permissions.
 run_resolve_conflicts_agent() {
   local reason="$1"
   local prompt
@@ -29,8 +29,8 @@ run_resolve_conflicts_agent() {
     return 1
   fi
 
-  if [[ ! -f "$ROOT/ragent.sh" ]]; then
-    echo "[git-sync] cannot run conflict agent: ragent.sh not found" >&2
+  if [[ ! -f "$ROOT/ragent.claude.sh" ]]; then
+    echo "[git-sync] cannot run conflict agent: ragent.claude.sh not found" >&2
     return 127
   fi
 
@@ -44,7 +44,7 @@ Context from scripts/git-sync-pull-push.sh:
 Resolve the Git conflict or divergence if one exists. You may complete the required merge/rebase/cherry-pick/revert continuation commit only when Git requires it to finish this resolution. Include unresolved_merge.md in that resolution commit when a commit is created. Do not create unrelated commits. Always create or update unresolved_merge.md in the repository root with the conflict situation. If you are unsure about a choice, keep the best valid result and mark the less confident option with @unresolved_merge."
 
   echo "[git-sync] running resolve-conflicts agent: $reason" >&2
-  bash "$ROOT/ragent.sh" -p "$prompt"
+  bash "$ROOT/ragent.claude.sh" -p "$prompt"
 }
 
 # Stop early if this is not a Git project.

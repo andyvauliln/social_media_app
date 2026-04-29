@@ -16,7 +16,7 @@ default_aliases=(
   "sma.shell=bash \"$ROOT_DIR/scripts/install-shell-aliases.sh\""
   "sma.init=bash \"$ROOT_DIR/rinit.sh\""
   "sma.start=bash \"$ROOT_DIR/rstart.sh\""
-  "sma.main=bash \"$ROOT_DIR/ragent.sh\""
+  "sma.main=bash \"$ROOT_DIR/ragent.claude.sh\""
   "sma.dev=bash \"$ROOT_DIR/agents/agent.dev/ragent.dev.sh\""
   "sma.manager=bash \"$ROOT_DIR/agents/agent.manager/ragent.manager.sh\""
   "sma.dante=bash \"$ROOT_DIR/agents/agent.dante/ragent.dante.sh\""
@@ -26,6 +26,7 @@ default_aliases=(
   "sma.kill_telegram=bash \"$ROOT_DIR/scripts/kill-telegram-env-pids.sh\""
   # Cron supervisor: same as apps/cron-supervisor/acron.sh (start|stop|status|logs|…)
   "sma.rcron=bash \"$ROOT_DIR/apps/cron-supervisor/acron.sh\""
+  "sma.symlink=bash \"$ROOT_DIR/rsymlink.sh\""
 
 )
 

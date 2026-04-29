@@ -17,9 +17,6 @@ if [[ ! -f "$CONFIG" ]]; then
 fi
 
 echo "[init] --- local root scaffolding ---"
-mkdir -p "$ROOT/!MINE/rot/claude"
-mkdir -p "$ROOT/.claude"
-touch "$ROOT/!MINE/rot/claude/local.md"
 touch "$ROOT/CLAUDE.local.md"
 if [[ ! -f "$ROOT/.claude/settings.local.json" ]]; then
   printf "{}\n" > "$ROOT/.claude/settings.local.json"
