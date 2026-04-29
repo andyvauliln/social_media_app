@@ -58,7 +58,7 @@ Context from scripts/git-sync-pull-push.sh:
 - Main branch: $MAIN_BRANCH
 - Original branch: $(git branch --show-current 2>/dev/null || true)
 
-Resolve the Git conflict or divergence if one exists. You may complete the required merge/rebase/cherry-pick/revert continuation commit only when Git requires it to finish this resolution. Include unresolved_merge.md in that resolution commit when a commit is created. Do not create unrelated commits. Always create or update unresolved_merge.md in the repository root with the conflict situation. If you are unsure about a choice, keep the best valid result and mark the less confident option with @unresolved_merge."
+Resolve the Git conflict or divergence if one exists. You may complete the required merge/rebase/cherry-pick/revert continuation commit only when Git requires it to finish this resolution. Include unresolved_merge.md in that resolution commit when a commit is created. Do not create unrelated commits. Update unresolved_merge.md in the repository root only when you actually resolve conflicts or add uncertainty markers (see skill). If you are unsure about a materially significant choice, keep the best valid result and mark it with @unresolved_merge per the skill."
 
   if [[ "$RESOLVE_AGENT" == "cursor" ]]; then
     if [[ ! -f "$ROOT/ragent.cursor.sh" ]]; then
@@ -174,14 +174,52 @@ if [[ "$origin_anc_of_main" == 1 ]]; then
   exit 0
 fi
 
-# Both sides have different new commits, so a human-like merge decision is needed.
-echo "[git-sync] local $MAIN_BRANCH and origin/$MAIN_BRANCH diverged; running /resolve-conflicts agent" >&2
-run_resolve_conflicts_agent "local $MAIN_BRANCH and origin/$MAIN_BRANCH diverged"
+# Both sides have different new commits. Prefer a non-interactive merge in this shell (real Git
+# access) before involving the conflict agent. Set GIT_SYNC_AUTO_MERGE=0 to skip and call the agent immediately.
+try_auto_merge_diverged_main() {
+  local prev_branch="$1"
+  local merge_msg="Merge origin/$MAIN_BRANCH into $MAIN_BRANCH (git-sync auto)"
+  local on_main=0
+  [[ "$prev_branch" == "$MAIN_BRANCH" ]] && on_main=1
+
+  if [[ "$on_main" -eq 0 ]]; then
+    git checkout "$MAIN_BRANCH"
+  fi
+
+  if git merge --no-edit -m "$merge_msg" "origin/$MAIN_BRANCH"; then
+    if [[ "$on_main" -eq 0 ]]; then
+      git checkout "$prev_branch"
+    fi
+    return 0
+  fi
+
+  # Conflicts: leave repo on MAIN_BRANCH with merge in progress for the agent (or user).
+  return 1
+}
+
+if [[ "${GIT_SYNC_AUTO_MERGE:-1}" == "1" ]]; then
+  echo "[git-sync] local $MAIN_BRANCH and origin/$MAIN_BRANCH diverged; trying auto-merge" >&2
+  if try_auto_merge_diverged_main "$current"; then
+    git push origin "$MAIN_BRANCH"
+    echo "[git-sync] ok auto-merged origin/$MAIN_BRANCH into $MAIN_BRANCH and pushed"
+    exit 0
+  fi
+  echo "[git-sync] auto-merge had conflicts; running /resolve-conflicts agent" >&2
+else
+  echo "[git-sync] local $MAIN_BRANCH and origin/$MAIN_BRANCH diverged; GIT_SYNC_AUTO_MERGE=0, running agent" >&2
+fi
+
+run_resolve_conflicts_agent "local $MAIN_BRANCH and origin/$MAIN_BRANCH diverged (after auto-merge failed or disabled)"
 
 # The agent must leave Git with no unfinished conflict operation.
 if has_git_operation_in_progress || ! git diff --diff-filter=U --quiet; then
   echo "[git-sync] conflict agent finished but Git still has an unresolved operation" >&2
   exit 1
+fi
+
+# Restore previous branch if we left it to merge on main.
+if [[ "$current" != "$MAIN_BRANCH" ]]; then
+  git checkout "$current" 2>/dev/null || true
 fi
 
 # The script does not push if the agent leaves uncommitted edits behind.

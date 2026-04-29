@@ -23,7 +23,6 @@
                 "command": "echo \"[health-check] $(date -u +%Y-%m-%dT%H:%M:%SZ)\""
             }
         },
-        // AI_TODO: create test or every skill in a managment agent @week
         {
             "name": "sync-project",
             "description": "run every 5 minutes; sync current remote main state with a local main branch",

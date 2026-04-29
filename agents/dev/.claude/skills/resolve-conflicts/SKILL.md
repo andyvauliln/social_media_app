@@ -27,7 +27,7 @@ Use this skill when:
 
 ## First Checks
 
-1. Run `git status --short --branch`.
+1. Run `git status --short --branch`. If `git` is not available or execution is blocked, stop: report that the sync script (`scripts/git-sync-pull-push.sh`) must run in a real shell with Git, or re-run this skill with Git allowed. Do not write or update `unresolved_merge.md` from guesses when Git was never queried.
 2. Check whether Git is in a merge, rebase, cherry-pick, or revert state.
 3. Inspect only relevant files:
    - `git diff --name-only --diff-filter=U`
@@ -35,6 +35,10 @@ Use this skill when:
    - staged/unstaged changes related to the operation
 4. Do not overwrite unrelated local edits.
 5. Do not commit unless the user or calling script explicitly asked for a commit.
+
+## Diverged `main` / sync workflow
+
+`scripts/git-sync-pull-push.sh` tries a non-interactive `git merge origin/<main>` in Bash (with real Git) when local and `origin/<main>` diverge. You usually run **after** that step failed with conflicts, or when `GIT_SYNC_AUTO_MERGE=0`, or when fixing an already-started merge/rebase. Prefer finishing the current in-progress operation (`git merge --continue` after resolved paths) over choosing a new strategy.
 
 ## Choose the Resolution
 
@@ -49,7 +53,9 @@ Resolve automatically when the correct result is clear.
 
 ## Uncertain Choices
 
-If the correct choice is not fully clear, still make the best valid resolution and mark the less confident option with `@unresolved_merge`.
+If the correct choice is not fully clear, still make the best valid resolution. Use `@unresolved_merge` **only** when two plausible outcomes would materially change behavior or data and you cannot validate which is correct; skip markers for routine merges where combining both sides is the obvious outcome.
+
+When you do use `@unresolved_merge`:
 
 - In code files, use the file's native comment syntax near the resolved area.
 - In Markdown or plain text files, add a short visible note near the resolved area.
@@ -86,7 +92,7 @@ Reason: lockfiles must stay valid JSON and should match the manifest.
 
 ## Root Conflict Summary
 
-Always create or update `unresolved_merge.md` in the repository root for every conflict situation handled by this skill.
+Create or update `unresolved_merge.md` in the repository root when this skill **actually** resolved unmerged paths or conflict markers, completed an interrupted Git operation, or added `@unresolved_merge` / sidecar notes. Skip creating or updating it if preflight failed (no working `git`) or you only confirmed there was nothing to do.
 
 - Append a new entry instead of deleting older entries.
 - Include the Git operation, branches or commits involved, conflicted files, chosen resolution, validation run, and remaining uncertainty.
@@ -114,7 +120,7 @@ Entry template:
 - Cherry-pick conflict: after resolving files and `git add`, run `git cherry-pick --continue`.
 - Revert conflict: after resolving files and `git add`, run `git revert --continue`.
 - Git sync conflict: if the caller explicitly asks to finish sync, complete only the commit required by the merge/rebase/cherry-pick/revert operation and include `unresolved_merge.md`.
-- Diverged `main` and `origin/main`: merge or rebase only if the project workflow clearly expects it; otherwise resolve the conflict state already started by the caller and leave pushing to the caller.
+- Diverged `main` and `origin/main`: the sync script already attempts a merge in Bash when possible; finish any merge/rebase the caller left in progress, complete the merge commit when appropriate, then leave push/re-fetch to the sync script unless the caller asked otherwise.
 
 ## Validate
 
@@ -122,7 +128,7 @@ Entry template:
 2. Search resolved files for conflict markers.
 3. Run the smallest relevant validation available for touched files.
 4. If validation fails because of the resolution, fix it and validate again.
-5. Confirm `unresolved_merge.md` was created or updated in the repository root.
+5. If you performed resolution work or added uncertainty markers, confirm `unresolved_merge.md` was created or updated in the repository root.
 6. Report any remaining `@unresolved_merge` notes clearly in the final response.
 
 IF YOU HAD ANY PROBLEMS ON A WAY AND FOUND SOLUTIONS OR ANYTHING THAT CAN HELP IMPROVE PERFOMANCE OR QUALITY OR USING BETTER ACTIONS OR PATHS TO RESOLVE CONFLICGS UPDATE  /resolve-conflicts skill
