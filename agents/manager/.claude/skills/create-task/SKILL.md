@@ -90,6 +90,13 @@ Per `MAIN_DOCUMENTATION_FILE`: paths the human/agent should ground on.
 
 Do **not** auto-fill `context` with the source file and line where a prompt came from (e.g. inline `ai_todo` location) unless the originating comment included `@c` or `@context`. For `/collect-inline-tasks`, that means: only set `context` when those tags appear in the `ai_todo`.
 
+### `notes` (task JSON field)
+
+| Origin | `notes` value |
+|--------|----------------|
+| **`/collect-inline-tasks`** (inline `ai_todo` → `/create-task`) | Exactly **`Inline collected`** — do not add source path or “Collected from inline ai_todo in …”. |
+| Other `/create-task` invocations | User-supplied free text if given; otherwise `""` unless you must record something explicit. |
+
 ### `@when` resolution (order of precedence)
 
 `when` is a scheduling bucket field. It answers "when should this be worked on?" and can be promoted over time by `/sync-tasks`.
@@ -271,6 +278,7 @@ run `agents/manager  /sync-tasks skill`
 - If anything is ambiguous, **ask the user** before creating the task
 - If no human assignee is implied and prompt doesn't name a user, assign to `ai`
 - Default `assigned_agent` to `"main"` when no agent tag is given; use `"dev"` for `@dev` / `@agent.dev`. Leave task JSON `context` empty unless `@c` / `@context` is in the prompt.
+- Tasks from **`/collect-inline-tasks`**: set task JSON **`notes`** to **`Inline collected`** only.
 - `branch_name` must be git-safe: lowercase, hyphens, no spaces
 - Preserve JSONC comments when reading/writing `.jsonc` files
 - GitHub issue must be created before saving to `tasks.index.jsonc` (ID is required)

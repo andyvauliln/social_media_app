@@ -104,6 +104,7 @@ The scanner and agent treat these as **one** todo:
    - c. **Build create-task call**:
      - Always add **`@main`** for execution agent **unless** the comment already has `@dev`, `@agent.dev`, or another explicit `@agent.*` (then pass those instead). Map to task `assigned_agent`: default `"main"`, or `"dev"` when `@dev` / `@agent.dev` is present.
      - Put **`@context` / `@c` in the `/create-task` invocation only when** the `ai_todo` line/block contains `@c` or `@context`. Then supply paths or `relative/path:line` as appropriate. **Do not** pass source location as `@context` when those tags are missing — the task JSON `context` must stay `""`.
+     - Task JSON **`notes`** must be exactly **`Inline collected`** — no source filename or “Collected from inline ai_todo in …” text.
      - Pass all other `@params` (user, scheduling, priority, types, etc.) from the comment.
    - d. **Call `/create-task "<prompt>" @ai @main …`** (plus optional tags) and wait for confirmation the task was created (task ID returned).
    - e. **On success → remove the entire comment**, not just the `ai_todo:` fragment:
@@ -137,6 +138,7 @@ Then end with counts, e.g. `N created. M failed.`
 - Excludes and the `\bai_todo\s*:` rule must match `collect-inline-tasks-if-needed.sh` (see CONTEXT and the list above). Do not skip `.jsonc` files.
 - For JSONC manipulation use `jsonc-parser` from `packages/node.common` — not task-helpers.sh.
 - Process matches one at a time — each needs its own `/create-task` call.
+- Saved task **`notes`** for collected inline todos: fixed string **`Inline collected`** only (see create-task skill).
 
 # OUTPUT
 
