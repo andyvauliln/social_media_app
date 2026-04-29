@@ -26,7 +26,7 @@ default_aliases=(
   "sma.kill_telegram=bash \"$ROOT_DIR/scripts/kill-telegram-env-pids.sh\""
   # Cron supervisor: same as apps/cron-supervisor/acron.sh (start|stop|status|logs|…)
   "sma.rcron=bash \"$ROOT_DIR/apps/cron-supervisor/acron.sh\""
-  "sma.symlink=bash \"$ROOT_DIR/rsymlink.sh\""
+  "sma.rsync=bash \"$ROOT_DIR/scripts/rsync.sh\""
 
 )
 

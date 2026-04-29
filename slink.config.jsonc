@@ -1,4 +1,5 @@
 [
+  // GLOBAL CONFIGS
   {
     "name": "global claude",
     "source_path": "~/.claude",
@@ -9,299 +10,35 @@
     "source_path": "~/.cursor",
     "target_path": "./configs/global-cursor.symlink"
   },
+  // CONTENT-FACTORY AGENT
   {
     "name": "DOCS: content-factory",
-    "source_path": "./agents/agent.content-factory/docs",
-    "target_path": "./!KNOWLEDGE_BASE/agents.docs/docs.agent.content-factory.symlink"
+    "source_path": "./agents/content-factory/docs",
+    "target_path": "./!KNOWLEDGE_BASE/agents.docs/content-factory.symlink"
   },
   {
-    "name": "CONFIG: content-factory",
-    "source_path": "./agents/agent.content-factory/configs/config.index.jsoc",
-    "target_path": "./configs/agents.config/config.content-factory.symlink.jsonc"
+    "name": "CONFIGS: content-factory",
+    "source_path": "./agents/content-factory/configs/",
+    "target_path": "./configs/agents/content-factory.symlink"
   },
   {
     "name": "SCRIPTS: content-factory",
-    "source_path": "./agents/agent.content-factory/scripts",
-    "target_path": "./scripts/agents/agent.content-factory.symlink"
+    "source_path": "./agents/content-factory/scripts",
+    "target_path": "./scripts/agents/content-factory.symlink"
   },
   {
-    "name": "ENV: content-factory",
+    "name": "ENVS: content-factory",
     "source_path": "./agents/agent.content-factory/.env",
     "target_path": "./envs/agents.content-factory.symlink.env"
   },
   {
-    "name": "DOCS: dante",
-    "source_path": "./agents/agent.dante/docs",
-    "target_path": "./!KNOWLEDGE_BASE/agents.docs/docs.agent.dante.symlink"
-  },
-  {
-    "name": "CONFIG: dante",
-    "source_path": "./agents/agent.dante/configs/config.index.jsoc",
-    "target_path": "./configs/agents.config/config.dante.symlink.jsonc"
-  },
-  {
-    "name": "SCRIPTS: dante",
-    "source_path": "./agents/agent.dante/scripts",
-    "target_path": "./scripts/agents/agent.dante.symlink"
-  },
-  {
-    "name": "ENV: dante",
-    "source_path": "./agents/agent.dante/.env",
-    "target_path": "./envs/agents.dante.symlink.env"
-  },
-  {
-    "name": "DOCS: db",
-    "source_path": "./agents/agent.db/docs",
-    "target_path": "./!KNOWLEDGE_BASE/agents.docs/docs.agent.db.symlink"
-  },
-  {
-    "name": "SCRIPTS: db",
-    "source_path": "./agents/agent.db/scripts",
-    "target_path": "./scripts/agents/agent.db.symlink"
-  },
-  {
-    "name": "ENV: db",
-    "source_path": "./agents/agent.db/.env",
-    "target_path": "./envs/agents.db.symlink.env"
-  },
-  {
-    "name": "DOCS: dev",
-    "source_path": "./agents/agent.dev/docs",
-    "target_path": "./!KNOWLEDGE_BASE/agents.docs/docs.agent.dev.symlink"
-  },
-  {
-    "name": "CONFIG: dev",
-    "source_path": "./agents/agent.dev/configs/config.index.jsoc",
-    "target_path": "./configs/agents.config/config.agent.dev.symlink.jsonc"
-  },
-  {
-    "name": "SCRIPTS: dev",
-    "source_path": "./agents/agent.dev/scripts",
-    "target_path": "./scripts/agents/agent.dev.symlink"
-  },
-  {
-    "name": "ENV: dev",
-    "source_path": "./agents/agent.dev/.env",
-    "target_path": "./envs/agents.dev.symlink.env"
-  },
-  {
-    "name": "DOCS: instagram",
-    "source_path": "./agents/agent.instagram/docs",
-    "target_path": "./!KNOWLEDGE_BASE/agents.docs/docs.agent.instagram.symlink"
-  },
-  {
-    "name": "CONFIG: instagram",
-    "source_path": "./agents/agent.instagram/configs/config.index.jsoc",
-    "target_path": "./configs/agents.config/config.intstagram.symlink.jsonc"
-  },
-  {
-    "name": "SCRIPTS: instagram",
-    "source_path": "./agents/agent.instagram/scripts",
-    "target_path": "./scripts/agents/agent.instagram.symlink"
-  },
-  {
-    "name": "ENV: instagram",
-    "source_path": "./agents/agent.instagram/.env",
-    "target_path": "./envs/agents.instagram.symlink.env"
-  },
-  {
-    "name": "DOCS: knowledge-base",
-    "source_path": "./agents/agent.knowledge-base/docs",
-    "target_path": "./!KNOWLEDGE_BASE/agents.docs/docs.agent.knowledge-base.symlink"
-  },
-  {
-    "name": "SCRIPTS: knowledge-base",
-    "source_path": "./agents/agent.knowledge-base/scripts",
-    "target_path": "./scripts/agents/agent.knowledge-base.symlink"
-  },
-  {
-    "name": "ENV: knowledge-base",
-    "source_path": "./agents/agent.knowledge-base/.env",
-    "target_path": "./envs/agents.knowledge-base.symlink.env"
-  },
-  {
-    "name": "DOCS: logs",
-    "source_path": "./agents/agent.logs/docs",
-    "target_path": "./!KNOWLEDGE_BASE/agents.docs/docs.agent.logs.symlink"
-  },
-  {
-    "name": "SCRIPTS: logs",
-    "source_path": "./agents/agent.logs/scripts",
-    "target_path": "./scripts/agents/agent.logs.symlink"
-  },
-  {
-    "name": "ENV: logs",
-    "source_path": "./agents/agent.logs/.env",
-    "target_path": "./envs/agents.logs.symlink.env"
-  },
-  {
-    "name": "TASKS: manager",
-    "source_path": "./agents/agent.manager/tasks",
-    "target_path": "./tasks.symlink"
-  },
-  {
-    "name": "DOCS: manager",
-    "source_path": "./agents/agent.manager/docs",
-    "target_path": "./!KNOWLEDGE_BASE/agents.docs/docs.agent.manager.symlink"
-  },
-  {
-    "name": "CONFIG: manager",
-    "source_path": "./agents/agent.manager/configs/config.index.jsoc",
-    "target_path": "./configs/agents.config/config.manager.symlink.jsonc"
-  },
-  {
-    "name": "SCRIPTS: manager",
-    "source_path": "./agents/agent.manager/scripts",
-    "target_path": "./scripts/agents/agent.manager.symlink"
-  },
-  {
-    "name": "ENV: manager",
-    "source_path": "./agents/agent.manager/.env",
-    "target_path": "./envs/agents.manager.symlink.env"
-  },
-  {
-    "name": "DOCS: research",
-    "source_path": "./agents/agent.research/docs",
-    "target_path": "./!KNOWLEDGE_BASE/agents.docs/docs.agent.research.symlink"
-  },
-  {
-    "name": "SCRIPTS: research",
-    "source_path": "./agents/agent.research/scripts",
-    "target_path": "./scripts/agents/agent.research.symlink"
-  },
-  {
-    "name": "ENV: research",
-    "source_path": "./agents/agent.research/.env",
-    "target_path": "./envs/agents.research.symlink.env"
+    "name": "TESTS: content-factory",
+    "source_path": "./agents/content-factory/tests",
+    "target_path": "./tests/agents/content-factory.symlink"
   },
   {
     "name": "LOGS: content-factory",
-    "source_path": "./agents/agent.content-factory/logs/scripts.log",
-    "target_path": "./logs/agents/agent.content-factory.symlink.logs"
-  },
-  {
-    "name": "DB: content-factory",
-    "source_path": "./agents/agent.content-factory/db",
-    "target_path": "./db/agents/agent.content-factory.symlink"
-  },
-  {
-    "name": "LOGS: dante",
-    "source_path": "./agents/agent.dante/logs/scripts.log",
-    "target_path": "./logs/agents/agent.dante.symlink.logs"
-  },
-  {
-    "name": "DB: dante",
-    "source_path": "./agents/agent.dante/db",
-    "target_path": "./db/agents/agent.dante.symlink"
-  },
-  {
-    "name": "CONFIG: db",
-    "source_path": "./agents/agent.db/configs/config.index.jsoc",
-    "target_path": "./configs/agents.config/config.db.symlink.jsonc"
-  },
-  {
-    "name": "LOGS: db",
-    "source_path": "./agents/agent.db/logs/scripts.log",
-    "target_path": "./logs/agents/agent.db.symlink.logs"
-  },
-  {
-    "name": "DB: db",
-    "source_path": "./agents/agent.db/db",
-    "target_path": "./db/agents/agent.db.symlink"
-  },
-  {
-    "name": "LOGS: dev",
-    "source_path": "./agents/agent.dev/logs/scripts.log",
-    "target_path": "./logs/agents/agent.dev.symlink.logs"
-  },
-  {
-    "name": "DB: dev",
-    "source_path": "./agents/agent.dev/db",
-    "target_path": "./db/agents/agent.dev.symlink"
-  },
-  {
-    "name": "LOGS: instagram",
-    "source_path": "./agents/agent.instagram/logs/scripts.log",
-    "target_path": "./logs/agents/agent.instagram.symlink.logs"
-  },
-  {
-    "name": "DB: instagram",
-    "source_path": "./agents/agent.instagram/db",
-    "target_path": "./db/agents/agent.instagram.symlink"
-  },
-  {
-    "name": "CONFIG: knowledge-base",
-    "source_path": "./agents/agent.knowledge-base/configs/config.index.jsoc",
-    "target_path": "./configs/agents.config/config.knowledge-base.symlink.jsonc"
-  },
-  {
-    "name": "LOGS: knowledge-base",
-    "source_path": "./agents/agent.knowledge-base/logs/scripts.log",
-    "target_path": "./logs/agents/agent.knowledge-base.symlink.logs"
-  },
-  {
-    "name": "DB: knowledge-base",
-    "source_path": "./agents/agent.knowledge-base/db",
-    "target_path": "./db/agents/agent.knowledge-base.symlink"
-  },
-  {
-    "name": "CONFIG: logs",
-    "source_path": "./agents/agent.logs/configs/config.index.jsoc",
-    "target_path": "./configs/agents.config/config.logs.symlink.jsonc"
-  },
-  {
-    "name": "LOGS: logs",
-    "source_path": "./agents/agent.logs/logs/scripts.log",
-    "target_path": "./logs/agents/agent.logs.symlink.logs"
-  },
-  {
-    "name": "DB: logs",
-    "source_path": "./agents/agent.logs/db",
-    "target_path": "./db/agents/agent.logs.symlink"
-  },
-  {
-    "name": "LOGS: manager",
-    "source_path": "./agents/agent.manager/logs/scripts.log",
-    "target_path": "./logs/agents/agent.manager.symlink.logs"
-  },
-  {
-    "name": "DB: manager",
-    "source_path": "./agents/agent.manager/db",
-    "target_path": "./db/agents/agent.manager.symlink"
-  },
-  {
-    "name": "CONFIG: research",
-    "source_path": "./agents/agent.research/configs/config.index.jsoc",
-    "target_path": "./configs/agents.config/config.research.symlink.jsonc"
-  },
-  {
-    "name": "LOGS: research",
-    "source_path": "./agents/agent.research/logs/scripts.log",
-    "target_path": "./logs/agents/agent.research.symlink.logs"
-  },
-  {
-    "name": "DB: research",
-    "source_path": "./agents/agent.research/db",
-    "target_path": "./db/agents/agent.research.symlink"
-  },
-  {
-    "name": "DOCS: app.dashboard_v2",
-    "source_path": "./apps/app.dashboard_v2/docs.dashboard",
-    "target_path": "./!KNOWLEDGE_BASE/apps.docs/docs.dashboard.symlink"
-  },
-  {
-    "name": "ENV: app.dashboard_v2",
-    "source_path": "./apps/app.dashboard_v2/.env",
-    "target_path": "./envs/apps.app.dashboard_v2.symlink.env"
-  },
-  {
-    "name": "SCRIPTS: cron-supervisor",
-    "source_path": "./apps/cron-supervisor/scripts",
-    "target_path": "./scripts/apps/cron-supervisor.symlink"
-  },
-  {
-    "name": "app env: cron-supervisor",
-    "source_path": "./apps/cron-supervisor/.env",
-    "target_path": "./envs/apps.cron-supervisor.symlink.env"
+    "source_path": "./agents/content-factory/tests",
+    "target_path": "./tests/agents/content-factory.symlink"
   }
 ]
