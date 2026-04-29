@@ -30,7 +30,7 @@ DEV GOALS
 
 ```json
 { "ai_file_metadata": {
-    "path": "agents/agent.knowledge-base/KNOWLEDGE/CODE_GUIDANCE.md",
+    "path": "agents/knowledge-base/KNOWLEDGE/CODE_GUIDANCE.md",
     "description": "Coding principles, TODO/research markers, and dev goals for this repo.",
     "auto_update_settings": { "on_command": { "name": "" }, "task_is_done": true },
     "tags": ["knowledge", "guidance"],

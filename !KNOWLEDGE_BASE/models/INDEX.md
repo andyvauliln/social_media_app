@@ -9,7 +9,7 @@ Replace rows with models you actually use; keep vendor ids accurate.
 
 ```json
 { "ai_file_metadata": {
-    "path": "agents/agent.knowledge-base/KNOWLEDGE/models/INDEX.md",
+    "path": "agents/knowledge-base/KNOWLEDGE/models/INDEX.md",
     "description": "Catalog of LLM models available for this project.",
     "auto_update_settings": { "on_command": { "name": "" }, "task_is_done": true },
     "tags": ["knowledge", "models"],

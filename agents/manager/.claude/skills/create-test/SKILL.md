@@ -59,7 +59,7 @@ console.log(JSON.stringify(task,null,2));
   3. Define current plan version from current task json object subtask.notes field in context. default v1.
   4. Create and update task object in a tasks.index.jsonc with new plan change status, subtask details.
   5. Isert new task jsonc in the plan. 
-  6. Create or Update a plan in a tasks/in_plan/{assigned_user}.{type}.{github_issue_id}.{status}/{github_issue_id}_plan.{v1}.md
+  6. Create or Update a plan in a agents/manager/data/tasks/in_plan/{assigned_user}.{type}.{github_issue_id}.{status}/{github_issue_id}_plan.{v1}.md
   7. Print file path and 3 options to choose.  
     1. run claude with a skill/do-task {id} {sub-task-id} in a new session
     2. Make notes with @notes: and update current plan

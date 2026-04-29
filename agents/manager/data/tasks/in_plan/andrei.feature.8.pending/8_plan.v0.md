@@ -64,7 +64,7 @@
 1. **How does the manager ragent (`manager.ragent.sh`) know which bot to use?**
 
 **ai_answer**: The ragent shell script should export `TELEGRAM_BOT_TOKEN=<manager-token>` and `TELEGRAM_STATE_DIR=~/.claude/channels/agent.manager/telegram` before launching. The `.mcp.json` picks these up via env passthrough already.
-**user_answer**: we should store every bot config or whatever in agents/agent name/
+**user_answer**: we should store every bot config or whatever in agents/<agent-name>/
 
 ---
 

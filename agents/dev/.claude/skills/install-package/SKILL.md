@@ -86,7 +86,7 @@ import { parse } from "jsonc-parser";
 
 ### Example B: Add agent-only JS package (`zod`) to `agent.content-factory`
 ```bash
-cd /path/to/repo/agents/agent.content-factory
+cd /path/to/repo/agents/content-factory
 bun add zod
 cd /path/to/repo
 ./script.init.sh
@@ -99,7 +99,7 @@ import { z } from "zod";
 
 ### Example C: Verify root-common + local import together
 ```bash
-cd /path/to/repo/agents/agent.content-factory
+cd /path/to/repo/agents/content-factory
 bun -e "import { parse } from 'jsonc-parser'; import { z } from 'zod'; console.log(typeof parse, z.string().safeParse('ok').success)"
 ```
 

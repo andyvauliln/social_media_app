@@ -58,9 +58,9 @@
     // Cleared (set to "") when the task is unblocked.
     "blocked_reason": "",
 
-    // Relative path to the task folder under tasks/in_plan/.
+    // Relative path to the task folder under agents/manager/data/tasks/in_plan/.
     // Folder exists only when a plan or report is created.
-    // Format: "./tasks/in_plan/{slug}"
+    // Format: "./agents/manager/data/tasks/in_plan/{slug}"
     // Slug format: "{assigned_user}.{type}.{github_issue_id}.{status}"
     "in_plan_task_directory": "",
 
@@ -102,7 +102,7 @@
 
             // Short description of what this sub-task does.
             "title": "",
-            // Relative path to the plan file in a tasks/in_plan/{assigned_user}.{type}.{github_issue_id}.{status}/{github_issue_id}_plan.{v1}.md
+            // Relative path to the plan file in a agents/manager/data/tasks/in_plan/{assigned_user}.{type}.{github_issue_id}.{status}/{github_issue_id}_plan.{v1}.md
             "plan_path": "",
 
             // Sub-task category.

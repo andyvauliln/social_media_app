@@ -80,7 +80,7 @@ PR_ID=$(echo "$PR_URL" | grep -oE '[0-9]+$')
 
 
 If `pr_id` already exists, skip PR creation and proceed.
-attach final report.md to the pr from tasks/in_plan/{assigned_user}.{type}.{github_issue_id}.{status}/{github_issue_id}.report.md
+attach final report.md to the pr from agents/manager/data/tasks/in_plan/{assigned_user}.{type}.{github_issue_id}.{status}/{github_issue_id}.report.md
 ---
 
 ## Step 4 — Merge and finalize (status → `done`)
@@ -92,8 +92,8 @@ attach final report.md to the pr from tasks/in_plan/{assigned_user}.{type}.{gith
 
   ```
 
-  move  task folder from ./tasks/in_plan/{assigned_user}.{type}.{github_issue_id}.{status} 
-  to ./tasks/done/{github_issue_id} 
+  move  task folder from ./agents/manager/data/tasks/in_plan/{assigned_user}.{type}.{github_issue_id}.{status} 
+  to ./agents/manager/data/tasks/done/{github_issue_id} 
   close github issue `gh issue close "$ISSUE_ID" --comment "Closed via /close-task. PR: #$PR_ID"`
 - else 
   print `PR #{pr_id} created and ready for review. Merge when ready...\n PR link: #{pr_link}`
@@ -120,7 +120,7 @@ Write updated task back to `TASKS_FILE`. Then run `agent.manager /sync-tasks ski
   status:   done
   pr:       #{pr_id} (merged)
   issue:    #{task-id} (closed)
-  archived: tasks/done/{slug}/
+  archived: agents/manager/data/tasks/done/{slug}/
 ```
 
 ---
@@ -129,7 +129,7 @@ Write updated task back to `TASKS_FILE`. Then run `agent.manager /sync-tasks ski
 
 - Never force-push or delete branches that others may depend on
 - Resolve merge conflicts through `agent.dev /merge-and_solve`; stop only if that skill reports unresolved unmerged paths
-- Allowed writes: `tasks/tasks.index.jsonc`, `tasks/in_plan/**`, `tasks/done/**`
+- Allowed writes: `agents/manager/data/tasks/tasks.index.jsonc`, `agents/manager/data/tasks/in_plan/**`, `agents/manager/data/tasks/done/**`
 - Use `parse_jsonc` from `task-helpers.sh` for all reads
 - Always run `/sync-tasks` at the end
 

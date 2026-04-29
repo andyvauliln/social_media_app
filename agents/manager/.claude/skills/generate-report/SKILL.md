@@ -14,10 +14,10 @@ hooks: {}
 
 ## Steps
 
-1) get task from tasks/tasks.index.jsonc by task_id
+1) get task from agents/manager/data/tasks/tasks.index.jsonc by task_id
 2) if task is not found say that task not found
 3) if task is found than generate report for it or sub-task if sub-task-id is provided. if sub task is not provided generate report for the main task
-4) save report to tasks/in_plan/{assigned_user}.{github_issue_id}.{status}/{sub-task-id?}.report.md
+4) save report to agents/manager/data/tasks/in_plan/{assigned_user}.{github_issue_id}.{status}/{sub-task-id?}.report.md
 5) say that report is created and provide path to the report
 
 # Report Structure

@@ -14,7 +14,7 @@ hooks: {}
 
 # update-agents
 
-Audits every `agents/agent.*/` directory and brings each one up to the standard template. Only adds missing items — never overwrites or deletes.
+Audits every `agents/*/` directory and brings each one up to the standard template. Only adds missing items — never overwrites or deletes.
 
 ## Invocation
 
@@ -90,7 +90,7 @@ Claude Code loads config from **`.claude/`** at the repo root and from **`~/.cla
 | `.claude/skills/**/SKILL.md` | Reusable workflows; frontmatter `name`, `description` |
 | `.claude/commands/*.md` | Slash commands (same loading as skills) |
 | `.claude/output-styles/*.md` | Output / system-prompt style chunks |
-| `.claude/agents/*.md` | **Subagents** (built-in Claude Code feature), not `agents/agent.*` in this repo |
+| `.claude/agents/*.md` | **Subagents** (built-in Claude Code feature), not `agents/*` in this repo |
 | `.claude/agent-memory/**/` | Stored memory for those subagents |
 
 **Enterprise / system (not under `<repo>/`):** `managed-settings.json` (path varies by OS) — org-enforced settings that override local choices. See Claude Code “server-managed settings”.
@@ -99,7 +99,7 @@ Claude Code loads config from **`.claude/`** at the repo root and from **`~/.cla
 
 Use `/context`, `/memory`, `/skills`, `/agents`, `/hooks`, `/mcp`, `/permissions`, `/doctor` as needed.
 
-**Naming note:** This repo’s `agents/agent.{name}/` directories are **project agents** (your convention). **`.claude/agents/*.md`** are **Claude Code subagents** — different feature, different folder.
+**Naming note:** This repo’s `agents/{name}/` directories are **project agents** (your convention). **`.claude/agents/*.md`** are **Claude Code subagents** — different feature, different folder.
 
 ---
 
@@ -108,7 +108,7 @@ Use `/context`, `/memory`, `/skills`, `/agents`, `/hooks`, `/mcp`, `/permissions
 Every agent must have:
 
 ```
-agents/agent.{name}/
+agents/{name}/
 ├── CLAUDE.md
 ├── .claude/
 │   └── skills/
@@ -122,8 +122,8 @@ agents/agent.{name}/
 **Non-empty directories:** No template folder may stay empty. If `docs.agent.{name}/` or `.claude/skills/` exists, it must contain at least the default file below (or for `skills/`, any `**/SKILL.md` counts). If `.claude/skills/` has no `SKILL.md` anywhere under it, create `defaults/SKILL.md`.
 
 Knowledge base:
-- Symlink: `agents/agent.knowledge-base/KNOWLEDGE/docs/docs.agent.{name}.symlink` → `../../../../agent.{name}/docs.agent.{name}/`
-- Entry in: `agents/agent.knowledge-base/KNOWLEDGE/all-agents/ALL_AGENTS.md` with a name and description
+- Symlink: `agents/knowledge-base/KNOWLEDGE/docs/docs.agent.{name}.symlink` → `../../../../agent.{name}/docs.agent.{name}/`
+- Entry in: `agents/knowledge-base/KNOWLEDGE/all-agents/ALL_AGENTS.md` with a name and description
 
 ---
 
@@ -131,22 +131,22 @@ Knowledge base:
 
 ### 1. Discover all agents
 
-List all directories matching `agents/agent.*/`. Derive `{name}` by stripping the `agent.` prefix.
+List all directories matching `agents/*/`. Derive `{name}` from the folder name.
 
 ### 2. For each agent, check and fix
 
 For each agent `{name}`:
 
 **Directories** — create with `mkdir -p` if missing:
-- `agents/agent.{name}/.claude/skills/`
-- `agents/agent.{name}/docs.agent.{name}/`
+- `agents/{name}/.claude/skills/`
+- `agents/{name}/docs.agent.{name}/`
 
-**Default skill** — if no `SKILL.md` exists under `agents/agent.{name}/.claude/skills/` (any depth), run `mkdir -p .../.claude/skills/defaults` and create `defaults/SKILL.md` only if that path is still missing:
+**Default skill** — if no `SKILL.md` exists under `agents/{name}/.claude/skills/` (any depth), run `mkdir -p .../.claude/skills/defaults` and create `defaults/SKILL.md` only if that path is still missing:
 
 ```markdown
 ---
 name: {name}-defaults
-description: Placeholder skill for agents/agent.{name}. Add more folders under .claude/skills/<skill-name>/SKILL.md.
+description: Placeholder skill for agents/{name}. Add more folders under .claude/skills/<skill-name>/SKILL.md.
 argument-hint: ""
 user-invocable: true
 model: claude-haiku-4-6
@@ -171,7 +171,7 @@ Optional agent-specific workflows. Claude Code loads skills from `.claude/skills
 <!-- Describe this agent's role and responsibilities -->
 
 ## Workspace
-Root: `agents/agent.{name}/`
+Root: `agents/{name}/`
 
 ## Key Files
 - `.claude/skills/` — agent skills (`defaults/SKILL.md` or `<skill-name>/SKILL.md`)
@@ -197,7 +197,7 @@ Root: `agents/agent.{name}/`
 
 **Knowledge base symlink** — create if missing:
 ```bash
-SYMLINK="$ROOT/agents/agent.knowledge-base/KNOWLEDGE/docs/docs.agent.{name}.symlink"
+SYMLINK="$ROOT/agents/knowledge-base/KNOWLEDGE/docs/docs.agent.{name}.symlink"
 TARGET="../../../../agent.{name}/docs.agent.{name}"
 [ ! -e "$SYMLINK" ] && ln -s "$TARGET" "$SYMLINK"
 ```
@@ -206,9 +206,9 @@ Symlink uses a **relative path** (relative to `KNOWLEDGE/docs/`).
 **ALL_AGENTS.md entry** — append if `agent.{name}` not already present:
 ```markdown
 ## agent.{name}
-- **Path**: `agents/agent.{name}/`
-- **Docs**: `agents/agent.knowledge-base/KNOWLEDGE/docs/docs.agent.{name}.symlink/`
-- **DB**: `agents/agent.{name}/{name}.db`
+- **Path**: `agents/{name}/`
+- **Docs**: `agents/knowledge-base/KNOWLEDGE/docs/docs.agent.{name}.symlink/`
+- **DB**: `agents/{name}/{name}.db`
 - **Description**: <!-- fill in -->
 ```
 

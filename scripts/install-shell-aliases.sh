@@ -20,9 +20,9 @@ default_aliases=(
   "sma.dev=bash \"$ROOT_DIR/agents/dev/ragent.claude.sh\""
   "sma.manager=bash \"$ROOT_DIR/agents/manager/ragent.claude.sh\""
   "sma.dante=bash \"$ROOT_DIR/agents/dante/ragent.claude.sh\""
-  "sma.knowledge-base=bash \"$ROOT_DIR/agents/agent.knowledge-base/ragent.knowledge-base.sh\""
-  "sma.db=bash \"$ROOT_DIR/agents/agent.db/ragent.db.sh\""
-  "sma.logs=bash \"$ROOT_DIR/agents/agent.logs/ragent.logs.sh\""
+  "sma.knowledge-base=bash \"$ROOT_DIR/agents/knowledge-base/ragent.knowledge-base.sh\""
+  "sma.db=bash \"$ROOT_DIR/agents/db/ragent.db.sh\""
+  "sma.logs=bash \"$ROOT_DIR/agents/logs/ragent.logs.sh\""
   "sma.kill_telegram=bash \"$ROOT_DIR/scripts/kill-telegram-env-pids.sh\""
   # Cron supervisor: same as apps/cron-supervisor/acron.sh (start|stop|status|logs|…)
   "sma.rcron=bash \"$ROOT_DIR/apps/cron-supervisor/acron.sh\""

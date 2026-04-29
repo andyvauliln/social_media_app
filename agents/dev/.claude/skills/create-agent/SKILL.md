@@ -14,7 +14,7 @@ hooks: {}
 
 # create-agent
 
-Creates `agents/agent.{name}/` with all standard defaults. Skips files/folders that already exist.
+Creates `agents/{name}/` with all standard defaults. Skips files/folders that already exist.
 
 ## Invocation
 
@@ -22,7 +22,7 @@ Creates `agents/agent.{name}/` with all standard defaults. Skips files/folders t
 /create-agent {agent_name} [description]
 ```
 
-- `{agent_name}` — required, the agent name (becomes `agents/agent.{name}/`)
+- `{agent_name}` — required, the agent name (becomes `agents/{name}/`)
 - `[description]` — optional, one-line description of what the agent does
 
 Examples:
@@ -42,7 +42,7 @@ Use project root social_media_app/..
 ## Standard Agent Structure
 
 ```
-agents/agent.{name}/
+agents/{name}/
 ├── CLAUDE.md
 ├── .claude/
 │   └── skills/
@@ -56,8 +56,8 @@ agents/agent.{name}/
 **Non-empty directories:** Each directory in this template must contain at least one default file (or, for `skills/`, at least one `**/SKILL.md`). If `skills/` has no `SKILL.md` yet, create `defaults/SKILL.md`.
 
 Plus in knowledge base:
-- Symlink: `agents/agent.knowledge-base/KNOWLEDGE/docs/docs.agent.{name}.symlink` → `../../../../agent.{name}/docs.agent.{name}/`
-- Entry in: `agents/agent.knowledge-base/KNOWLEDGE/all-agents/ALL_AGENTS.md`
+- Symlink: `agents/knowledge-base/KNOWLEDGE/docs/docs.agent.{name}.symlink` → `../../../../agent.{name}/docs.agent.{name}/`
+- Entry in: `agents/knowledge-base/KNOWLEDGE/all-agents/ALL_AGENTS.md`
 
 ---
 
@@ -70,7 +70,7 @@ If `{description}` is not provided, use `<!-- fill in -->` as placeholder.
 
 ```bash
 ROOT=$(git rev-parse --show-toplevel)
-AGENT_DIR="$ROOT/agents/agent.{name}"
+AGENT_DIR="$ROOT/agents/{name}"
 
 mkdir -p "$AGENT_DIR/.claude/skills"
 mkdir -p "$AGENT_DIR/docs.agent.{name}"
@@ -83,7 +83,7 @@ If `find "$AGENT_DIR/.claude/skills" -name SKILL.md` finds nothing, run `mkdir -
 ```markdown
 ---
 name: {name}-defaults
-description: Placeholder skill for agents/agent.{name}. Add more folders under .claude/skills/<skill-name>/SKILL.md.
+description: Placeholder skill for agents/{name}. Add more folders under .claude/skills/<skill-name>/SKILL.md.
 argument-hint: ""
 user-invocable: true
 model: claude-haiku-4-6
@@ -109,7 +109,7 @@ Optional agent-specific workflows. Claude Code loads skills from `.claude/skills
 {description if provided, otherwise: <!-- Describe this agent's role and responsibilities -->}
 
 ## Workspace
-Root: `agents/agent.{name}/`
+Root: `agents/{name}/`
 
 ## Key Files
 - `.claude/skills/` — agent skills (`defaults/SKILL.md` or `<skill-name>/SKILL.md`)
@@ -141,7 +141,7 @@ touch "$AGENT_DIR/{name}.db"
 ### 6. Knowledge base symlink (create if missing)
 
 ```bash
-SYMLINK="$ROOT/agents/agent.knowledge-base/KNOWLEDGE/docs/docs.agent.{name}.symlink"
+SYMLINK="$ROOT/agents/knowledge-base/KNOWLEDGE/docs/docs.agent.{name}.symlink"
 TARGET="../../../../agent.{name}/docs.agent.{name}"
 
 [ ! -e "$SYMLINK" ] && ln -s "$TARGET" "$SYMLINK"
@@ -151,13 +151,13 @@ Symlink uses a **relative path** (relative to the `KNOWLEDGE/docs/` directory).
 
 ### 7. Register in ALL_AGENTS.md (append if not already listed)
 
-File: `agents/agent.knowledge-base/KNOWLEDGE/all-agents/ALL_AGENTS.md`
+File: `agents/knowledge-base/KNOWLEDGE/all-agents/ALL_AGENTS.md`
 
 ```markdown
 ## agent.{name}
-- **Path**: `agents/agent.{name}/`
-- **Docs**: `agents/agent.knowledge-base/KNOWLEDGE/docs/docs.agent.{name}.symlink/`
-- **DB**: `agents/agent.{name}/{name}.db`
+- **Path**: `agents/{name}/`
+- **Docs**: `agents/knowledge-base/KNOWLEDGE/docs/docs.agent.{name}.symlink/`
+- **DB**: `agents/{name}/{name}.db`
 - **Description**: {description if provided, otherwise: <!-- fill in -->}
 ```
 
@@ -174,7 +174,7 @@ File: `agents/agent.knowledge-base/KNOWLEDGE/all-agents/ALL_AGENTS.md`
 ```json
 { "ai_file_metadata": {
     "path": ".claude/skills/create-agent/SKILL.md",
-    "description": "Skill: scaffold agents/agent.{name}/ with defaults and knowledge-base registration.",
+    "description": "Skill: scaffold agents/{name}/ with defaults and knowledge-base registration.",
     "auto_update_settings": { "on_command": { "name": "create-agent" }, "task_is_done": true },
     "tags": ["skill", "agents", "scaffold"],
     "developer_notes": [""],

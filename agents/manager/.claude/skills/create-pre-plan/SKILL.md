@@ -38,7 +38,7 @@ COLLECT ALL NEEDED INFORMATION TO COMPLETE THIS TASK AT BEST
 # STEPS
 1. Make research about current task
 2. Fill the plan with provided structure
-3. Save file in a tasks/in_plan/{assigned_user}.{type}.{github_issue_id}.{status}/{github_issue_id}_plan.{v0}.md
+3. Save file in a agents/manager/data/tasks/in_plan/{assigned_user}.{type}.{github_issue_id}.{status}/{github_issue_id}_plan.{v0}.md
 
 # RULES:
 - Don't use any test frameworks prefer just typescript  scripts with a console log to validate

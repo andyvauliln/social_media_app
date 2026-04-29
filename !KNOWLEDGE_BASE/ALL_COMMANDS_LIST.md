@@ -2,7 +2,7 @@
 
 | Command | Defined in | Purpose (example) |
 |---------|------------|-------------------|
-| `/create-agent` | `.claude/skills/create-agent/SKILL.md` | Scaffold `agents/agent.{name}/` with defaults |
+| `/create-agent` | `.claude/skills/create-agent/SKILL.md` | Scaffold `agents/{name}/` with defaults |
 
 ## Example stub (copy shape for new commands)
 
@@ -13,7 +13,7 @@
 
 ```json
 { "ai_file_metadata": {
-    "path": "agents/agent.knowledge-base/KNOWLEDGE/ALL_COMMANDS_LIST.md",
+    "path": "agents/knowledge-base/KNOWLEDGE/ALL_COMMANDS_LIST.md",
     "description": "Inventory of slash commands and where they live.",
     "auto_update_settings": { "on_command": { "name": "" }, "task_is_done": true },
     "tags": ["knowledge", "commands"],

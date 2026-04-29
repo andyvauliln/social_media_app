@@ -1,6 +1,6 @@
 ---
 name: create-task
-description: Create a new task with sub-tasks and save it to tasks/tasks.index.jsonc. Branches on assignment (AI vs human) to decide execution depth.
+description: Create a new task with sub-tasks and save it to agents/manager/data/tasks/tasks.index.jsonc. Branches on assignment (AI vs human) to decide execution depth.
 argument-hint: "[prompt] [@ai|@user_name|@agent_name] [@today|@tomorrow|@week|@phase_N|@DD.MM.YYYY] [@research|@bug|@idea|@update|@self_improvement|@improvement|@feature] [@no_plan] [@agent_name assigned_agent] [@c or @context ./path]"
 user-invocable: true
 model: haiku
@@ -14,7 +14,7 @@ hooks: {}
 
 # create-task
 
-Creates a structured task entry in `tasks/tasks.index.jsonc` from a natural-language prompt.
+Creates a structured task entry in `agents/manager/data/tasks/tasks.index.jsonc` from a natural-language prompt.
 Behavior differs based on who the task is assigned to (AI vs human) and when it's scheduled.
 
 # Examples
@@ -219,7 +219,7 @@ EXISTING=$(parse_jsonc "$TASKS_FILE")
 ## Step 9 — Sync
 
 Always run at the end, regardless of branch:
-run `agents/agent.manager  /sync-tasks skill`
+run `agents/manager  /sync-tasks skill`
 
 ---
 
@@ -246,7 +246,7 @@ run `agents/agent.manager  /sync-tasks skill`
 - `branch_name` must be git-safe: lowercase, hyphens, no spaces
 - Preserve JSONC comments when reading/writing `.jsonc` files
 - GitHub issue must be created before saving to `tasks.index.jsonc` (ID is required)
-- Allowed file writes: `tasks/tasks.index.jsonc`, `tasks/in_plan/**`,
+- Allowed file writes: `agents/manager/data/tasks/tasks.index.jsonc`, `agents/manager/data/tasks/in_plan/**`,
 
 ```json
 { "ai_file_metadata": {

@@ -105,7 +105,7 @@ if (fs.existsSync(tasksFile)) {
 7. execute next subtask in a new session with a new context in a task worktree and branch
   - attach related information from plan 
   - attach previous subtask report if exists
-  - run assigned agent if in task object assigned_agent is provided for related agent folder agents/agent.dev .. if main run from the root social-media-app folder
+  - run assigned agent if in task object assigned_agent is provided for related agent folder agents/dev .. if main run from the root social-media-app folder
 8. when finished run `agent.manager /generate-report {task-id} {sub-task-id}` 
   - provide user with file paths to check report.
   - ask if user if he want to 1. commit changes or 2. commit and close-task if it's last subtask.

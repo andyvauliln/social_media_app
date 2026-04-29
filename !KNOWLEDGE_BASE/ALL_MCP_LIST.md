@@ -19,7 +19,7 @@
 
 ```json
 { "ai_file_metadata": {
-    "path": "agents/agent.knowledge-base/KNOWLEDGE/ALL_MCP_LIST.md",
+    "path": "agents/knowledge-base/KNOWLEDGE/ALL_MCP_LIST.md",
     "description": "Human-readable list of MCP servers and how they are launched.",
     "auto_update_settings": { "on_command": { "name": "" }, "task_is_done": true },
     "tags": ["knowledge", "mcp"],

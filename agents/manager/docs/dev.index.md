@@ -170,10 +170,10 @@ console.log(JSON.stringify(task,null,2));
 
 ## STEPS
 
-1. Find task by `task_id` in `tasks/tasks.index.jsonc` if not provided with a prompt
+1. Find task by `task_id` in `agents/manager/data/tasks/tasks.index.jsonc` if not provided with a prompt
 2. If not found or not provided — say so and stop
 3. Create plan file and save using version-aware naming:
-   - Base file: `tasks/in_plan/{assigned_user}.{type}.{github_issue_id}.{status}/{github_issue_id}_plan.md`
+   - Base file: `agents/manager/data/tasks/in_plan/{assigned_user}.{type}.{github_issue_id}.{status}/{github_issue_id}_plan.md`
    - If base file does not exist or is empty -> write to base file.
    - If base file exists and is not empty -> create next version file:
      - `.../{github_issue_id}_plan_v2.md`

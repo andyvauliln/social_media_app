@@ -1,6 +1,6 @@
 ---
 name: create-skill
-description: Scaffold agents/agent.{name}/.claude/skills/{skill}/SKILL.md with standard metadata and optional dev command. Use when the user runs /create-skill with a prompt and @agent.
+description: Scaffold agents/{name}/.claude/skills/{skill}/SKILL.md with standard metadata and optional dev command. Use when the user runs /create-skill with a prompt and @agent.
 argument-hint: '"[prompt]" [@agent-name]'
 user-invocable: true
 model: claude-haiku-4-6
@@ -29,8 +29,8 @@ hooks: {}
 
 | Piece | Rule |
 |--------|------|
-| Agent root | `agents/agent.{agent-name}/` |
-| Skill folder | `agents/agent.{agent-name}/.claude/skills/{skill-slug}/` |
+| Agent root | `agents/{agent-name}/` |
+| Skill folder | `agents/{agent-name}/.claude/skills/{skill-slug}/` |
 | Main file | `SKILL.md` inside that folder (required) |
 | `name` (YAML) | Same as `{skill-slug}`: lowercase, digits, hyphens only; max 64 characters; match directory name |
 | `description` (YAML) | Third person, **what** + **when**; max 1024 characters; derived from the prompt |
@@ -92,7 +92,7 @@ SKILL_SLUG="{skill-slug}"    # derived from prompt
 SKILL_DIR="$ROOT/agents/$AGENT/.claude/skills/$SKILL_SLUG"
 ```
 
-Fail fast if `agents/agent.{agent-name}/` does not exist (suggest `/create-agent`).
+Fail fast if `agents/{agent-name}/` does not exist (suggest `/create-agent`).
 
 ### 2. Create the skill directory
 
@@ -119,7 +119,7 @@ description: {short}
 argument-hint: {if needed}
 ---
 
-Run this skill in agents/agent.{agent-name}/.claude/skills/{skill-slug}/SKILL.md
+Run this skill in agents/{agent-name}/.claude/skills/{skill-slug}/SKILL.md
 ```
 
 ---

@@ -1,6 +1,6 @@
 ---
 name: pick-task
-description: handling any requests about tasks from file tasks/tasks.index.jsonc with tag filters and AI recommendation on what to pick. Use when a developer wants to pick what to work on.
+description: handling any requests about tasks from file agents/manager/data/tasks/tasks.index.jsonc with tag filters and AI recommendation on what to pick. Use when a developer wants to pick what to work on.
 argument-hint: prompt @tags
 user-invocable: true
 model: claude-haiku-4-6
@@ -14,7 +14,7 @@ hooks: {}
 
 # Pick a task
 
-Reads `tasks/tasks.index.jsonc` and displays filtered tasks with a pick recommendation.
+Reads `agents/manager/data/tasks/tasks.index.jsonc` and displays filtered tasks with a pick recommendation.
 
 ## Invocation
 
@@ -117,14 +117,14 @@ Base on: priority, `when` vs today, unassigned preferred, shortest task as tiebr
 
 ## Rules
 
-- Always read `tasks/tasks.index.jsonc` fresh — never use cached data
+- Always read `agents/manager/data/tasks/tasks.index.jsonc` fresh — never use cached data
 - JSONC — strip `//` comments before parsing
 - Do not modify any files during this command
 
 ```json
 { "ai_file_metadata": {
     "path": ".claude/skills/pick-task/SKILL.md",
-    "description": "Skill: filter tasks from tasks/tasks.index.jsonc and recommend what to pick.",
+    "description": "Skill: filter tasks from agents/manager/data/tasks/tasks.index.jsonc and recommend what to pick.",
     "tags": ["skill", "tasks", "pick", "planning"],
     "notes_for_ai": ["Strip JSONC comments before parsing. Always add recommendation block."]
 } }
