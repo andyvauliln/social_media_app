@@ -5,26 +5,20 @@ Current repository tree snapshot (`node_modules` and `.git` excluded):
 ```text
 ./
 ├── !KNOWLEDGE_BASE/
+│   ├── agents.docs/
+│   │   ├── docs.agent.content-factory.symlink -> ../../agents/agent.content-factory/docs.agent.content-factory
+│   │   ├── docs.agent.dante.symlink -> ../../agents/agent.dante/docs.agent.dante
+│   │   ├── docs.agent.db.symlink -> ../../agents/agent.db/docs.agent.db
+│   │   ├── docs.agent.dev.symlink -> ../../agents/agent.dev/docs.agent.dev
+│   │   ├── docs.agent.instagram.symlink -> ../../agents/agent.instagram/docs.agent.instagram
+│   │   ├── docs.agent.knowledge-base.symlink -> ../../agents/agent.knowledge-base/docs.agent.knowledge-base
+│   │   ├── docs.agent.logs.symlink -> ../../agents/agent.logs/docs.agent.logs
+│   │   ├── docs.agent.manager.symlink -> ../../agents/agent.manager/docs.agent.manager
+│   │   └── docs.agent.research.symlink -> ../../agents/agent.research/docs.agent.research
 │   ├── docs/
 │   │   ├── AI_FILE_METADATA.md
 │   │   └── SCRIPTS.md
-│   ├── models/
-│   │   └── INDEX.md
-│   ├── !index.jsonc
-│   ├── AGENTS_ARCHITECTURE.md
-│   ├── all.packages.jsonc
-│   ├── ALL_AGENTS_LIST.md
-│   ├── ALL_COMMANDS_LIST.md
-│   ├── ALL_MCP_LIST.md
-│   ├── ANALITICS.md
-│   ├── CODE_GUIDANCE.md
-│   ├── CRONS.md
-│   ├── CURRENT_COST.md
-│   ├── EXAMPLES.md
-│   ├── PRICSES.md
-│   ├── SASHA_INTRO.jsonc
-│   ├── SASHA_INTRO.md
-│   └── sasha_plan.md
+
 ├── !MINE/
 │   └── Mine.md
 ├── !WORKTREES/
@@ -144,6 +138,7 @@ Current repository tree snapshot (`node_modules` and `.git` excluded):
 │   │   ├── CLAUDE.md
 │   │   ├── config.dante.jsonc
 │   │   ├── package.json
+│   │   ├── ragent.claude.dante.sh
 │   │   └── ragent.dante.sh
 │   ├── agent.db/
 │   │   ├── dbs/
@@ -634,7 +629,6 @@ Current repository tree snapshot (`node_modules` and `.git` excluded):
 ├── package.json
 ├── pyproject.toml
 ├── ragent.claude.sh
-├── ragent.claude.dante.sh
 ├── README.md
 ├── rinit.sh
 ├── rstart.sh
