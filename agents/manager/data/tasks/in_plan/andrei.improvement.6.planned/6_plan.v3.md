@@ -11,8 +11,8 @@
   "assigned_user": "andrei",
   "assigned_agent": "agent.dev",
   "branch_name": "improvement/6-finish-collect-inline-tasks-skill",
-  "in_plan_task_directory": "agents/agent.manager/tasks/in_plan/andrei.improvement.6.planned",
-  "run_test_command": "node agents/agent.manager/agent.manager.tests/collect-inline-tasks.test.js",
+  "in_plan_task_directory": "agents/manager/data/tasks/in_plan/andrei.improvement.6.planned",
+  "run_test_command": "node agents/manager/tests/collect-inline-tasks.test.js",
   "sub_tasks": [
     {
       "sub_task_id": 1,
@@ -71,25 +71,25 @@
 
 **Goal**: Fix a minor gap in the rg exclude list, then run the full integration test to confirm the skill works end-to-end.
 
-1. **Add `*.md` exclude to CONTEXT `!bash` block** in `agents/agent.manager/.claude/skills/collect-inline-tasks/SKILL.md`
+1. **Add `*.md` exclude to CONTEXT `!bash` block** in `agents/manager/.claude/skills/collect-inline-tasks/SKILL.md`
    - Why: Plan docs (`6_plan.v1.md`, etc.) contain `ai_todo` as examples. Without this exclude, the skill would try to process plan documentation lines as real tasks.
    - Change: Add `--glob '!**/*.md'` to the rg command in the CONTEXT block.
 
 2. **Run integration test Phase 1**:
    ```bash
-   node agents/agent.manager/agent.manager.tests/collect-inline-tasks.test.js
+   node agents/manager/tests/collect-inline-tasks.test.js
    ```
    - Why: Creates a snapshot of the fixture file and shows current task count - sets up the verification baseline.
 
 3. **Run the skill scoped to fixture folder**:
    ```
-   /collect-inline-tasks agents/agent.manager/agent.manager.tests/fixtures/
+   /collect-inline-tasks agents/manager/tests/fixtures/
    ```
    - Why: Exercises the full workflow - scan, parse, create-task calls, line removal via Edit tool.
 
 4. **Run integration test Phase 2**:
    ```bash
-   node agents/agent.manager/agent.manager.tests/collect-inline-tasks.test.js --verify
+   node agents/manager/tests/collect-inline-tasks.test.js --verify
    ```
    - Why: Validates all ai_todo lines removed, non-todo lines preserved, fixture restored for repeatability.
 
@@ -97,7 +97,7 @@
 
 ### CURRENT STATE ANALYSIS
 
-File: `agents/agent.manager/.claude/skills/collect-inline-tasks/SKILL.md`
+File: `agents/manager/.claude/skills/collect-inline-tasks/SKILL.md`
 
 **What exists (good - keep)**:
 - Frontmatter: model: claude-haiku-4-6, effort: low, context: fork, shell: bash
@@ -132,8 +132,8 @@ File: `agents/agent.manager/.claude/skills/collect-inline-tasks/SKILL.md`
 
 ### TESTS
 
-File: `agents/agent.manager/agent.manager.tests/collect-inline-tasks.test.js`
-Run: `node agents/agent.manager/agent.manager.tests/collect-inline-tasks.test.js --verify`
+File: `agents/manager/tests/collect-inline-tasks.test.js`
+Run: `node agents/manager/tests/collect-inline-tasks.test.js --verify`
 
 **Pseudocode**:
 1. Phase 1 creates snapshot, records task count

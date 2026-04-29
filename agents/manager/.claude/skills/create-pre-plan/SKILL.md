@@ -67,7 +67,7 @@ COLLECT ALL NEEDED INFORMATION TO COMPLETE THIS TASK AT BEST
 ## 3. REASARCH FINDINGS AND INSIGHTS
 - include all files that should be updated, added, deleted and files main section, functions 
 Example:
-PATH: agents/agent.manager/scripts.manager/script.task-management.ts
+PATH: agents/manager/scripts/script.task-management.ts
 - add new function get-task-file-tree
 - update another functions include detailed loging 
 
@@ -89,7 +89,7 @@ PATH: agents/agent.manager/scripts.manager/script.task-management.ts
 
 ```json
 { "ai_file_metadata": {
-    "path": "agents/agent.manager/.claude/skills/create-pre-plan/SKILL.md",
+    "path": "agents/manager/.claude/skills/create-pre-plan/SKILL.md",
     "description": "Skill: create a pre-plan for a task with questions, test and steps",
     "tags": ["skill", "tasks", "create", "planning", "git"]
 } }

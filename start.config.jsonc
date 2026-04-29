@@ -41,9 +41,9 @@
       "developmentEnabled": false,
       "productionEnabled": false,
       "envFiles": [],
-      "path": "agents/agent.manager",
+      "path": "agents/manager",
       "init": "bun install",
-      "start": "bash ./ragent.manager.sh"
+      "start": "bash ./ragent.claude.sh"
     },
     {
       "name": "dante",
@@ -52,9 +52,9 @@
       "developmentEnabled": false,
       "productionEnabled": true,
       "envFiles": [],
-      "path": "agents/agent.dante",
+      "path": "agents/dante",
       "init": "bun install",
-      "start": "bash ./ragent.dante.sh --telegram"
+      "start": "bash ./ragent.claude.sh --telegram"
     },
     {
       "name": "brightbean-studio",
@@ -95,7 +95,7 @@
       "path": "github-projects/coding-terminals/BMAD-METHOD/repo",
       "init": "bash ../BMAD-METHOD.init.sh",
       "start": "bash ../BMAD-METHOD.start.sh"
-      // not a running service — invoke manually to install agents/workflows into a target project
+      // not a running service — invoke manually to install .github/workflows into a target project
       // non-interactive: node tools/installer/bmad-cli.js install --directory /path --modules bmm --tools claude-code --yes
     },
     {

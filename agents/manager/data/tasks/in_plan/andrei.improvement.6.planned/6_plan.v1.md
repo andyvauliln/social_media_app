@@ -11,8 +11,8 @@
   "assigned_user": "andrei",
   "assigned_agent": "agent.dev",
   "branch_name": "improvement/6-finish-collect-inline-tasks-skill",
-  "in_plan_task_directory": "agents/agent.manager/tasks/in_plan/andrei.improvement.6.planned",
-  "run_test_command": "node agents/agent.manager/agent.manager.tests/collect-inline-tasks.test.js",
+  "in_plan_task_directory": "agents/manager/data/tasks/in_plan/andrei.improvement.6.planned",
+  "run_test_command": "node agents/manager/tests/collect-inline-tasks.test.js",
   "sub_tasks": [
     {
       "sub_task_id": 1,
@@ -62,7 +62,7 @@
     ```json
      "dependencies": { "jsonc-parser": "^3.3.1" }
     ```
-4. There is **no test file** at `agents/agent.manager/agent.manager.tests/collect-inline-tasks.test.js`. The directory doesn't even exist yet. Tests must be created.
+4. There is **no test file** at `agents/manager/tests/collect-inline-tasks.test.js`. The directory doesn't even exist yet. Tests must be created.
 5. The current skill's "detection" approach (`rg -i 'ai_todo:'`) is sound — it correctly uses keyword-only matching independent of comment style. This is good and should be preserved.
 6. Key gap: after `/create-task` is called, the skill has no mechanism to wait for task ID confirmation and then do the file edit. The plan must clarify: use Claude's skill invocation result (task ID returned by `/create-task`) as the signal before removing the line.
 
@@ -72,7 +72,7 @@
 
 ### STEPS PLAN BREAKDOWN
 
-**Goal**: Rewrite `agents/agent.manager/.claude/skills/collect-inline-tasks/SKILL.md` to match the project's established skill format, making it executable by an AI agent without ambiguity.
+**Goal**: Rewrite `agents/manager/.claude/skills/collect-inline-tasks/SKILL.md` to match the project's established skill format, making it executable by an AI agent without ambiguity.
 
 1. **Add frontmatter** — already correct, keep as-is (model: opus, effort: high, context: fork)
 2. **Add EXAMPLES section** — move existing code examples to top, add invocation examples (`/collect-inline-tasks`, `/collect-inline-tasks src/`, `/collect-inline-tasks @andrei`)
@@ -89,7 +89,7 @@
 
 ### CURRENT STATE ANALYSIS
 
-File: `agents/agent.manager/.claude/skills/collect-inline-tasks/SKILL.md`
+File: `agents/manager/.claude/skills/collect-inline-tasks/SKILL.md`
 
 **What exists (good — keep)**:
 
@@ -134,15 +134,15 @@ File: `agents/agent.manager/.claude/skills/collect-inline-tasks/SKILL.md`
 
 1. Should `agent.manager.tests/` directory be created?
 
-**ai_answer**: Yes. The test command in the task is `node agents/agent.manager/agent.manager.tests/collect-inline-tasks.test.js` — this must exist. Create the dir and the test file.
+**ai_answer**: Yes. The test command in the task is `node agents/manager/tests/collect-inline-tasks.test.js` — this must exist. Create the dir and the test file.
 **user_answer**:  yes
 
 ---
 
 ### TESTS
 
-File to create: `agents/agent.manager/agent.manager.tests/collect-inline-tasks.test.js`
-Run: `node agents/agent.manager/agent.manager.tests/collect-inline-tasks.test.js`
+File to create: `agents/manager/tests/collect-inline-tasks.test.js`
+Run: `node agents/manager/tests/collect-inline-tasks.test.js`
 
 **Pseudocode**:
 
@@ -167,9 +167,9 @@ Run: `node agents/agent.manager/agent.manager.tests/collect-inline-tasks.test.js
 
 ### STEPS PLAN BREAKDOWN
 
-**Goal**: Create `agents/agent.manager/agent.manager.tests/collect-inline-tasks.test.js` with the test cases defined above, using Node.js built-ins only (no external test framework).
+**Goal**: Create `agents/manager/tests/collect-inline-tasks.test.js` with the test cases defined above, using Node.js built-ins only (no external test framework).
 
-1. Create `agents/agent.manager/agent.manager.tests/` directory
+1. Create `agents/manager/tests/` directory
 2. Extract the pure parsing and file-manipulation logic from SKILL.md into testable helper functions (inline in the test file or via a small `lib/` module)
 3. Implement test runner with pass/fail counts using `assert`
 4. Cover: `parseAiTodo`, `removeLine`, no-match scan, multi-style detection
@@ -179,12 +179,12 @@ Run: `node agents/agent.manager/agent.manager.tests/collect-inline-tasks.test.js
 
 **What exists**:
 
-- No test directory at `agents/agent.manager/agent.manager.tests/`
+- No test directory at `agents/manager/tests/`
 - No test file
 
 **What needs to be created**:
 
-- `agents/agent.manager/agent.manager.tests/collect-inline-tasks.test.js`
+- `agents/manager/tests/collect-inline-tasks.test.js`
 
 ### QUESTIONS
 
@@ -196,7 +196,7 @@ Run: `node agents/agent.manager/agent.manager.tests/collect-inline-tasks.test.js
 
 ### TESTS
 
-Self-validating: running `node agents/agent.manager/agent.manager.tests/collect-inline-tasks.test.js` must exit 0.
+Self-validating: running `node agents/manager/tests/collect-inline-tasks.test.js` must exit 0.
 
 ---
 

@@ -98,5 +98,5 @@ When done, summarize:
 
 ## Related
 
-- **Authoring new skills**: `agents/agent.dev/.claude/skills/create-skill/SKILL.md`
+- **Authoring new skills**: `agents/dev/.claude/skills/create-skill/SKILL.md`
 - **Context-heavy commands**: use `!` prefix on basename under `.claude/commands/` (see create-skill skill)

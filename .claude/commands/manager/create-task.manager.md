@@ -5,5 +5,5 @@ argument-hint: "[prompt] [@user_name, @ai optional] [@when optional] [@priority 
 enabled: true
 ---
 
-Run the create-task skill in `agents/agent.manager/.claude/skills/create-task/SKILL.md`.
+Run the create-task skill in `agents/manager/.claude/skills/create-task/SKILL.md`.
 

@@ -6,4 +6,4 @@ argument-hint: ""
 
 should be also run before pr
 
-Run this skill in agents/agent.dev/.claude/skills/sync-plugins/SKILL.md
+Run this skill in agents/dev/.claude/skills/sync-plugins/SKILL.md

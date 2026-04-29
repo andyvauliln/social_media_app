@@ -6,14 +6,14 @@ Current repository tree snapshot (`node_modules` and `.git` excluded):
 ./
 ├── !KNOWLEDGE_BASE/
 │   ├── agents.docs/
-│   │   ├── docs.agent.content-factory.symlink -> ../../agents/agent.content-factory/docs.agent.content-factory
-│   │   ├── docs.agent.dante.symlink -> ../../agents/agent.dante/docs.agent.dante
+│   │   ├── docs.agent.content-factory.symlink -> ../../agents/content-factory/docs.agent.content-factory
+│   │   ├── docs.agent.dante.symlink -> ../../agents/dante/docs.agent.dante
 │   │   ├── docs.agent.db.symlink -> ../../agents/agent.db/docs.agent.db
-│   │   ├── docs.agent.dev.symlink -> ../../agents/agent.dev/docs.agent.dev
-│   │   ├── docs.agent.instagram.symlink -> ../../agents/agent.instagram/docs.agent.instagram
+│   │   ├── docs.agent.dev.symlink -> ../../agents/dev/docs.agent.dev
+│   │   ├── docs.agent.instagram.symlink -> ../../agents/instagram/docs.agent.instagram
 │   │   ├── docs.agent.knowledge-base.symlink -> ../../agents/agent.knowledge-base/docs.agent.knowledge-base
 │   │   ├── docs.agent.logs.symlink -> ../../agents/agent.logs/docs.agent.logs
-│   │   ├── docs.agent.manager.symlink -> ../../agents/agent.manager/docs.agent.manager
+│   │   ├── docs.agent.manager.symlink -> ../../agents/manager/docs.agent.manager
 │   │   └── docs.agent.research.symlink -> ../../agents/agent.research/docs.agent.research
 │   ├── docs/
 │   │   ├── AI_FILE_METADATA.md

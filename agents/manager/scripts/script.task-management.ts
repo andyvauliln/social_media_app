@@ -32,13 +32,13 @@ type Task = {
   [key: string]: unknown;
 };
 
-const DEFAULT_TASKS_FILE = "agents/agent.manager/tasks/tasks.index.jsonc";
-const TEAM_CONFIG_FILE = "agents/agent.manager/config.manager.jsonc";
-const MANAGER_DOC_FILE = "agents/agent.manager/docs.agent.manager/manager.index.md";
+const DEFAULT_TASKS_FILE = "agents/manager/data/tasks/tasks.index.jsonc";
+const TEAM_CONFIG_FILE = "agents/manager/configs/config.manager.jsonc";
+const MANAGER_DOC_FILE = "agents/manager/docs/manager.index.md";
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 
 function resolveProjectRoot(): string {
-  // Script lives at: <root>/agents/agent.manager/scripts.manager/script.task-management.ts
+  // Script lives at: <root>/agents/manager/scripts/script.task-management.ts
   return path.resolve(SCRIPT_DIR, "../../..");
 }
 
@@ -107,7 +107,7 @@ task-management command list
 Usage:
   bun task-management <command> [args]
   npm run task-management -- <command> [args]
-  npx tsx ./agents/agent.manager/scripts.manager/script.task-management.ts <command> [args]
+  npx tsx ./agents/manager/scripts/script.task-management.ts <command> [args]
 
 Commands:
   help
@@ -154,7 +154,7 @@ function extractFileOption(args: string[]): { cleanArgs: string[]; filePath?: st
 }
 
 async function getTaskFolderPath(githubIssueId: number): Promise<string | null> {
-  const inPlanPath = path.resolve(PROJECT_ROOT, "agents/agent.manager/tasks/in_plan");
+  const inPlanPath = path.resolve(PROJECT_ROOT, "agents/manager/data/tasks/in_plan");
   let entries: string[] = [];
   try {
     entries = await fs.readdir(inPlanPath);

@@ -27,7 +27,7 @@ function resolveStateDir(): string {
   if (!raw || raw.includes('${')) {
     process.stderr.write(
       `telegram channel: TELEGRAM_STATE_DIR is missing or was not expanded by the host (got ${raw ? JSON.stringify(raw) : 'empty'}).\n` +
-        `  Export a real path before starting Claude (e.g. run via ragent.manager.sh --telegram, or set stateDir in access.json and load it into the environment).\n`,
+        `  Export a real path before starting Claude (e.g. run via ragent.claude.sh --telegram, or set stateDir in access.json and load it into the environment).\n`,
     )
     process.exit(1)
   }
@@ -52,7 +52,7 @@ const INBOX_DIR = join(STATE_DIR, 'inbox')
 const PID_FILE = join(STATE_DIR, 'bot.pid')
 const TELEGRAM_LOG_FILE = join(STATE_DIR, 'teleram.logs')
 const ROOT_DIR = realpathSync(join(import.meta.dir, '..', '..'))
-const MANAGER_RAGENT = join(ROOT_DIR, 'agents', 'agent.manager', 'ragent.manager.sh')
+const MANAGER_RAGENT = join(ROOT_DIR, 'agents', 'manager', 'ragent.claude.sh')
 const MANAGER_TIMEOUT_MS = 2 * 60 * 1000
 
 // Telegram allows exactly one getUpdates consumer per token. If a previous

@@ -11,8 +11,8 @@
   "assigned_user": "andrei",
   "assigned_agent": "agent.dev",
   "branch_name": "improvement/6-finish-collect-inline-tasks-skill",
-  "in_plan_task_directory": "agents/agent.manager/tasks/in_plan/andrei.improvement.6.planned",
-  "run_test_command": "node agents/agent.manager/agent.manager.tests/collect-inline-tasks.test.js",
+  "in_plan_task_directory": "agents/manager/data/tasks/in_plan/andrei.improvement.6.planned",
+  "run_test_command": "node agents/manager/tests/collect-inline-tasks.test.js",
   "sub_tasks": [
     {
       "sub_task_id": 1,
@@ -61,7 +61,7 @@
 
 ### STEPS PLAN BREAKDOWN
 
-**Goal**: Rewrite `agents/agent.manager/.claude/skills/collect-inline-tasks/SKILL.md` to be fully executable by an AI agent.
+**Goal**: Rewrite `agents/manager/.claude/skills/collect-inline-tasks/SKILL.md` to be fully executable by an AI agent.
 
 1. **Keep frontmatter** — already correct (model: haiku, effort: low, context: fork, shell: bash)
 2. **Add EXAMPLES section at top** — concrete invocations:
@@ -96,7 +96,7 @@
 
 ### CURRENT STATE ANALYSIS
 
-File: `agents/agent.manager/.claude/skills/collect-inline-tasks/SKILL.md`
+File: `agents/manager/.claude/skills/collect-inline-tasks/SKILL.md`
 
 **What exists (keep)**:
 
@@ -135,9 +135,9 @@ Covered by subtask 3 — integration test runs the skill against the fixture fil
 
 ### STEPS PLAN BREAKDOWN
 
-**Goal**: Create `agents/agent.manager/agent.manager.tests/collect-inline-tasks.test.js` — a self-resetting integration-style test that exercises the real skill workflow.
+**Goal**: Create `agents/manager/tests/collect-inline-tasks.test.js` — a self-resetting integration-style test that exercises the real skill workflow.
 
-1. **Create the directory** `agents/agent.manager/agent.manager.tests/`
+1. **Create the directory** `agents/manager/tests/`
 2. **Create fixture file** `agent.manager.tests/fixtures/collect-inline-tasks.fixture.js`:
   - Contains diverse `ai_todo:` styles in realistic code, spread across the file:
   - This fixture is the "source of truth" — restored after each test run
@@ -145,7 +145,7 @@ Covered by subtask 3 — integration test runs the skill against the fixture fil
   - Step 1: Snapshot fixture file content (to restore later)
   - Step 2: Note current task count in `tasks.index.jsonc`
   - Step 3: Print instructions for the agent running the test:
-    - "Run `/collect-inline-tasks agents/agent.manager/agent.manager.tests/fixtures/`"
+    - "Run `/collect-inline-tasks agents/manager/tests/fixtures/`"
     - "Then run this script again to verify"
   - Step 4: After skill runs — check:
     - New tasks were created in `tasks.index.jsonc` (count increased)
@@ -158,9 +158,9 @@ Covered by subtask 3 — integration test runs the skill against the fixture fil
 
 **What needs to be created**:
 
-- `agents/agent.manager/agent.manager.tests/` directory
-- `agents/agent.manager/agent.manager.tests/fixtures/collect-inline-tasks.fixture.js`
-- `agents/agent.manager/agent.manager.tests/collect-inline-tasks.test.js`
+- `agents/manager/tests/` directory
+- `agents/manager/tests/fixtures/collect-inline-tasks.fixture.js`
+- `agents/manager/tests/collect-inline-tasks.test.js`
 
 **Dependencies**:
 
@@ -177,7 +177,7 @@ Covered by subtask 3 — integration test runs the skill against the fixture fil
 
 ### TESTS
 
-Self-validating: `node agents/agent.manager/agent.manager.tests/collect-inline-tasks.test.js` exits 0 after skill has been run against the fixture.
+Self-validating: `node agents/manager/tests/collect-inline-tasks.test.js` exits 0 after skill has been run against the fixture.
 
 ---
 

@@ -7,4 +7,4 @@ shell: bash
 ---
 
 !SESSION_ID=$(uuidgen)
-use ./agents/agent.manager/.claude/skills/create-plan/SKILL.md to make a plan
+use ./agents/manager/.claude/skills/create-plan/SKILL.md to make a plan

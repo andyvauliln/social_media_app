@@ -4,4 +4,4 @@ description: Install a Python or Node package into the correct scope (global com
 argument-hint: "<package> scope=<global|agent.dev|telegram.app|...>"
 ---
 
-Run this skill in agents/agent.dev/.claude/skills/install-package/SKILL.md
+Run this skill in agents/dev/.claude/skills/install-package/SKILL.md

@@ -42,7 +42,7 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: |
-            Treat `agents/agent.manager` as the primary project: respect its CLAUDE.md, skills, and slash commands.
+            Treat `agents/manager` as the primary project: respect its CLAUDE.md, skills, and slash commands.
             Execute: /make-week-plan
           claude_args: |
-            --add-dir agents/agent.manager
+            --add-dir agents/manager

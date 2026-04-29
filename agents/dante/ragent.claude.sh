@@ -292,7 +292,7 @@ fi
 # Local dev: set TELEGRAM_CHANNEL=plugin:telegram@inline (or server:<name>) to load ./plugins/telegram via --dangerously-load-development-channels (interactive confirm required).
 TELEGRAM_CHANNEL="${TELEGRAM_CHANNEL:-plugin:telegram@claude-plugins-official}"
 
-AGENT_DIR="${ROOT_DIR}/agents/agent.dante"
+AGENT_DIR="${ROOT_DIR}/agents/dante"
 
 enable_telegram=false
 forwarded_args=()

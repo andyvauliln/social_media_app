@@ -15,7 +15,7 @@ hooks: {}
 ## Goal
 
 Install dependencies correctly for this repo using the hybrid model:
-1) root-common packages shared across agents/apps
+1) root-common packages shared across apps
 2) local packages for one specific agent/app
 3) script.init.sh single point of truth for the project everything that need to be installed shoud be set there.
 4) script.init.sh also handling applications and agent installation from the start.config.jsonc file by executing init script in every application, github project and agent folder.
@@ -45,7 +45,7 @@ Install dependencies correctly for this repo using the hybrid model:
 
 ## Ownership Policy
 
-- Common JS package used by multiple agents/apps -> install at repo root.
+- Common JS package used by multiple apps -> install at repo root.
 - Package used by only one agent/app -> install in that agent/app.
 - Do not add shared wrappers unless explicitly needed for shared code (not just shared dependency).
 - Keep `start.config.jsonc` init commands aligned with actual runtime:

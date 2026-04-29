@@ -89,7 +89,7 @@ You are a planning specialist for agentic workflows.
 
 ### CURRENST STATE ANALYSIS
 `full analysis of the current state of the task`
-File: `agents/agent.manager/.claude/skills/collect-inline-tasks/SKILL.md`
+File: `agents/manager/.claude/skills/collect-inline-tasks/SKILL.md`
 **What exists (good — keep)**:
 - Frontmatter is correct and complete
 **What needs to change**:
@@ -109,8 +109,8 @@ File: `agents/agent.manager/.claude/skills/collect-inline-tasks/SKILL.md`
 `all tests that you need validate this task`
 ### EXAMPLE
 ---
-File to create: agents/agent.manager/agent.manager.tests/collect-inline-tasks.test.js
-Run: node agents/agent.manager/agent.manager.tests/collect-inline-tasks.test.js
+File to create: agents/manager/tests/collect-inline-tasks.test.js
+Run: node agents/manager/tests/collect-inline-tasks.test.js
 
 **Pseudocode**: 
 `break down for steps and pseudocode on how  to validate this task`

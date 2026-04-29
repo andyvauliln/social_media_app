@@ -2,6 +2,6 @@
   "name": "agent-dante",
   "private": true,
   "scripts": {
-    "start": "bash ./ragent.dante.sh"
+    "start": "bash ./ragent.claude.sh"
   }
 }

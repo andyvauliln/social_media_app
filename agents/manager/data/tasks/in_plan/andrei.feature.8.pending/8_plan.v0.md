@@ -116,7 +116,7 @@
 **Files to change/create:**
 
 ```
-PATH: agents/agent.manager/config.manager.jsonc
+PATH: agents/manager/configs/config.manager.jsonc
 - Add telegram section: manager bot token reference, state dir @notes: no need store here anything
 
 PATH: plugins/telegram/.mcp.json  
@@ -126,7 +126,7 @@ PATH: rinit.sh (or equivalent agent launch scripts)
 - Set TELEGRAM_STATE_DIR per agent
 - Set TELEGRAM_BOT_TOKEN per agent
 
-PATH: agents/agent.manager/.env (create if needed)
+PATH: agents/manager/.env (create if needed)
 - TELEGRAM_BOT_TOKEN=<manager-bot-token>
 - TELEGRAM_STATE_DIR=~/.claude/channels/agent.manager/telegram
 

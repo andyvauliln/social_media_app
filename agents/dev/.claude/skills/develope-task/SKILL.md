@@ -28,8 +28,8 @@ hooks: {}
 ```bash
 !ROOT_PROJECT_PATH="$(pwd)" && \
 export ROOT_PROJECT_PATH && \
-export TASK_LIST_PATH="$ROOT_PROJECT_PATH/agents/agent.manager/tasks/tasks.index.jsonc" && \
-export IN_PLAN_PATH="$ROOT_PROJECT_PATH/agents/agent.manager/tasks/in_plan" && \
+export TASK_LIST_PATH="$ROOT_PROJECT_PATH/agents/manager/data/tasks/tasks.index.jsonc" && \
+export IN_PLAN_PATH="$ROOT_PROJECT_PATH/agents/manager/data/tasks/in_plan" && \
 echo "ROOT=$ROOT_PROJECT_PATH" && echo "TASKS=$TASK_LIST_PATH"
 ```
 
@@ -91,7 +91,7 @@ if (fs.existsSync(reportFile)) {
    - Fix failures before proceeding.
 
 6. **Write sub-task report** — save a short report to:
-   `agents/agent.manager/tasks/in_plan/ai.{task-id}.{scope}/{sub-task-id}.report.md`
+   `agents/manager/data/tasks/in_plan/ai.{task-id}.{scope}/{sub-task-id}.report.md`
    Report must include: what was done, files changed, result, any blockers or follow-up notes.
 
 7. **Commit** — stage only the changed files and commit with a message:
@@ -120,6 +120,6 @@ if (fs.existsSync(reportFile)) {
   title:    "Implement X feature"
   files:    apps/social/views.py, templates/base.html
   commit:   a1b2c3d  [#12.2] Implement X feature
-  report:   agents/agent.manager/tasks/in_plan/ai.12.social/2.report.md
+  report:   agents/manager/data/tasks/in_plan/ai.12.social/2.report.md
   next:     sub-task 3 — "Write unit tests"
 ```

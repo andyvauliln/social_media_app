@@ -44,8 +44,8 @@ Multiple tags combine with AND logic: `/pick-task @today @short`
 
 ```bash
 ROOT=$(git rev-parse --show-toplevel)
-TASKS_FILE="$ROOT/agents/agent.manager/tasks/tasks.index.jsonc"
-CONFIG_PATH="$ROOT/agents/agent.manager/config.manager.jsonc"
+TASKS_FILE="$ROOT/agents/manager/data/tasks/tasks.index.jsonc"
+CONFIG_PATH="$ROOT/agents/manager/configs/config.manager.jsonc"
 ```
 
 If file does not exist, print:

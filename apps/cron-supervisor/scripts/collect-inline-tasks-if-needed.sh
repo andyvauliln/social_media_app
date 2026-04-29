@@ -92,7 +92,7 @@ if ! command -v claude >/dev/null 2>&1; then
 fi
 
 exec bash "$REPO_ROOT/scripts/run-under-pty.sh" \
-  "$REPO_ROOT/agents/agent.manager" \
+  "$REPO_ROOT/agents/manager" \
   'claude -p "/collect-inline-tasks"'
 
 

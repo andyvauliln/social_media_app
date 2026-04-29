@@ -19,8 +19,8 @@ hooks: {}
 ROOT=$(git rev-parse --show-toplevel) && \
 SESSION_ID=$(uuidgen | tr '[:upper:]' '[:lower:]') && \
 echo "SESSION_ID=$SESSION_ID" && \
-SKILL_CONTENT=$(cat "$ROOT/agents/agent.manager/.claude/skills/create-plan/SKILL.md") && \
-cd "$ROOT/agents/agent.manager" && \
+SKILL_CONTENT=$(cat "$ROOT/agents/manager/.claude/skills/create-plan/SKILL.md") && \
+cd "$ROOT/agents/manager" && \
 claude \
   --debug \
   --debug-file "$ROOT/debug.claude.log" \

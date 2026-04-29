@@ -146,14 +146,14 @@ Your role is to convert a vague or complex goal into a practical execution plan 
 ```bash
 !ROOT_PROJECT_PATH="$(pwd)" && \
 export ROOT_PROJECT_PATH && \
-export ALL_TASKS_PATH="$ROOT_PROJECT_PATH/agents/agent.manager/tasks" && \
+export ALL_TASKS_PATH="$ROOT_PROJECT_PATH/agents/manager/tasks" && \
 export TASK_LIST_PATH="$ALL_TASKS_PATH/tasks.index.jsonc" && \
 ```
 ```bash
 !node -e "
 const fs=require('fs');
 const taskId=process.argv[1];
-const p=process.env.TASK_LIST_PATH || (process.cwd() + '/agents/agent.manager/tasks/tasks.index.jsonc');
+const p=process.env.TASK_LIST_PATH || (process.cwd() + '/agents/manager/data/tasks/tasks.index.jsonc');
 if(!taskId){ console.log('Missing task_id'); process.exit(1); }
 if(!fs.existsSync(p)){ console.log('Task list not found:', p); process.exit(1); }
 const raw=fs.readFileSync(p,'utf8')
@@ -210,7 +210,7 @@ console.log(JSON.stringify(task,null,2));
 
 ## EXAMPLES 
 ---
-**path** - `agents/agent.manager/agent.manager.tests/collect-inline-tasks.test.js`
+**path** - `agents/manager/tests/collect-inline-tasks.test.js`
 **commmand to run** - `bun run test:collect-inline-tasks`
 ## Pseudocode for subtask 2
 - add different style of comments in a test temp files
@@ -220,7 +220,7 @@ console.log(JSON.stringify(task,null,2));
 - print results
 
 ---
-**path** - `agents/agent.manager/agent.instagram/agent.instagram.tests/get_instagram_posts.test.py`
+**path** - `agents/manager/agent.instagram/agent.instagram.tests/get_instagram_posts.test.py`
 **commmand to run** - `python -m unittest test_collect_inline_tasks`
 ## Pseudocode for subtask 3
 - set test params
@@ -245,7 +245,7 @@ console.log(JSON.stringify(task,null,2));
 
 ## PLAN STRUCTURE 
 ## Task Object (jsonc)
-Paste the full task object exactly as you get it context from `agents/agent.manager/tasks/tasks.index.jsonc`.
+Paste the full task object exactly as you get it context from `agents/manager/data/tasks/tasks.index.jsonc`.
 - Do not shorten it.
 - Do not drop fields.
 - Keep key order and values from source.

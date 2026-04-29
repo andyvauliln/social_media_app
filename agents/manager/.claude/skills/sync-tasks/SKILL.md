@@ -27,7 +27,7 @@ rebuilds scheduling files, then pushes — so every developer stays in sync.
 
 ```bash
 ROOT=$(git rev-parse --show-toplevel)
-source "$ROOT/agents/agent.manager/scripts/task-helpers.sh"
+source "$ROOT/agents/manager/scripts/task-helpers.sh"
 TASKS_FILE="$MANAGER_TASKS/tasks.index.jsonc"
 PLAN_DIR="$MANAGER_TASKS/in_plan"
 CURRENT_BRANCH=$(git branch --show-current)
@@ -45,7 +45,7 @@ Fetch only the tasks file from `origin/main` into a temp file so local work is u
 ```bash
 git fetch origin "$REMOTE_BRANCH" 2>/dev/null || true
 
-git show "origin/$REMOTE_BRANCH:agents/agent.manager/tasks/tasks.index.jsonc" \
+git show "origin/$REMOTE_BRANCH:agents/manager/data/tasks/tasks.index.jsonc" \
     > "$REMOTE_TASKS_TMP" 2>/dev/null || echo "[]" > "$REMOTE_TASKS_TMP"
 ```
 

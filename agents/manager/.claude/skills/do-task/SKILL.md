@@ -30,10 +30,10 @@ hooks: {}
 ```bash
 !ROOT_PROJECT_PATH="$(pwd)" && \
 export ROOT_PROJECT_PATH && \
-export ALL_TASKS_PATH="$ROOT_PROJECT_PATH/agents/agent.manager/tasks" && \
+export ALL_TASKS_PATH="$ROOT_PROJECT_PATH/agents/manager/tasks" && \
 export TASK_LIST_PATH="$ALL_TASKS_PATH/tasks.index.jsonc" && \
-export AGENT_CONFIG_PATH="$ROOT_PROJECT_PATH/agents/agent.manager/config.manager.jsonc" && \
-export DOCS_AGENT_MANAGER_PATH="$ROOT_PROJECT_PATH/agents/agent.manager/docs.agent.manager/!index.md" && \
+export AGENT_CONFIG_PATH="$ROOT_PROJECT_PATH/agents/manager/configs/config.manager.jsonc" && \
+export DOCS_AGENT_MANAGER_PATH="$ROOT_PROJECT_PATH/agents/manager/docs/!index.md" && \
 echo "ROOT_PROJECT_PATH=$ROOT_PROJECT_PATH" && \
 echo "ALL_TASKS_PATH=$ALL_TASKS_PATH" && \
 echo "TASK_LIST_PATH=$TASK_LIST_PATH" && \
@@ -80,7 +80,7 @@ if (fs.existsSync(tasksFile)) {
       console.log('Missing one of required fields: assigned_user, github_user_id, status');
       process.exit(0);
     }
-    const planDir = path.resolve(root, 'agents/agent.manager/tasks/in_plan', assignedUser + '.' + type + '.' + githubUserId + '.' + status);
+    const planDir = path.resolve(root, 'agents/manager/data/tasks/in_plan', assignedUser + '.' + type + '.' + githubUserId + '.' + status);
     const planPath = path.join(planDir, githubUserId + '_plan.md');
     if (!fs.existsSync(planDir)) fs.mkdirSync(planDir, { recursive: true });
     if (!fs.existsSync(planPath)) fs.writeFileSync(planPath, '# Plan\n', 'utf8');
@@ -132,7 +132,7 @@ if (fs.existsSync(tasksFile)) {
   branch:   feature/12-user-profile-photo  (created & checked out)
   assigned: andrei
   status:   in-progress
-  plan:     agents/agent.manager/tasks/in_plan/12.agent.manager.feature.andrei/plan.md
+  plan:     agents/manager/data/tasks/in_plan/12.agent.manager.feature.andrei/plan.md
 
   Sub-tasks:
     1. [x] Plan and define tests                  [done]

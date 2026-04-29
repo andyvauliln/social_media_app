@@ -48,7 +48,7 @@
             "runLocation": "github_actions",
             "run": {
                 "type": "claude",
-                "cwd": "agents/agent.manager",
+                "cwd": "agents/manager",
                 "prompt": "/make-today-plan"
             },
             "githubActions": {
@@ -81,7 +81,7 @@
             "runLocation": "github_actions",
             "run": {
                 "type": "claude",
-                "cwd": "agents/agent.manager",
+                "cwd": "agents/manager",
                 "prompt": "/make-week-plan"
             },
             "githubActions": {

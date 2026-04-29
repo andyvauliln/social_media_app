@@ -13,6 +13,6 @@
   "scripts": {
     "init": "./script.init.sh",
     "start": "bash ./ragent.claude.sh",
-    "task-management": "npx tsx ./agents/agent.manager/scripts.manager/script.task-management.ts"
+    "task-management": "npx tsx ./agents/manager/scripts/script.task-management.ts"
   }
 }

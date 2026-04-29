@@ -34,7 +34,7 @@ run_resolve_conflicts_agent() {
     return 127
   fi
 
-  prompt="Run the dev resolve-conflicts skill at agents/agent.dev/.claude/skills/resolve-conflicts/SKILL.md.
+  prompt="Run the dev resolve-conflicts skill at agents/dev/.claude/skills/resolve-conflicts/SKILL.md.
 
 Context from scripts/git-sync-pull-push.sh:
 - Reason: $reason

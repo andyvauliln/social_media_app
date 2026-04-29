@@ -17,7 +17,7 @@ hooks: {}
 ```
 /collect-inline-tasks
 /collect-inline-tasks src/
-/collect-inline-tasks agents/agent.manager/
+/collect-inline-tasks agents/manager/
 ```
 
 ---
@@ -27,7 +27,7 @@ hooks: {}
 ```bash
 !ROOT_PROJECT_PATH="$(pwd)" && \
 export ROOT_PROJECT_PATH && \
-export TASK_LIST_PATH="$ROOT_PROJECT_PATH/agents/agent.manager/tasks/tasks.index.jsonc" && \
+export TASK_LIST_PATH="$ROOT_PROJECT_PATH/agents/manager/data/tasks/tasks.index.jsonc" && \
 echo "ROOT=$ROOT_PROJECT_PATH" && \
 echo "=== AI_TODO MATCHES ===" && \
 rg -n -i 'ai_todo' "$ROOT_PROJECT_PATH" \

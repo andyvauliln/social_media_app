@@ -34,10 +34,10 @@ Behavior differs based on who the task is assigned to (AI vs human) and when it'
 ```bash
 !ROOT_PROJECT_PATH="$(pwd)" && \
 export ROOT_PROJECT_PATH && \
-export ALL_TASKS_PATH="$ROOT_PROJECT_PATH/agents/agent.manager/tasks" && \
+export ALL_TASKS_PATH="$ROOT_PROJECT_PATH/agents/manager/tasks" && \
 export TASK_LIST_PATH="$ALL_TASKS_PATH/tasks.index.jsonc" && \
-export AGENT_CONFIG_PATH="$ROOT_PROJECT_PATH/agents/agent.manager/config.manager.jsonc" && \
-export DOCS_AGENT_MANAGER_PATH="$ROOT_PROJECT_PATH/agents/agent.manager/docs.agent.manager/!index.md" && \
+export AGENT_CONFIG_PATH="$ROOT_PROJECT_PATH/agents/manager/configs/config.manager.jsonc" && \
+export DOCS_AGENT_MANAGER_PATH="$ROOT_PROJECT_PATH/agents/manager/docs/!index.md" && \
 echo "ROOT_PROJECT_PATH=$ROOT_PROJECT_PATH" && \
 echo "ALL_TASKS_PATH=$ALL_TASKS_PATH" && \
 echo "TASK_LIST_PATH=$TASK_LIST_PATH" && \

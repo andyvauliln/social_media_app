@@ -21,7 +21,7 @@ hooks: {}
 ```
 
 - **Quoted prompt** — required. Describes purpose, steps, constraints, and when the skill applies (becomes the body and informs `description`).
-- **`@{agent-name}`** — required short agent id (no `agent.` prefix). Examples: `@dev` → `agents/agent.dev/`, `@manager` → `agents/agent.manager/`.
+- **`@{agent-name}`** — required short agent id (no `agent.` prefix). Examples: `@dev` → `agents/dev/`, `@manager` → `agents/manager/`.
 
 ---
 
@@ -106,7 +106,7 @@ If `SKILL.md` already exists, stop and ask whether to overwrite or pick a new sl
 
 - Insert the **default frontmatter** block above with concrete `name`, `description`, and `argument-hint` if the workflow takes arguments.
 - Body: structured sections (invocation, steps, examples) implied by the user’s quoted prompt.
-- Match tone and depth of other skills in `agents/agent.dev/.claude/skills/`.
+- Match tone and depth of other skills in `agents/dev/.claude/skills/`.
 
 ### 4. Optional dev command
 

@@ -21,14 +21,14 @@ Your role is to convert a vague or complex goal into a practical execution plan 
 ```bash
 !ROOT_PROJECT_PATH="$(pwd)" && \
 export ROOT_PROJECT_PATH && \
-export ALL_TASKS_PATH="$ROOT_PROJECT_PATH/agents/agent.manager/tasks" && \
+export ALL_TASKS_PATH="$ROOT_PROJECT_PATH/agents/manager/tasks" && \
 export TASK_LIST_PATH="$ALL_TASKS_PATH/tasks.index.jsonc" && \
 ```
 ```bash
 !node -e "
 const fs=require('fs');
 const taskId=process.argv[1];
-const p=process.env.TASK_LIST_PATH || (process.cwd() + '/agents/agent.manager/tasks/tasks.index.jsonc');
+const p=process.env.TASK_LIST_PATH || (process.cwd() + '/agents/manager/data/tasks/tasks.index.jsonc');
 if(!taskId){ console.log('Missing task_id'); process.exit(1); }
 if(!fs.existsSync(p)){ console.log('Task list not found:', p); process.exit(1); }
 const raw=fs.readFileSync(p,'utf8')
@@ -104,7 +104,7 @@ console.log(JSON.stringify(task,null,2));
 
 ### CURRENST STATE ANALYSIS
 `full analysis of the current state of the task`
-File: `agents/agent.manager/.claude/skills/collect-inline-tasks/SKILL.md`
+File: `agents/manager/.claude/skills/collect-inline-tasks/SKILL.md`
 **What exists (good — keep)**:
 - Frontmatter is correct and complete
 **What needs to change**:
@@ -124,8 +124,8 @@ File: `agents/agent.manager/.claude/skills/collect-inline-tasks/SKILL.md`
 `all tests that you need validate this task`
 ### EXAMPLE
 ---
-File to create: agents/agent.manager/agent.manager.tests/collect-inline-tasks.test.js
-Run: node agents/agent.manager/agent.manager.tests/collect-inline-tasks.test.js
+File to create: agents/manager/tests/collect-inline-tasks.test.js
+Run: node agents/manager/tests/collect-inline-tasks.test.js
 
 **Pseudocode**: 
 `break down for steps and pseudocode on how  to validate this task`
