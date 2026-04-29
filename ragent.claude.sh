@@ -320,7 +320,6 @@ if [[ "${enable_telegram}" == "true" ]]; then
 fi
 
 # --plugin-dir sync with /sync-plugins dev agent  before every pr and with a command /sync-plugins.dev on a root
-#AI_TODO: need somehow give claude know that if added new plugin we need possible udpate this file @week
 args=(
   --verbose
   --plugin-dir "./plugins/ai-firstify/1.1.0"

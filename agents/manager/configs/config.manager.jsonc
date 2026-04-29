@@ -27,5 +27,3 @@
         }
     ]
 }    
-
-//ai_todo: "add config for symlinks and script that ll make all symlinks from this should be runned in init and add to shell alias @week"
