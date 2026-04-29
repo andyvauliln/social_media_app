@@ -110,4 +110,5 @@ if ! command -v agent >/dev/null 2>&1; then
   exit 127
 fi
 
+cd "${ROOT_DIR}"
 exec agent --workspace "${ROOT_DIR}" "$@"

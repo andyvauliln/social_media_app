@@ -233,7 +233,7 @@
 
 ########## ENV LOADING ########## from envs/root.env and envs/agents*.env
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(git rev-parse --show-toplevel 2>/dev/null || printf '%s' "${SCRIPT_DIR}")"
+ROOT_DIR="$(git -C "${SCRIPT_DIR}" rev-parse --show-toplevel 2>/dev/null || printf '%s' "${SCRIPT_DIR}")"
 ENVS_DIR="${ROOT_DIR}/envs"
 
 load_env_file() {
@@ -369,4 +369,4 @@ if ! command -v claude >/dev/null 2>&1; then
   exit 127
 fi
 
-exec claude "${args[@]}" "${forwarded_args[@]}"
+cd "${ROOT_DIR}" && exec claude "${args[@]}" "${forwarded_args[@]}"

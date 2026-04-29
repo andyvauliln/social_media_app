@@ -2,8 +2,7 @@
 # Cursor Agent CLI (`agent`) — reference (see also `agent --help`).
 # Docs: https://cursor.com/docs/cli/overview · https://cursor.com/docs/cli/using
 #
-# Entry: agents/dante/ragent.cursor.sh — delegates to ../../scripts/ragent.cursor.agent-dir.sh.
-#   **--workspace** = git repo root; **cwd** = agents/dante (matches “start in this agent dir” pattern).
+# Entry: **cwd** and **--workspace** = this agent dir (same project root as `ragent.claude.sh`; uses this folder’s `.cursor` / `.claude`).
 #   Shell alias when installed: sma.dante.cursor
 #
 # ----- Authentication & account -----
@@ -65,7 +64,7 @@
 #
 # ----- Workspace & git worktrees -----
 # --workspace <path>
-#   Repository root for discovering `.cursor`, rules, MCP — **pinned to git root by our launcher**.
+#   Project root for `.cursor`, rules, MCP — **this launcher sets it to this agent directory** (not the monorepo root).
 # -w | --worktree [name]
 #   Clone/edit in an isolated git worktree under ~/.cursor/worktrees/<repo>/<name>/ (safe experiments).
 # --worktree-base <branch-or-ref>
@@ -102,5 +101,13 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-ROOT="$(git -C "${SCRIPT_DIR}" rev-parse --show-toplevel)"
-exec bash "${ROOT}/scripts/ragent.cursor.agent-dir.sh" "${SCRIPT_DIR}" "$@"
+
+export PATH="${HOME}/.local/bin:${PATH:-}"
+
+if ! command -v agent >/dev/null 2>&1; then
+  echo "ragent.cursor: agent CLI not found in PATH. Try: bash scripts/ensure-cursor-agent.sh" >&2
+  exit 127
+fi
+
+cd "${SCRIPT_DIR}"
+exec agent --workspace "${SCRIPT_DIR}" "$@"

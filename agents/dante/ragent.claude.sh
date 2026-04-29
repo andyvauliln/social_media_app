@@ -232,7 +232,8 @@
 
 
 ########## ENV LOADING ########## from root envs/ + telegram.dante.env override
-ROOT_DIR="$(git rev-parse --show-toplevel)"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(git -C "${SCRIPT_DIR}" rev-parse --show-toplevel)"
 ENVS_DIR="${ROOT_DIR}/envs"
 
 load_env_file() {
@@ -292,7 +293,7 @@ fi
 # Local dev: set TELEGRAM_CHANNEL=plugin:telegram@inline (or server:<name>) to load ./plugins/telegram via --dangerously-load-development-channels (interactive confirm required).
 TELEGRAM_CHANNEL="${TELEGRAM_CHANNEL:-plugin:telegram@claude-plugins-official}"
 
-AGENT_DIR="${ROOT_DIR}/agents/dante"
+AGENT_DIR="${SCRIPT_DIR}"
 
 enable_telegram=false
 forwarded_args=()
