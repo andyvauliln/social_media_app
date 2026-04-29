@@ -7,7 +7,7 @@
         "main-subjects": ["available_hooks", "ai_file_metadata_template"],
         "symlinks": [],
         "used_by": [""],
-        "last_changes": ["#234"],
+        "last_changes": [""],
         "developer_notes": [""], //any notes for another developers
         "notes_for_ai": [""] //any notes for ai to action 
     }

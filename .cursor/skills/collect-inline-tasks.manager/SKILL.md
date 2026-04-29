@@ -5,3 +5,6 @@ disable-model-invocation: false
 ---
 
 use ./agents/manager/.claude/skills/collect-inline-tasks/SKILL.md to continue
+
+
+AI_TODO: create test for collect inline task skill @week

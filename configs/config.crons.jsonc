@@ -25,15 +25,15 @@
         },
         {
             "name": "sync-project",
-            "description": "sync current remote main state with a local main branch",
-            "schedule": "0 0 * * *",
+            "description": "run every 5 minutes; sync current remote main state with a local main branch",
+            "schedule": "*/5 * * * *",
             "production": false,
             "development": true,
             "runLocation": "supervisor",
             "run": {
                 "type": "shell",
                 "cwd": ".",
-                "command": "bash scripts/git-sync-pull-push.sh --claude"
+                "command": "bash scripts/git-sync-pull-push.sh --cursor"
             }
         },
         {
