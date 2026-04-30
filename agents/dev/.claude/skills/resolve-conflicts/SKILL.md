@@ -24,10 +24,22 @@ Use this skill when:
 - `git status` shows unmerged paths, both-modified files, add/add conflicts, delete/modify conflicts, or rebase/cherry-pick in progress.
 - Local `main` and `origin/main` diverged during sync.
 - A sync script says a merge problem must be resolved by an agent.
+- `scripts/git-sync-pull-push.sh --resolve-local-changes` invoked the agent with reason **working tree or index has local changes before sync** (dirty tree, not necessarily a merge).
+
+## Dirty tree before sync (`--resolve-local-changes`)
+
+When the sync reason is **local changes before sync** and Git has **no** merge/rebase/cherry-pick/revert in progress:
+
+1. Still run first checks (status when Git works; otherwise fallback scan for markers and `.git/MERGE_HEAD` / rebase dirs / `CHERRY_PICK_HEAD` / `REVERT_HEAD`).
+2. If there is no interrupted operation and no unmerged paths: **do not** fabricate `unresolved_merge.md` or commits. The sync script will **stash** remaining edits after the agent returns if the tree is still dirty.
+3. Only edit local files when fixing real problems (e.g. conflict markers, broken merge state). Do not discard intentional WIP unless the user asked to.
 
 ## First Checks
 
 1. Run `git status --short --branch`. If `git` is not available or execution is blocked, stop: report that the sync script (`scripts/git-sync-pull-push.sh`) must run in a real shell with Git, or re-run this skill with Git allowed. Do not write or update `unresolved_merge.md` from guesses when Git was never queried.
+   - **Partial fallback (read-only):** when Git truly cannot run, you may still scan the worktree for `<<<<<<<` / `=======` / `>>>>>>>` and check `.git/` for `MERGE_HEAD`, `rebase-merge/`, `rebase-apply/`, `CHERRY_PICK_HEAD`, `REVERT_HEAD` to infer whether a conflict operation is in progress. Treat this as incomplete: always tell the user to run `git status --short --branch` locally before pushing or stashing, and do not claim the repo is clean without Git output.
+   - **Blocked agent shell:** if the agent environment rejects shell commands so `git status` never runs, still apply the partial fallback above; state clearly that Git was not executed in-session; for dirty-tree-only sync, do not create `unresolved_merge.md` or commits when fallback shows no interrupted operation and no markers.
+   - **Git binary blocked, filesystem allowed:** some sandboxes deny `git` while still allowing `test -f` / `ls` on `.git/MERGE_HEAD`, `.git/rebase-merge`, `.git/CHERRY_PICK_HEAD`, `.git/REVERT_HEAD`. Use those when `git` never runs; conclusions stay incomplete until the user runs `git status --short --branch` locally.
 2. Check whether Git is in a merge, rebase, cherry-pick, or revert state.
 3. Inspect only relevant files:
    - `git diff --name-only --diff-filter=U`
@@ -131,5 +143,15 @@ Entry template:
 5. If you performed resolution work or added uncertainty markers, confirm `unresolved_merge.md` was created or updated in the repository root.
 6. Report any remaining `@unresolved_merge` notes clearly in the final response.
 
-IF YOU HAD ANY PROBLEMS ON A WAY AND FOUND SOLUTIONS OR ANYTHING THAT CAN HELP IMPROVE PERFOMANCE OR QUALITY OR USING BETTER ACTIONS OR PATHS TO RESOLVE CONFLICGS UPDATE  /resolve-conflicts skill
+If you had problems along the way and found solutions or anything that improves performance, quality, or conflict-resolution paths, update this resolve-conflicts skill.
+
+## Git unavailable in the agent session
+
+When `git status` never ran (shell blocked, Git missing, agent/IDE rejecting terminal or Git invocations, etc.), read-only fallback does **not** replace Git: unmerged paths or a dirty index cannot be ruled out completely (marker scans miss index-only unmerged entries). Still report that Git was not executed, tell the user to run `git status --short --branch` before push or before trusting autostash. For **local changes before sync** with no interrupted operation and no markers in fallback, skip `unresolved_merge.md` and commits per the Dirty tree before sync rules above.
+
+If the agent session rejects **every** shell invocation (no `git` output at all), treat it the same: document that Git was not executed in-session, apply the partial fallback only for obvious markers and `.git/` heads, and do not claim a clean index without local `git status`.
+
+When the terminal tool fails entirely (e.g. every invocation rejected before the shell starts, including tools that return “Rejected” with no shell output), you still cannot run `git`; partial fallback is the same, but you also cannot run validation commands or `git merge --continue` / `git commit` in-session—tell the user to run those locally or re-run this skill where Git works.
+
+If **every** `run_terminal_cmd` / shell invocation returns “Rejected” with no output (sandbox or agent policy), treat it like Git unavailable: same partial fallback, same “run `git status --short --branch` locally” guidance; for dirty-tree-only sync with no interrupted operation and no markers in fallback, still skip `unresolved_merge.md` and commits.
 

@@ -5,6 +5,7 @@
     // run.type: "claude" = Claude Code print mode in run.cwd | "shell" = sh -c in run.cwd
     // runLocation: "supervisor" = local cron-supervisor | "github_actions" = not run locally (use workflows)
     // githubActions: optional. "enabled": false skips the GitHub workflow step (no Claude run → no push).
+    // end_date: optional "YYYY-MM-DD" or timestamp; expired crons are skipped and pruned by prune-expired-crons.
     // Each cron uses "production" / "development" (booleans). Supervisor loads envs/root.env then gates by ENVIRONMENT (production vs development), else NODE_ENV===production.
     "supervisor": {
         "timezone": "Asia/Makassar"
@@ -27,8 +28,9 @@
         {
             "name": "sync-project",
             "description": "run every 5 minutes; sync current remote main state with a local main branch",
-            "schedule": "*/5 * * * *",
+            "schedule": "* * * * *",
             "production": true,
+            "end_date": null,
             "development": true,
             "runLocation": "supervisor",
             "run": {
@@ -43,6 +45,7 @@
             "schedule": "*/5 * * * *",
             "production": true,
             "development": true,
+            "end_date": null,
             "runLocation": "supervisor",
             "run": {
                 "type": "shell",
@@ -51,9 +54,24 @@
             }
         },
         {
+            "name": "prune-expired-crons",
+            "description": "daily cleanup; remove crons whose end_date has passed",
+            "schedule": "0 0 * * *",
+            "production": true,
+            "development": true,
+            "end_date": null,
+            "runLocation": "supervisor",
+            "run": {
+                "type": "shell",
+                "cwd": ".",
+                "command": "node apps/cron-supervisor/scripts/prune-expired-crons.mjs configs/config.crons.jsonc"
+            }
+        },
+        {
             "name": "make-today-plan",
             "description": "every day at 07:00 Bali (WITA); GitHub: 23:00 UTC previous calendar day",
-            "schedule": "0 0 * * *",
+            "schedule": "0 23 * * *",
+            "end_date": null,
             "production": false,
             "development": true,
             "runLocation": "github_actions",
@@ -71,7 +89,8 @@
         {
             "name": "make-week-plan",
             "description": "weekly plan 07:00 Bali; GitHub: Sunday 23:00 UTC ≈ Monday 07:00 WITA",
-            "schedule": "0 0 * * *",
+            "schedule": "0 23 * * 0",
+            "end_date": null,
             "production": false,
             "development": true,
             "runLocation": "github_actions",

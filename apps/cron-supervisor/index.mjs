@@ -12,6 +12,7 @@ const REPO_ROOT = path.resolve(__dirname, '..', '..');
 /**
  * Merge envs/root.env into process.env for keys not already set (same source as rstart.sh).
  * Systemd/launchd do not source this file; without this, ENVIRONMENT=production is ignored.
+ * ENVIRONMENT from the file always wins so cron gating matches envs/root.env.
  */
 function applyRepoRootEnv() {
   const p = path.join(REPO_ROOT, 'envs', 'root.env');
@@ -21,6 +22,8 @@ function applyRepoRootEnv() {
   } catch {
     return;
   }
+  /** @type {string | null} */
+  let environmentFromFile = null;
   for (const line of text.split('\n')) {
     const t = line.trim();
     if (!t || t.startsWith('#')) continue;
@@ -28,7 +31,6 @@ function applyRepoRootEnv() {
     if (eq === -1) continue;
     const key = t.slice(0, eq).trim();
     if (!key || key.startsWith('#')) continue;
-    if (process.env[key] !== undefined) continue;
     let val = t.slice(eq + 1).trim();
     if (
       (val.startsWith('"') && val.endsWith('"')) ||
@@ -36,7 +38,15 @@ function applyRepoRootEnv() {
     ) {
       val = val.slice(1, -1);
     }
+    if (key === 'ENVIRONMENT') {
+      environmentFromFile = val;
+      continue;
+    }
+    if (process.env[key] !== undefined) continue;
     process.env[key] = val;
+  }
+  if (environmentFromFile != null) {
+    process.env.ENVIRONMENT = environmentFromFile;
   }
 }
 
@@ -44,8 +54,15 @@ const CONFIG_PATH =
   process.env.CRON_CONFIG_PATH ||
   path.join(REPO_ROOT, 'configs', 'config.crons.jsonc');
 const DEBOUNCE_MS = Number(process.env.CRON_RELOAD_DEBOUNCE_MS || 400);
+const CONFIG_DIR = path.dirname(CONFIG_PATH);
+const CONFIG_BASE = path.basename(CONFIG_PATH);
 
-/** Fixed under repo root: per-cron `<name>.log`, `supervisor.log` (info/warn), `errors.log` (errors + child stderr). */
+/** Fixed under repo root: per-cron `<name>.log`, `supervisor.log` (info/warn), `errors.log` (supervisor errors + failed job stderr tail). */
+const _stderrTailEnv = Number(process.env.CRON_CHILD_STDERR_TAIL_MAX);
+const CRON_CHILD_STDERR_TAIL_MAX = Math.min(
+  Number.isFinite(_stderrTailEnv) && _stderrTailEnv > 0 ? _stderrTailEnv : 65536,
+  2 * 1024 * 1024,
+);
 const CRON_LOGS_REL = path.join('logs', 'crons');
 const SUPERVISOR_LOG_FILE = 'supervisor.log';
 const ERRORS_LOG_FILE = 'errors.log';
@@ -172,6 +189,53 @@ function validateRun(r, i) {
   };
 }
 
+const DATE_ONLY_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+function dateOnlyEndOfDayUtcMs(value) {
+  const match = DATE_ONLY_RE.exec(value);
+  if (!match) return null;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const ms = Date.UTC(year, month - 1, day, 23, 59, 59, 999);
+  const d = new Date(ms);
+  if (
+    d.getUTCFullYear() !== year ||
+    d.getUTCMonth() !== month - 1 ||
+    d.getUTCDate() !== day
+  ) {
+    return null;
+  }
+  return ms;
+}
+
+function endDateToExpiresAtMs(value) {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const dateOnlyMs = dateOnlyEndOfDayUtcMs(trimmed);
+  if (dateOnlyMs != null) return dateOnlyMs;
+  const ms = Date.parse(trimmed);
+  return Number.isFinite(ms) ? ms : null;
+}
+
+function validateEndDate(value, i) {
+  if (value == null) {
+    return { ok: true, endDate: null, expiresAtMs: null };
+  }
+  if (typeof value !== 'string') {
+    return { ok: false, error: `crons[${i}].end_date must be a string if set` };
+  }
+  const endDate = value.trim();
+  const expiresAtMs = endDateToExpiresAtMs(endDate);
+  if (expiresAtMs == null) {
+    return {
+      ok: false,
+      error: `crons[${i}].end_date must be YYYY-MM-DD or a valid timestamp`,
+    };
+  }
+  return { ok: true, endDate, expiresAtMs };
+}
+
 /**
  * @param {unknown} raw
  */
@@ -238,6 +302,10 @@ function validateAndBuild(shape) {
     if (!runRes.ok) {
       return { ok: false, error: runRes.error };
     }
+    const endDateRes = validateEndDate(j.end_date, i);
+    if (!endDateRes.ok) {
+      return { ok: false, error: endDateRes.error };
+    }
     let githubActions = null;
     if (j.githubActions != null) {
       if (typeof j.githubActions !== 'object' || Array.isArray(j.githubActions)) {
@@ -259,6 +327,8 @@ function validateAndBuild(shape) {
       run: runRes.run,
       githubActions,
       timezone,
+      end_date: endDateRes.endDate,
+      expiresAtMs: endDateRes.expiresAtMs,
     });
   }
 
@@ -320,8 +390,20 @@ function filterForEnv(crons) {
 /**
  * @param {object[]} crons
  */
+function filterForEndDate(crons) {
+  const now = Date.now();
+  return crons.filter((j) => j.expiresAtMs == null || j.expiresAtMs >= now);
+}
+
+/**
+ * @param {object[]} crons
+ */
 function filterForLocalSupervisor(crons) {
   return crons.filter((j) => j.runLocation !== 'github_actions');
+}
+
+function isEndDateExpired(job) {
+  return job.expiresAtMs != null && job.expiresAtMs < Date.now();
 }
 
 function fingerprint(job) {
@@ -333,6 +415,7 @@ function fingerprint(job) {
     development: job.development,
     timezone: job.timezone,
     runLocation: job.runLocation,
+    end_date: job.end_date,
   });
 }
 
@@ -346,6 +429,10 @@ function spawnShell(command, options) {
 
 function runJob(job) {
   const name = job.name;
+  if (isEndDateExpired(job)) {
+    logLine('info', 'skip expired cron', { name, end_date: job.end_date });
+    return;
+  }
   if (running.get(name)) {
     logLine('warn', `skip overlapping run`, name);
     return;
@@ -390,18 +477,25 @@ function runJob(job) {
     jobStream = null;
   }
 
+  let stderrCapture = '';
+  const pushStderrChunk = (chunk) => {
+    stderrCapture += chunk;
+    if (stderrCapture.length > CRON_CHILD_STDERR_TAIL_MAX) {
+      stderrCapture = stderrCapture.slice(-CRON_CHILD_STDERR_TAIL_MAX);
+    }
+  };
+
   const writeLine = (stream, line) => {
-    const ts = new Date().toISOString();
     const out = `[${name}] [${stream}] ${line}\n`;
     process.stderr.write(out);
     jobStream?.write(out);
-    if (stream === 'stderr') {
-      appendErrorsOnly(`[${ts}] [cron:${name}] [stderr] ${line}\n`);
-    }
   };
 
   const prefix = (stream) => (chunk) => {
     const s = chunk.toString();
+    if (stream === 'stderr') {
+      pushStderrChunk(s);
+    }
     for (const line of s.split('\n')) {
       if (!line) continue;
       writeLine(stream, line);
@@ -418,8 +512,16 @@ function runJob(job) {
   child.on('close', (code, signal) => {
     running.set(name, false);
     jobStream?.end();
-    if (code !== 0 && code != null) {
+    const failed = code !== 0;
+    if (failed) {
       logLine('error', `non-zero exit code=${code} signal=${signal ?? ''}`, name);
+      const errText = stderrCapture.trim();
+      if (errText) {
+        const ts = new Date().toISOString();
+        appendErrorsOnly(
+          `[${ts}] [cron:${name}] [stderr tail on failure]\n${stderrCapture.endsWith('\n') ? stderrCapture : `${stderrCapture}\n`}`,
+        );
+      }
     } else {
       logLine('info', `finished code=${code} signal=${signal ?? ''}`, name);
     }
@@ -520,7 +622,7 @@ function applyConfig(options = {}) {
   }
   supervisor = parsed.supervisor;
   lastGoodPayload = parsed;
-  const filtered = filterForLocalSupervisor(filterForEnv(parsed.crons));
+  const filtered = filterForLocalSupervisor(filterForEndDate(filterForEnv(parsed.crons)));
   const digest = digestForJobs(filtered);
 
   if (fromFileEvent && digest === lastAppliedJobsDigest) {
@@ -562,14 +664,39 @@ function main() {
     timezone: supervisor.defaultTimezone,
   });
 
+  const onConfigMaybeChanged = (source, ev, p) => {
+    if (p != null) {
+      const base = path.basename(p);
+      if (base !== CONFIG_BASE) return;
+    }
+    logLine('info', `config reload trigger: ${source}${ev != null ? ` (${ev})` : ''}`);
+    scheduleReload();
+  };
+
   chokidar
-    .watch(CONFIG_PATH, { ignoreInitial: true, awaitWriteFinish: { stabilityThreshold: 200 } })
-    .on('all', (ev) => {
-      logLine('info', `config file event: ${ev}`);
-      scheduleReload();
-    });
+    .watch(CONFIG_DIR, {
+      ignoreInitial: true,
+      depth: 0,
+      awaitWriteFinish: { stabilityThreshold: 200 },
+    })
+    .on('all', (ev, p) => onConfigMaybeChanged('chokidar', ev, p));
+
+  try {
+    fs.watchFile(
+      CONFIG_PATH,
+      { interval: Number(process.env.CRON_WATCHFILE_INTERVAL_MS || 2000) },
+      () => onConfigMaybeChanged('watchFile'),
+    );
+  } catch (e) {
+    logLine('warn', `fs.watchFile config: ${e.message}`);
+  }
 
   process.on('SIGINT', () => {
+    try {
+      fs.unwatchFile(CONFIG_PATH);
+    } catch {
+      // ignore
+    }
     for (const [, entry] of active) entry.job.stop();
     process.exit(0);
   });

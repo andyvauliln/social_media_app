@@ -136,9 +136,8 @@ Full autonomous execution:
 2. create_task_folder "$SLUG"                         # mkdir + plan.md stub
 3. Generate plan → write to $MANAGER_TASKS/in_plan/$SLUG/plan.md
 4. Create worktree and branch:
-     git worktree add -b <branch_name> ".claude/worktrees/<branch_name>" main
+     git worktree add -b <branch_name> "!WORKTREES/<branch_name>" main
    OR if worktrees not available:
-     git checkout -b <branch_name> main
 5. Execute the plan (work through the generated plan steps)
 ```
 
@@ -270,7 +269,7 @@ run `agents/manager  /sync-tasks skill`
 - If anything is ambiguous, **ask the user** before creating the task
 - If no human assignee is implied and prompt doesn't name a user, assign to `ai`
 - Default `assigned_agent` to `"main"` when no agent tag is given; use `"dev"` for `@dev` / `@agent.dev`. Leave task JSON `context` empty unless `@c` / `@context` is in the prompt.
-- Tasks from **`/collect-inline-tasks`**: set task JSON **`notes`** to **`Inline collected`** only.
+- Tasks from **`/collect-inline-tasks`**: set task JSON **`notes`** to **`Inline collected`** for main-tree matches, or **`Inline collected from worktree branch: <branch>`** when collect-inline-tasks passes a worktree branch source.
 - `branch_name` must be git-safe: lowercase, hyphens, no spaces
 - Preserve JSONC comments when reading/writing `.jsonc` files
 - GitHub issue must be created before saving to `tasks.index.jsonc` (ID is required)

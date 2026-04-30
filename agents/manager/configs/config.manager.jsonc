@@ -2,12 +2,13 @@
     "team": [
         {
             "name": "andrei",
+            "type": "developer",
             "email": "andy.vaulin@gmail.com",
             "telegram": "@johnnypitt",
             "role": "main developer and manager for the project",
             "platforms": "claude, cursor", // claude should be always present it's default and additonally poosible another
             "current_focus": "1)finish agent.manager 2)agent.logs 3)dev.agent", // for better task assignement
-            "scopes": ["main", "app.dev", "agent.manager", "app.logs", "agent.research", "agent.db", "agent.logs"],
+            "scopes": ["main"],
             "ai_manger_notes": [""],
             "working_days": "mon,tue,wed,thu,fri",
             "working_hours": "10:00-18:00",
@@ -23,6 +24,23 @@
                 "test_aliases",
                 "create,start,close task working"
 
+            ]
+        },
+        {
+            "name": "valera",
+            "type": "ai",
+            "email": "",
+            "telegram": "",
+            "role": "Main delveloper",
+            "platforms": "claude, cursor", // claude should be always present it's default and additonally poosible another
+            "current_focus": "finish all tasks that no need any human intervention", // for better task assignement
+            "scopes": ["main"],
+            "ai_manger_notes": ["assign for all development related task that has marked for ai"],
+            "working_days": "all the times",
+            "working_hours": "all the times",
+            "location": "worldwide",
+            "next_day_priority": [
+                "finish all tasks that no need any human intervention"
             ]
         }
     ]

@@ -1,5 +1,45 @@
 [
   {
+    "github_issue_id": 17,
+    "title": "Remove temporary inline collect worktree duplicate test",
+    "description": "Clean up the temporary inline collection duplicate test marker used for validating worktree dedup behavior. Keeping this out of tracked test placeholders avoids noisy recurring collection and keeps task scans focused on real work.",
+    "branch_name": "",
+    "branch_github_link": "",
+    "pr_id": "",
+    "pr_link": "",
+    "estimated_time": "30m",
+    "status": "pending",
+    "when": "week",
+    "when_date": "",
+    "blocked_reason": "",
+    "in_plan_task_directory": "",
+    "priority": "medium",
+    "scope": "main",
+    "tags": ["inline-tasks", "worktree", "cleanup"],
+    "type": "improvement",
+    "context": "",
+    "user_input": "temporary collect inline worktree duplicate test @week @main",
+    "sub_tasks": [
+      {
+        "sub_task_id": 1,
+        "title": "Confirm cleanup path for temporary worktree inline marker",
+        "type": "plan",
+        "status": "pending"
+      }
+    ],
+    "is_passed_tests": false,
+    "run_test_command": "",
+    "assigned_user": "ai",
+    "assigned_agent": "main",
+    "is_need_human_confirmation": true,
+    "notes": "Inline collected from worktree branch: inline-collect-worktree",
+    "platform": "cursor",
+    "created_at": "2026-04-30T06:55:00Z",
+    "created_by": "andrei",
+    "updated_at": "2026-04-30T06:55:00Z",
+    "closed_at": ""
+  },
+  {
     "github_issue_id": 16,
     "title": "Create update-change-log skill",
     "description": "Create the missing skill that guides how and when to update `change-log.md` consistently. This captures the intended template and execution strategy so changelog updates are predictable.",

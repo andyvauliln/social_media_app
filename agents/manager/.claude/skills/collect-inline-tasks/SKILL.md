@@ -24,7 +24,7 @@ hooks: {}
 
 # CONTEXT
 
-Scan matches **only** lines containing the marker `\bai_todo\s*:` (case-insensitive), same as `agents/manager/scripts/collect-inline-tasks-if-needed.sh`. Excludes below must stay in sync with that script.
+Scan matches **only** lines containing the marker `\bai_todo\s*:` (case-insensitive), same as `agents/manager/scripts/collect-inline-tasks-if-needed.sh`. Excludes below must stay in sync with that script. Worktree matches are normalized to the main project-relative path before excludes and duplicate detection.
 
 ```bash
 !ROOT_PROJECT_PATH="$(pwd)" && \
@@ -32,17 +32,11 @@ export ROOT_PROJECT_PATH && \
 export TASK_LIST_PATH="$ROOT_PROJECT_PATH/agents/manager/data/tasks/tasks.index.jsonc" && \
 echo "ROOT=$ROOT_PROJECT_PATH" && \
 echo "=== AI_TODO MATCHES ===" && \
-rg -n -i '\bai_todo\s*:' "$ROOT_PROJECT_PATH" \
-  --glob '!**/.git/**' \
-  --glob '!**/node_modules/**' \
-  --glob '!**/.vscode/**' \
-  --glob '!**/logs/**' \
-  --glob '!**/agent.manager.tests/**' \
-  --glob '!*.json' \
-  --glob '!agents/manager/scripts/collect-inline-tasks-if-needed.sh' \
-  --glob '!**/!KNOWLEDGE_BASE/CODE_GUIDANCE.md' \
-  --glob '!agents/manager/.claude/skills/collect-inline-tasks/SKILL.md' \
-  2>/dev/null || echo "NO_MATCHES"
+if [ -n "${COLLECT_INLINE_TASKS_SCAN_OUT:-}" ]; then
+  printf '%s\n' "$COLLECT_INLINE_TASKS_SCAN_OUT"
+else
+  COLLECT_INLINE_TASKS_DRY_RUN=1 bash "$ROOT_PROJECT_PATH/agents/manager/scripts/collect-inline-tasks-if-needed.sh" --cursor
+fi
 ```
 
 **Excluded path segments (any file whose relative path contains this directory name):** `.git`, `node_modules`, `.vscode`, `logs`, `agent.manager.tests`.
@@ -50,6 +44,16 @@ rg -n -i '\bai_todo\s*:' "$ROOT_PROJECT_PATH" \
 **Excluded file suffix:** `.json` only (**.jsonc is scanned**, e.g. manager config).
 
 **Extra excluded relative paths:** `agents/manager/scripts/collect-inline-tasks-if-needed.sh`, `!KNOWLEDGE_BASE/CODE_GUIDANCE.md`, `agents/manager/.claude/skills/collect-inline-tasks/SKILL.md`.
+
+**Worktree path handling:** files under `!WORKTREES/<branch>/`, `.claude/worktrees/<branch>/`, or `.cursor/worktrees/<branch>/` are treated as if `<branch>/` was removed before applying excludes. If the same normalized `path:line:comment` exists in both main and a worktree, process it once and preserve the worktree branch for notes.
+
+When the scan includes `__COLLECT_INLINE_RAW__`, each raw record has this shape:
+
+```
+<normalized_path>:<line>:worktree=<branch-or-empty>:raw=<actual_path>:<escaped original comment>
+```
+
+Use `raw=<actual_path>` for reading and removing the comment. Use `<normalized_path>:<line>` only for de-duping and display.
 
 ---
 
@@ -97,12 +101,12 @@ The scanner and agent treat these as **one** todo:
 2. **Check match list** — if CONTEXT shows `NO_MATCHES` or filtered list is empty → print `No ai_todo comments found` and stop. Why: fail fast before any tool calls.
 
 3. **For each match** (process one at a time, never batch):
-   - a. **Read context** — use Read tool on the file, targeting the matched line ±8 lines (wider if the `ai_todo` sits in a multi-line `/* ... */` block). Why: need enough context to remove the **whole** comment safely.
+   - a. **Read context** — use Read tool on the raw file path from the scan entry (`raw=<actual_path>` when present), targeting the matched line ±8 lines (wider if the `ai_todo` sits in a multi-line `/* ... */` block). Why: need enough context to remove the **whole** comment safely in the actual source file.
    - b. **Parse** — from the **full** comment (single line, full `/* */` block, or consecutive `//` / `#` run produced by the multiline rules above): extract prompt text — prefer a double-quoted string (may span lines inside a block); else use everything after `ai_todo:` through the end of that comment unit, normalizing whitespace. Parse `@params` from that tail.
    - c. **Build create-task call**:
      - Always add **`@main`** for execution agent **unless** the comment already has `@dev`, `@agent.dev`, or another explicit `@agent.*` (then pass those instead). Map to task `assigned_agent`: default `"main"`, or `"dev"` when `@dev` / `@agent.dev` is present.
      - Put **`@context` / `@c` in the `/create-task` invocation only when** the `ai_todo` line/block contains `@c` or `@context`. Then supply paths or `relative/path:line` as appropriate. **Do not** pass source location as `@context` when those tags are missing — the task JSON `context` must stay `""`.
-     - Task JSON **`notes`** must be exactly **`Inline collected`** — no source filename or “Collected from inline ai_todo in …” text.
+     - Task JSON **`notes`** must be exactly **`Inline collected`** for main-tree matches, or **`Inline collected from worktree branch: <branch>`** when the scan entry says `source: worktree branch: <branch>`.
      - Pass all other `@params` (user, scheduling, priority, types, etc.) from the comment.
    - d. **Call `/create-task "<prompt>" @ai @main …`** (plus optional tags) and wait for confirmation the task was created (task ID returned).
    - e. **On success → remove the entire comment**, not just the `ai_todo:` fragment:
@@ -136,7 +140,7 @@ Then end with counts, e.g. `N created. M failed.`
 - Excludes and the `\bai_todo\s*:` rule must match `collect-inline-tasks-if-needed.sh` (see CONTEXT and the list above). Do not skip `.jsonc` files.
 - For JSONC manipulation use `jsonc-parser` from `packages/node.common` — not task-helpers.sh.
 - Process matches one at a time — each needs its own `/create-task` call.
-- Saved task **`notes`** for collected inline todos: fixed string **`Inline collected`** only (see create-task skill).
+- Saved task **`notes`** for collected inline todos: **`Inline collected`** for main-tree matches, or **`Inline collected from worktree branch: <branch>`** for worktree-origin matches (see create-task skill).
 
 # OUTPUT
 

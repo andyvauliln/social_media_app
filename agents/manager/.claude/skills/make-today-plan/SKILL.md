@@ -12,11 +12,24 @@ shell: bash
 hooks: {}
 ---
 1) get config.manager.jsonc  to get team and project data
-2) Read all tasks where when status is @week and phase_1
-3) base on that info make today list of tasks for each assigned_user and put it in a file agents/manager/data/tasks/in_plan/{assigned_user}.today.jsonc
-if some task from @today still not finsihed add them again to the list
+2) Read all tasks where when status is `today` and not finished and `week` by every user from the team for get ai tasks 
+4) get
+3) base on that info make today list of tasks for each assigned_user and put it in a file agents/manager/data/tasks/in_plan/{assigned_user}.today.md
+
 4) Make plan with using skill /create-plan {task_id}
 
+when works with task use task-management
+```bash
+!bun task-management get-task "$0"
+````
+
+remove all canseled tasks or done task
+
+FORMAT:
+6. Title `` 
+- (tags,priority, type, ...)
+- description 
+-
 
 ```json
 { "ai_file_metadata": {

@@ -41,9 +41,47 @@ const isProduction = () => {
   return process.env.NODE_ENV === 'production';
 };
 
+const DATE_ONLY_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+function dateOnlyEndOfDayUtcMs(value) {
+  const match = DATE_ONLY_RE.exec(value);
+  if (!match) return null;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const ms = Date.UTC(year, month - 1, day, 23, 59, 59, 999);
+  const d = new Date(ms);
+  if (
+    d.getUTCFullYear() !== year ||
+    d.getUTCMonth() !== month - 1 ||
+    d.getUTCDate() !== day
+  ) {
+    return null;
+  }
+  return ms;
+}
+
+function endDateToExpiresAtMs(value) {
+  if (value == null) return null;
+  if (typeof value !== 'string') return NaN;
+  const trimmed = value.trim();
+  if (!trimmed) return NaN;
+  const dateOnlyMs = dateOnlyEndOfDayUtcMs(trimmed);
+  if (dateOnlyMs != null) return dateOnlyMs;
+  return Date.parse(trimmed);
+}
+
+function endDateState(cron) {
+  const expiresAtMs = endDateToExpiresAtMs(cron.end_date);
+  if (cron.end_date == null) return 'active';
+  if (!Number.isFinite(expiresAtMs)) return 'invalid';
+  return expiresAtMs < Date.now() ? 'expired' : 'active';
+}
+
 /** @type {{ enabled: boolean; reason: string }} */
 let result = { enabled: false, reason: 'not_found' };
 if (cron) {
+  const endDate = endDateState(cron);
   if (cron.runLocation !== 'github_actions') {
     result = { enabled: false, reason: 'not_github_actions' };
   } else if (
@@ -57,6 +95,10 @@ if (cron) {
       enabled: false,
       reason: isProduction() ? 'production_false' : 'development_false',
     };
+  } else if (endDate === 'invalid') {
+    result = { enabled: false, reason: 'invalid_end_date' };
+  } else if (endDate === 'expired') {
+    result = { enabled: false, reason: 'end_date_expired' };
   } else {
     result = { enabled: true, reason: 'ok' };
   }

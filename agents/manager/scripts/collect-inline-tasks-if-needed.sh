@@ -54,6 +54,11 @@ exclude_relative_paths = {
     "!KNOWLEDGE_BASE/CODE_GUIDANCE.md",
     "agents/manager/.claude/skills/collect-inline-tasks/SKILL.md",
 }
+worktree_container_prefixes = (
+    ("!WORKTREES",),
+    (".claude", "worktrees"),
+    (".cursor", "worktrees"),
+)
 
 AI_TODO_MARKER = re.compile(r"(?i)\bai_todo\s*:")
 # Double-quoted prompt; supports one physical line only (C/JSONC-style).
@@ -152,13 +157,23 @@ def raw_record_field(snippet: str) -> str:
     return snippet.replace("\\", "\\\\").replace("\n", "\\n")
 
 
-matches = []
+def project_relative_path(rel: Path):
+    parts = rel.parts
+    for prefix in worktree_container_prefixes:
+        prefix_len = len(prefix)
+        if tuple(parts[:prefix_len]) == prefix and len(parts) > prefix_len + 1:
+            return Path(*parts[prefix_len + 1 :]), parts[prefix_len]
+    return rel, ""
+
+
+matches_by_key = {}
 
 for path in root.rglob("*"):
     if not path.is_file():
         continue
 
-    rel = path.relative_to(root)
+    raw_rel = path.relative_to(root)
+    rel, worktree_name = project_relative_path(raw_rel)
     rel_posix = rel.as_posix()
     parts = set(rel.parts)
     if parts & exclude_dirs:
@@ -178,19 +193,35 @@ for path in root.rglob("*"):
     for m in AI_TODO_MARKER.finditer(text):
         line_no = text.count("\n", 0, m.start()) + 1
         snippet = snippet_for_match(text, m)
-        matches.append((rel_posix, line_no, snippet))
+        match_key = (rel_posix, line_no, snippet)
+        existing = matches_by_key.get(match_key)
+        if existing is None or (not existing[3] and worktree_name):
+            matches_by_key[match_key] = (
+                rel_posix,
+                line_no,
+                snippet,
+                worktree_name,
+                raw_rel.as_posix(),
+            )
 
+matches = list(matches_by_key.values())
 if not matches:
     print("NO_MATCHES")
 else:
-    for rel_posix, line_no, snippet in matches:
+    for rel_posix, line_no, snippet, worktree_name, raw_rel_posix in matches:
         log_prompt = log_ai_todo_payload(snippet)
         print(rel_posix)
         print(f'ai_todo: {log_prompt!r}')
+        if worktree_name:
+            print(f"source: worktree branch: {worktree_name}")
         print("")
     print("__COLLECT_INLINE_RAW__")
-    for rel_posix, line_no, snippet in matches:
-        print(f"{rel_posix}:{line_no}:{raw_record_field(snippet)}")
+    for rel_posix, line_no, snippet, worktree_name, raw_rel_posix in matches:
+        print(
+            f"{rel_posix}:{line_no}:"
+            f"worktree={worktree_name}:raw={raw_rel_posix}:"
+            f"{raw_record_field(snippet)}"
+        )
 PYEOF
 )"
 
@@ -207,12 +238,24 @@ MATCH_COUNT="$(printf '%s\n' "$RAW_LINES" | grep -c . || true)"
 echo "[collect-inline-tasks-if-needed] scan ($MATCH_COUNT match(es)):"
 printf '%s\n' "$HUMAN_LINES"
 
+export COLLECT_INLINE_TASKS_SCAN_OUT="$SCAN_OUT"
+export COLLECT_INLINE_TASKS_RAW_LINES="$RAW_LINES"
+
 if [[ "${COLLECT_INLINE_TASKS_DRY_RUN:-0}" == "1" ]]; then
   echo "[collect-inline-tasks-if-needed] summary: matches=$MATCH_COUNT, agent=not_started (dry-run)"
   exit 0
 fi
 
 echo "[collect-inline-tasks-if-needed] summary: matches=$MATCH_COUNT, agent=starting ($COLLECT_AGENT)"
+
+COLLECT_PROMPT="$(cat <<EOF
+/collect-inline-tasks.manager
+
+Use this scan output from agents/manager/scripts/collect-inline-tasks-if-needed.sh as authoritative. Do not run a separate raw repository scan for actionable matches; process exactly these $MATCH_COUNT normalized, de-duplicated match(es). If a match has "source: worktree branch: <branch>", create the task with notes "Inline collected from worktree branch: <branch>" and remove the comment from the raw worktree path listed under __COLLECT_INLINE_RAW__.
+
+$SCAN_OUT
+EOF
+)"
 
 if [[ "$COLLECT_AGENT" == "claude" ]]; then
   export PATH="${HOME}/.local/bin:${HOME}/.bun/bin:${PATH:-}"
@@ -227,7 +270,7 @@ if [[ "$COLLECT_AGENT" == "claude" ]]; then
     exit 1
   fi
   cd "$REPO_ROOT" || exit 1
-  exec bash "$REPO_ROOT/agents/manager/ragent.claude.sh" -p "/collect-inline-tasks"
+  exec bash "$REPO_ROOT/agents/manager/ragent.claude.sh" -p "$COLLECT_PROMPT"
 fi
 
 if [[ -f "$REPO_ROOT/scripts/ensure-cursor-agent.sh" ]]; then
@@ -244,4 +287,4 @@ if ! command -v agent >/dev/null 2>&1; then
 fi
 
 cd "$REPO_ROOT" || exit 1
-exec agent --workspace "$REPO_ROOT" --print --trust --model auto /collect-inline-tasks.manager
+exec agent --workspace "$REPO_ROOT" --print --trust --model auto "$COLLECT_PROMPT"

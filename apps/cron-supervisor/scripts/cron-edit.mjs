@@ -25,7 +25,8 @@ if (action === 'list') {
     const p = cron.production ? 'prod' : '---';
     const d = cron.development ? 'dev ' : '---';
     const loc = cron.runLocation === 'github_actions' ? '[github]  ' : '[local]   ';
-    console.log(`  ${p}/${d}  ${loc} ${cron.schedule.padEnd(12)} ${cron.name}`);
+    const end = cron.end_date ? ` end=${cron.end_date}` : '';
+    console.log(`  ${p}/${d}  ${loc} ${cron.schedule.padEnd(12)} ${cron.name}${end}`);
   }
   process.exit(0);
 }

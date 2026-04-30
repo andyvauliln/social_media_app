@@ -23,6 +23,8 @@ rebuilds scheduling files, then pushes — so every developer stays in sync.
 
 ---
 
+sync with a github task delete, update
+
 ## Step 0 — Setup
 
 ```bash
