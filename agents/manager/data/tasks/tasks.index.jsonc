@@ -7,7 +7,7 @@
     "branch_github_link": "",
     "pr_id": "",
     "pr_link": "",
-    "estimated_time": "1h",
+    "estimated_time": "2h",
     "status": "pending",
     "when": "today",
     "when_date": "2026-04-29",
@@ -24,7 +24,7 @@
         "sub_task_id": 1,
         "title": "Define skill requirements and execution flow",
         "type": "plan",
-        "status": "pending"
+        "status": "in_progress"
       }
     ],
     "is_passed_tests": false,
@@ -32,7 +32,7 @@
     "assigned_user": "ai",
     "assigned_agent": "main",
     "is_need_human_confirmation": true,
-    "notes": "Inline collected",
+    "notes": "Inline collected from worktree",
     "platform": "cursor",
     "created_at": "2026-04-29T19:20:00Z",
     "created_by": "andrei",
