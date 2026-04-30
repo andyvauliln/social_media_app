@@ -9,7 +9,7 @@
         "tags": ["before_pr"], // for building different set on test on different scenarious
     },
     {
-        "name": "test1",
+        "name": "test2",
         "modeule": "main.agent",
         "description": "test1 description",
         "run": "bash scripts/test1.sh",
