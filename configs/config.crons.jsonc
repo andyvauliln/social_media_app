@@ -36,7 +36,7 @@
             "run": {
                 "type": "shell",
                 "cwd": ".",
-                "command": "bash scripts/git-sync-pull-push.sh --cursor --resolve-local-changes"
+                "command": "bash scripts/git-sync-pull-push.sh --cursor"
             }
         },
         {

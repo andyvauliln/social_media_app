@@ -269,7 +269,9 @@ run `agents/manager  /sync-tasks skill`
 - If anything is ambiguous, **ask the user** before creating the task
 - If no human assignee is implied and prompt doesn't name a user, assign to `ai`
 - Default `assigned_agent` to `"main"` when no agent tag is given; use `"dev"` for `@dev` / `@agent.dev`. Leave task JSON `context` empty unless `@c` / `@context` is in the prompt.
-- Tasks from **`/collect-inline-tasks`**: set task JSON **`notes`** to **`Inline collected`** for main-tree matches, or **`Inline collected from worktree branch: <branch>`** when collect-inline-tasks passes a worktree branch source.
+- Tasks from **`/collect-inline-tasks`**: set task JSON **`notes`** to **`Inline collected`** for main-tree matches, or **`Inline collected from worktree branch: <branch>`** when 
+collect-inline-tasks passes a worktree branch source.
+- do not include anywhwere in `tasks ai bottom slash todo`
 - `branch_name` must be git-safe: lowercase, hyphens, no spaces
 - Preserve JSONC comments when reading/writing `.jsonc` files
 - GitHub issue must be created before saving to `tasks.index.jsonc` (ID is required)
