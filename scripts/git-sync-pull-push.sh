@@ -21,18 +21,15 @@ fi
 cd "$ROOT"
 
 # Optional: --claude (default) or --cursor chooses which runner handles resolve-conflicts.
-# Optional: --resolve-local-changes autostashes normal local changes instead of skipping.
 RESOLVE_AGENT="claude"
-RESOLVE_LOCAL_CHANGES=0
 _seen_claude=0
 _seen_cursor=0
 for _arg in "$@"; do
   case "$_arg" in
     --claude) _seen_claude=1 ;;
     --cursor) _seen_cursor=1 ;;
-    --resolve-local-changes) RESOLVE_LOCAL_CHANGES=1 ;;
     *)
-      echo "[git-sync] unknown option: $_arg (expected --claude, --cursor, or --resolve-local-changes)" >&2
+      echo "[git-sync] unknown option: $_arg (expected --claude or --cursor)" >&2
       exit 2
       ;;
   esac
@@ -89,6 +86,14 @@ fail_sync() {
 
 has_local_changes() {
   ! git diff --quiet || ! git diff --cached --quiet
+}
+
+autostash_local_changes() {
+  log_step "Stashed local changes before sync" "updating $MAIN_BRANCH requires a clean working tree"
+  if ! git stash push --quiet -u -m "git-sync autostash $(date -u +%Y-%m-%dT%H:%M:%SZ)"; then
+    fail_sync "autostash failed" "local changes must be protected before syncing"
+  fi
+  GIT_SYNC_AUTOSTASHED=1
 }
 
 restore_autostash() {
@@ -182,18 +187,10 @@ if has_git_operation_in_progress || ! git diff --diff-filter=U --quiet; then
   fi
 fi
 
-# Do not run the agent for normal local work. Stash only when explicitly requested.
+# Track local edits. We only stash if we later detect incoming updates for $MAIN_BRANCH.
+LOCAL_CHANGES_PRESENT=0
 if has_local_changes; then
-  if [[ "$RESOLVE_LOCAL_CHANGES" -eq 1 ]]; then
-    log_step "Stashed local changes before sync" "working tree or index has local changes"
-    if ! git stash push --quiet -u -m "git-sync autostash $(date -u +%Y-%m-%dT%H:%M:%SZ)"; then
-      fail_sync "autostash failed" "local changes must be protected before syncing"
-    fi
-    GIT_SYNC_AUTOSTASHED=1
-  else
-    log_step "Skipped sync" "working tree or index has local changes"
-    exit 0
-  fi
+  LOCAL_CHANGES_PRESENT=1
 fi
 
 # origin is the shared remote repository, usually GitHub.
@@ -240,6 +237,9 @@ fi
 
 # origin/main is ahead: safe pull case.
 if [[ "$main_anc_of_origin" == 1 ]]; then
+  if [[ "$LOCAL_CHANGES_PRESENT" -eq 1 && "$current" == "$MAIN_BRANCH" && "${GIT_SYNC_AUTOSTASHED:-0}" -eq 0 ]]; then
+    autostash_local_changes
+  fi
   if [[ "$current" == "$MAIN_BRANCH" ]]; then
     git merge --quiet --ff-only "origin/$MAIN_BRANCH"
   else
@@ -294,6 +294,9 @@ try_auto_merge_diverged_main() {
 }
 
 if [[ "${GIT_SYNC_AUTO_MERGE:-1}" == "1" ]]; then
+  if [[ "$LOCAL_CHANGES_PRESENT" -eq 1 && "${GIT_SYNC_AUTOSTASHED:-0}" -eq 0 ]]; then
+    autostash_local_changes
+  fi
   log_step "Tried auto-merge for diverged $MAIN_BRANCH" "local and remote both have unique commits"
   if try_auto_merge_diverged_main "$current"; then
     git push --quiet origin "$MAIN_BRANCH"
@@ -362,7 +365,7 @@ fail_sync "local $MAIN_BRANCH and origin/$MAIN_BRANCH still diverged after confl
 #    Simple meaning: Git started combining changes earlier, but it got stuck.
 # 4. If Git is stuck, run the resolve-conflicts agent first.
 # 5. If the agent cannot finish the conflict, stop and report the problem.
-# 6. If there are normal uncommitted local edits, stop or autostash them when --resolve-local-changes is set.
+# 6. If there are normal uncommitted local edits, stash only when incoming main updates must be applied.
 # 7. Check that the project has an origin remote, usually GitHub or the shared repository.
 # 8. Download the newest information about origin/main. This does not change files yet.
 # 9. Stop if Git is in detached HEAD mode, because the script cannot know which branch to update.
