@@ -16,6 +16,7 @@
             "schedule": "* * * * *",
             "production": false,
             "development": true,
+            "end_date": null, // optional
             "runLocation": "supervisor",
             "run": {
                 "type": "shell",
