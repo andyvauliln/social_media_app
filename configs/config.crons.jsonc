@@ -16,13 +16,27 @@
             "description": "prints a heartbeat every minute",
             "schedule": "* * * * *",
             "production": false,
-            "development": true,
+            "development": false,
             "end_date": null, // optional
             "runLocation": "supervisor",
             "run": {
                 "type": "shell",
                 "cwd": ".",
                 "command": "echo \"[health-check] $(date -u +%Y-%m-%dT%H:%M:%SZ)\""
+            }
+        },
+        {
+            "name": "sync-tasks",
+            "description": "sync task for today and week from tasks.index.jsonc and remove canceled issues from github and tasks.index.jsonc",
+            "schedule": "* * * * *",
+            "production": false,
+            "development": true,
+            "end_date": null, // optional
+            "runLocation": "supervisor",
+            "run": {
+                "type": "shell",
+                "cwd": ".",
+                "command": "bun task-management sync-tasks"
             }
         },
         {
@@ -42,7 +56,7 @@
         {
             "name": "collect-inline-tasks",
             "description": "run every 5 minutes; check if exist ai comments tags and run agent to make task for them",
-            "schedule": "*/5 * * * *",
+            "schedule": "* * * * *",
             "production": true,
             "development": true,
             "end_date": null,
@@ -58,7 +72,7 @@
             "description": "daily cleanup; remove crons whose end_date has passed",
             "schedule": "0 0 * * *",
             "production": true,
-            "development": true,
+            "development": false,
             "end_date": null,
             "runLocation": "supervisor",
             "run": {

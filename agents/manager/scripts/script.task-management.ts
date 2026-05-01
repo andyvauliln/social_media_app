@@ -1,6 +1,7 @@
 #!/usr/bin/env -S npx tsx
 // @ts-nocheck
 
+import { execFileSync } from "node:child_process";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { parse } from "jsonc-parser";
@@ -92,6 +93,251 @@ async function writeTasks(filePath: string, tasks: Task[]): Promise<void> {
   await fs.writeFile(filePath, content, "utf8");
 }
 
+function resolvePlanDir(tasksFilePath: string, planDirArg?: string): string {
+  if (planDirArg) {
+    return path.isAbsolute(planDirArg) ? planDirArg : path.resolve(process.cwd(), planDirArg);
+  }
+  return path.resolve(path.dirname(tasksFilePath), "in_plan");
+}
+
+async function rebuildAssignedUserTodayFiles(tasks: Task[], planDir: string): Promise<void> {
+  await fs.mkdir(planDir, { recursive: true });
+
+  const todayTasks = tasks.filter((task) =>
+    ["today", "now"].includes(String(task.when ?? "").toLowerCase()),
+  );
+
+  const grouped = todayTasks.reduce<Record<string, Task[]>>((acc, task) => {
+    const user = String(task.assigned_user ?? "").trim() || "unknown-user";
+    (acc[user] ??= []).push(task);
+    return acc;
+  }, {});
+
+  for (const [user, list] of Object.entries(grouped)) {
+    const file = path.join(planDir, `${user}.today.jsonc`);
+    await fs.writeFile(file, `${JSON.stringify(list, null, 2)}\n`, "utf8");
+  }
+
+  const counts = Object.entries(grouped)
+    .map(([user, list]) => `${user}:${list.length}`)
+    .join(", ");
+
+  console.log(`today tasks: ${todayTasks.length}`);
+  console.log(`today files: ${counts || "none"}`);
+}
+
+async function rebuildAssignedUserWeekFiles(tasks: Task[], planDir: string): Promise<void> {
+  await fs.mkdir(planDir, { recursive: true });
+
+  const weekTasks = tasks.filter((task) => String(task.when ?? "").toLowerCase() === "week");
+
+  const grouped = weekTasks.reduce<Record<string, Task[]>>((acc, task) => {
+    const user = String(task.assigned_user ?? "").trim() || "unknown-user";
+    (acc[user] ??= []).push(task);
+    return acc;
+  }, {});
+
+  for (const [user, list] of Object.entries(grouped)) {
+    const file = path.join(planDir, `${user}.week.jsonc`);
+    await fs.writeFile(file, `${JSON.stringify(list, null, 2)}\n`, "utf8");
+  }
+
+  const counts = Object.entries(grouped)
+    .map(([user, list]) => `${user}:${list.length}`)
+    .join(", ");
+
+  console.log(`week tasks: ${weekTasks.length}`);
+  console.log(`week files: ${counts || "none"}`);
+}
+
+async function syncTasksSchedule(tasks: Task[], planDir: string): Promise<void> {
+  await rebuildAssignedUserTodayFiles(tasks, planDir);
+  await rebuildAssignedUserWeekFiles(tasks, planDir);
+}
+
+function isCancelledTaskStatus(status: unknown): boolean {
+  const normalized = String(status ?? "").toLowerCase();
+  return normalized === "cancelled" || normalized === "canceled";
+}
+
+function separateCancelledTasks(tasks: Task[]): { kept: Task[]; removed: Task[] } {
+  const kept: Task[] = [];
+  const removed: Task[] = [];
+  for (const task of tasks) {
+    if (isCancelledTaskStatus(task.status)) {
+      removed.push(task);
+    } else {
+      kept.push(task);
+    }
+  }
+  return { kept, removed };
+}
+
+function parseSyncTasksArgs(args: string[]): { planDir?: string; noGithub: boolean } {
+  let noGithub = false;
+  const positionals: string[] = [];
+  for (const arg of args) {
+    if (arg === "--no-github") {
+      noGithub = true;
+      continue;
+    }
+    if (arg.startsWith("--")) {
+      throw new Error(`Unknown sync-tasks option: ${arg}`);
+    }
+    positionals.push(arg);
+  }
+  if (positionals.length > 1) {
+    throw new Error("Usage: sync-tasks [planDir] [--no-github]");
+  }
+  return { planDir: positionals[0], noGithub };
+}
+
+function tryCloseGithubIssueForCancelledTask(githubIssueId: number): void {
+  try {
+    execFileSync(
+      "gh",
+      [
+        "issue",
+        "close",
+        String(githubIssueId),
+        "--comment",
+        "Cancelled task removed from tasks index (task-management sync-tasks).",
+      ],
+      { cwd: PROJECT_ROOT, stdio: ["ignore", "pipe", "pipe"] },
+    );
+    console.log(`github: closed issue #${githubIssueId}`);
+  } catch (err) {
+    const stderr = (err as { stderr?: Buffer })?.stderr?.toString?.()?.trim();
+    const message = stderr || (err as Error).message || String(err);
+    console.warn(`github: could not close issue #${githubIssueId}: ${message}`);
+  }
+}
+
+async function purgeCancelledTasksFromFiles(
+  filePath: string,
+  tasks: Task[],
+  options: { closeGithub: boolean },
+): Promise<Task[]> {
+  const { kept, removed } = separateCancelledTasks(tasks);
+  if (removed.length === 0) {
+    console.log("cancelled removed from index: 0");
+    return tasks;
+  }
+
+  if (options.closeGithub) {
+    for (const task of removed) {
+      if (typeof task.github_issue_id === "number" && Number.isFinite(task.github_issue_id)) {
+        tryCloseGithubIssueForCancelledTask(task.github_issue_id);
+      }
+    }
+  }
+
+  await writeTasks(filePath, kept);
+  console.log(
+    `cancelled removed from index: ${removed.length} (${removed.map((t) => t.github_issue_id).join(", ")})`,
+  );
+  return kept;
+}
+
+function toRepoRelativePosixPath(absPath: string): string {
+  const rel = path.relative(PROJECT_ROOT, absPath);
+  return `./${rel.split(path.sep).join("/")}`;
+}
+
+function isDoneTaskStatus(status: unknown): boolean {
+  return String(status ?? "").toLowerCase() === "done";
+}
+
+function donePathSegmentsForTask(task: Task): string[] {
+  const branch = String(task.branch_name ?? "").trim();
+  if (branch) {
+    const parts = branch.split("/").filter(Boolean);
+    for (const p of parts) {
+      if (p === "." || p === "..") {
+        throw new Error(`Invalid branch_name for task #${task.github_issue_id}: ${branch}`);
+      }
+    }
+    if (parts.length === 0) {
+      return [String(task.github_issue_id)];
+    }
+    return parts;
+  }
+  return [String(task.github_issue_id)];
+}
+
+async function tryMoveDoneTaskFolder(task: Task): Promise<{ moved: boolean; newRelPath?: string }> {
+  try {
+    const from = await getTaskFolderPath(task.github_issue_id);
+    if (!from) {
+      return { moved: false };
+    }
+
+    const doneRoot = path.resolve(PROJECT_ROOT, "agents/manager/data/tasks/done");
+    const segments = donePathSegmentsForTask(task);
+    const toDir = path.join(doneRoot, ...segments);
+
+    const relToDoneRoot = path.relative(doneRoot, toDir);
+    if (relToDoneRoot.startsWith("..") || path.isAbsolute(relToDoneRoot)) {
+      throw new Error(`Invalid done path for task #${task.github_issue_id}`);
+    }
+
+    await fs.mkdir(path.dirname(toDir), { recursive: true });
+
+    if (path.resolve(from) === path.resolve(toDir)) {
+      return { moved: false };
+    }
+
+    await fs.rename(from, toDir);
+    const newRelPath = toRepoRelativePosixPath(toDir);
+    console.log(`done: moved task #${task.github_issue_id} → ${newRelPath}`);
+    return { moved: true, newRelPath };
+  } catch (err) {
+    const code = (err as NodeJS.ErrnoException).code;
+    if (code === "EEXIST") {
+      console.warn(`done: folder already exists for task #${task.github_issue_id}, skip move`);
+      return { moved: false };
+    }
+    console.warn(`done: move failed for task #${task.github_issue_id}: ${(err as Error).message}`);
+    return { moved: false };
+  }
+}
+
+/** For tasks with status done: set non-done sub_tasks to done, move in_plan folder to done/{branch_name}. */
+async function normalizeDoneTasks(tasks: Task[]): Promise<boolean> {
+  let changed = false;
+
+  for (const task of tasks) {
+    if (!isDoneTaskStatus(task.status)) {
+      continue;
+    }
+
+    if (Array.isArray(task.sub_tasks) && task.sub_tasks.length > 0) {
+      let subChanged = false;
+      for (const st of task.sub_tasks) {
+        const s = String(st.status ?? "").toLowerCase();
+        if (s === "done" || s === "cancelled") {
+          continue;
+        }
+        st.status = "done";
+        subChanged = true;
+      }
+      if (subChanged) {
+        task.updated_at = nowIso();
+        changed = true;
+      }
+    }
+
+    const move = await tryMoveDoneTaskFolder(task);
+    if (move.moved && move.newRelPath) {
+      task.in_plan_task_directory = move.newRelPath;
+      task.updated_at = nowIso();
+      changed = true;
+    }
+  }
+
+  return changed;
+}
+
 function findTaskIndex(tasks: Task[], githubIssueId: number): number {
   return tasks.findIndex((task) => task.github_issue_id === githubIssueId);
 }
@@ -114,6 +360,9 @@ Commands:
   list-tasks [filtersJson]
   get-task <githubIssueId>
   print-task-file-tree <githubIssueId>
+  sync-tasks [planDir] [--no-github]
+  rebuild-today-files [planDir]
+  rebuild-week-files [planDir]
   print-team-config
   print-documentation
   create-task <taskJson>
@@ -126,11 +375,13 @@ Commands:
 
 Options:
   --file <path>   custom tasks index file
+  --no-github     with sync-tasks: skip closing GitHub issues (still drop cancelled rows from index)
 
 Example:
   bun task-management get-task 7
   bun task-management help
   bun task-management print-task-file-tree 7
+  bun task-management sync-tasks
   bun task-management print-team-config
   bun task-management print-documentation
   npm run task-management -- create-task '{"github_issue_id":7,"title":"New task","status":"pending"}'
@@ -317,6 +568,30 @@ async function main(): Promise<void> {
     }
     const taskFileTree = formatTaskFileTree(taskDir, await collectTaskFileTree(taskDir));
     console.log(taskFileTree);
+    return;
+  }
+
+  if (command === "sync-tasks") {
+    const { planDir, noGithub } = parseSyncTasksArgs(args);
+    const resolvedPlanDir = resolvePlanDir(filePath, planDir);
+    const kept = await purgeCancelledTasksFromFiles(filePath, tasks, { closeGithub: !noGithub });
+    const doneNormalized = await normalizeDoneTasks(kept);
+    if (doneNormalized) {
+      await writeTasks(filePath, kept);
+    }
+    await syncTasksSchedule(kept, resolvedPlanDir);
+    return;
+  }
+
+  if (command === "rebuild-today-files") {
+    const planDir = resolvePlanDir(filePath, args[0]);
+    await rebuildAssignedUserTodayFiles(tasks, planDir);
+    return;
+  }
+
+  if (command === "rebuild-week-files") {
+    const planDir = resolvePlanDir(filePath, args[0]);
+    await rebuildAssignedUserWeekFiles(tasks, planDir);
     return;
   }
 

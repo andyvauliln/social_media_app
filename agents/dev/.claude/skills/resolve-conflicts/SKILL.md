@@ -24,15 +24,8 @@ Use this skill when:
 - `git status` shows unmerged paths, both-modified files, add/add conflicts, delete/modify conflicts, or rebase/cherry-pick in progress.
 - Local `main` and `origin/main` diverged during sync.
 - A sync script says a merge problem must be resolved by an agent.
-- `scripts/git-sync-pull-push.sh --resolve-local-changes` invoked the agent with reason **working tree or index has local changes before sync** (dirty tree, not necessarily a merge).
+- `scripts/git-sync-pull-push.sh` invoked the agent with reason **working tree or index has local changes before sync** (dirty tree, not necessarily a merge).
 
-## Dirty tree before sync (`--resolve-local-changes`)
-
-When the sync reason is **local changes before sync** and Git has **no** merge/rebase/cherry-pick/revert in progress:
-
-1. Still run first checks (status when Git works; otherwise fallback scan for markers and `.git/MERGE_HEAD` / rebase dirs / `CHERRY_PICK_HEAD` / `REVERT_HEAD`).
-2. If there is no interrupted operation and no unmerged paths: **do not** fabricate `unresolved_merge.md` or commits. The sync script will **stash** remaining edits after the agent returns if the tree is still dirty.
-3. Only edit local files when fixing real problems (e.g. conflict markers, broken merge state). Do not discard intentional WIP unless the user asked to.
 
 ## First Checks
 

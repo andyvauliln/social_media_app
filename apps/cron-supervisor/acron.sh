@@ -15,6 +15,16 @@ os_type() {
   if [[ "$(uname)" == "Darwin" ]]; then echo "macos"; else echo "linux"; fi
 }
 
+# kickstart alone does NOT re-read the plist. bootstrap must succeed — do not hide failures
+# with `|| true` or kickstart revives the old registration (old stdio paths keep writing).
+reload_macos_launchagent() {
+  launchctl bootout "gui/$(id -u)" "$PLIST" 2>/dev/null || true
+  sleep 1
+  launchctl bootstrap "gui/$(id -u)" "$PLIST"
+  launchctl kickstart -k "gui/$(id -u)/$SERVICE_NAME"
+  rm -f "$LOGS_DIR/launchd.stdout.log" "$LOGS_DIR/launchd.stderr.log"
+}
+
 svc_start() {
   if [[ "$(os_type)" == "macos" ]]; then
     if [[ ! -f "$PLIST" ]]; then
@@ -32,7 +42,7 @@ svc_start() {
 
 svc_stop() {
   if [[ "$(os_type)" == "macos" ]]; then
-    launchctl bootout "gui/$(id -u)" "$SERVICE_NAME" 2>/dev/null || true
+    launchctl bootout "gui/$(id -u)" "$PLIST" 2>/dev/null || true
   else
     sudo systemctl stop "$SYSTEMD_UNIT"
   fi
@@ -41,10 +51,7 @@ svc_stop() {
 
 svc_restart() {
   if [[ "$(os_type)" == "macos" ]]; then
-    launchctl bootout "gui/$(id -u)" "$SERVICE_NAME" 2>/dev/null || true
-    sleep 1
-    launchctl bootstrap "gui/$(id -u)" "$PLIST" 2>/dev/null || true
-    launchctl kickstart -k "gui/$(id -u)/$SERVICE_NAME"
+    reload_macos_launchagent
   else
     sudo systemctl restart "$SYSTEMD_UNIT"
   fi
@@ -52,10 +59,10 @@ svc_restart() {
 }
 
 svc_update() {
-  # config.crons.jsonc is auto-reloaded by chokidar on save.
-  # force restart to pick up latest changes immediately.
+  # config.crons.jsonc is auto-reloaded by chokidar on save; this also reloads
+  # the LaunchAgent plist (stdio paths, env) — kickstart-only does not.
   if [[ "$(os_type)" == "macos" ]]; then
-    launchctl kickstart -k "gui/$(id -u)/$SERVICE_NAME"
+    reload_macos_launchagent
   else
     sudo systemctl restart "$SYSTEMD_UNIT"
   fi
@@ -130,7 +137,7 @@ Commands:
   start                 Start the cron supervisor service
   stop                  Stop the cron supervisor service
   restart               Restart the cron supervisor service
-  update                Force reload with latest configs/config.crons.jsonc
+  update                Boot out/in LaunchAgent + restart (config + plist; not kickstart-only)
   status                Show service state + list crons (production/development flags)
   enable  <name>        Set production+development true for a cron, then reload
   disable <name>        Set production+development false for a cron, then reload
@@ -139,7 +146,7 @@ Commands:
 
 Notes:
   - Config auto-reloads on file save via chokidar — no restart needed for most changes.
-  - Use 'update' to force an immediate restart and pick up latest config.
+  - Use 'update' to re-bootstrap the LaunchAgent (applies plist changes) and restart the supervisor.
   - enable/disable toggles both production and development in configs/config.crons.jsonc and reloads.
 HELP
     ;;

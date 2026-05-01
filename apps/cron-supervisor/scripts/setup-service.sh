@@ -49,22 +49,17 @@ setup_macos() {
 
   <key>KeepAlive</key>
   <true/>
-
-  <key>StandardOutPath</key>
-  <string>$LOGS_DIR/launchd.stdout.log</string>
-
-  <key>StandardErrorPath</key>
-  <string>$LOGS_DIR/launchd.stderr.log</string>
 </dict>
 </plist>
 EOF
 
   echo "[setup] plist written: $plist"
 
-  launchctl bootout "gui/$(id -u)" "$SERVICE_NAME" 2>/dev/null || true
+  launchctl bootout "gui/$(id -u)" "$plist" 2>/dev/null || true
   sleep 1
   launchctl bootstrap "gui/$(id -u)" "$plist"
   launchctl kickstart -k "gui/$(id -u)/$SERVICE_NAME"
+  rm -f "$LOGS_DIR/launchd.stdout.log" "$LOGS_DIR/launchd.stderr.log"
   echo "[setup] launchd service started: $SERVICE_NAME"
 }
 
