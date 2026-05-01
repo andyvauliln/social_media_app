@@ -148,3 +148,5 @@ When the terminal tool fails entirely (e.g. every invocation rejected before the
 
 If **every** `run_terminal_cmd` / shell invocation returns “Rejected” with no output (sandbox or agent policy), treat it like Git unavailable: same partial fallback, same “run `git status --short --branch` locally” guidance; for dirty-tree-only sync with no interrupted operation and no markers in fallback, still skip `unresolved_merge.md` and commits.
 
+# WTF IS HERE HAPENNING
+
