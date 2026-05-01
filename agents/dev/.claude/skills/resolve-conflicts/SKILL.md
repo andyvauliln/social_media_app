@@ -29,7 +29,7 @@ Use this skill when:
 
 ## First Checks
 
-1. Run `git status --short --branch`. If `git` is not available or execution is blocked, stop: report that the sync script (`scripts/git-sync-pull-push.sh`) must run in a real shell with Git, or re-run this skill with Git allowed. Do not write or update `unresolved_merge.md` from guesses when Git was never queried.
+1. Run `git status --short --branch`. If `git` is not available, execution is blocked, the shell returns `Rejected`, or the command produces no real Git output, stop immediately. Do not edit files, do not stage, do not continue the operation, and do not write or update `unresolved_merge.md` from guesses when Git was never queried.
    - **Partial fallback (read-only):** when Git truly cannot run, you may still scan the worktree for `<<<<<<<` / `=======` / `>>>>>>>` and check `.git/` for `MERGE_HEAD`, `rebase-merge/`, `rebase-apply/`, `CHERRY_PICK_HEAD`, `REVERT_HEAD` to infer whether a conflict operation is in progress. Treat this as incomplete: always tell the user to run `git status --short --branch` locally before pushing or stashing, and do not claim the repo is clean without Git output.
    - **Blocked agent shell:** if the agent environment rejects shell commands so `git status` never runs, still apply the partial fallback above; state clearly that Git was not executed in-session; for dirty-tree-only sync, do not create `unresolved_merge.md` or commits when fallback shows no interrupted operation and no markers.
    - **Git binary blocked, filesystem allowed:** some sandboxes deny `git` while still allowing `test -f` / `ls` on `.git/MERGE_HEAD`, `.git/rebase-merge`, `.git/CHERRY_PICK_HEAD`, `.git/REVERT_HEAD`. Use those when `git` never runs; conclusions stay incomplete until the user runs `git status --short --branch` locally.
@@ -148,5 +148,5 @@ When the terminal tool fails entirely (e.g. every invocation rejected before the
 
 If **every** `run_terminal_cmd` / shell invocation returns “Rejected” with no output (sandbox or agent policy), treat it like Git unavailable: same partial fallback, same “run `git status --short --branch` locally” guidance; for dirty-tree-only sync with no interrupted operation and no markers in fallback, still skip `unresolved_merge.md` and commits.
 
-# WTF IS HERE HAPENNING
+In some Cursor agent sessions the shell tool may return a single line such as `Rejected:` with no subprocess output; treat that the same as Git unavailable for in-session `git status` / continuation commands. When called by `scripts/git-sync-pull-push.sh`, include `GIT_SYNC_AGENT_GIT_BLOCKED` in the final answer if this happens, or `GIT_SYNC_AGENT_GIT_OK` only after `git status --short --branch` really succeeds.
 

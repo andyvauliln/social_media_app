@@ -1,49 +1,5 @@
 [
   {
-    "github_issue_id": 16,
-    "title": "Create update-change-log skill",
-    "description": "Create the missing skill that guides how and when to update `change-log.md` consistently. This captures the intended template and execution strategy so changelog updates are predictable.",
-    "branch_name": "",
-    "branch_github_link": "",
-    "pr_id": "",
-    "pr_link": "",
-    "estimated_time": "2h",
-    "status": "pending",
-    "when": "today",
-    "when_date": "2026-04-29",
-    "blocked_reason": "",
-    "in_plan_task_directory": "",
-    "priority": "medium",
-    "scope": "agent.dev",
-    "tags": [
-      "skill",
-      "changelog",
-      "agent.dev"
-    ],
-    "type": "feature",
-    "context": "",
-    "user_input": "Create this skill",
-    "sub_tasks": [
-      {
-        "sub_task_id": 1,
-        "title": "Define skill requirements and execution flow",
-        "type": "plan",
-        "status": "in_progress"
-      }
-    ],
-    "is_passed_tests": false,
-    "run_test_command": "",
-    "assigned_user": "ai",
-    "assigned_agent": "main",
-    "is_need_human_confirmation": true,
-    "notes": "Inline collected from worktree",
-    "platform": "cursor",
-    "created_at": "2026-04-29T19:20:00Z",
-    "created_by": "andrei",
-    "updated_at": "2026-04-29T19:20:00Z",
-    "closed_at": ""
-  },
-  {
     "github_issue_id": 12,
     "title": "Create root main folder",
     "description": "Add creation of a root-level main directory during initialization when needed. This keeps local project structure consistent for follow-up automation and scripts.",
@@ -52,7 +8,7 @@
     "pr_id": "",
     "pr_link": "",
     "estimated_time": "30m",
-    "status": "closed",
+    "status": "done",
     "when": "today",
     "when_date": "2026-04-29",
     "blocked_reason": "",
@@ -72,7 +28,7 @@
         "sub_task_id": 1,
         "title": "Define expected root directory structure",
         "type": "plan",
-        "status": "pending"
+        "status": "done"
       }
     ],
     "is_passed_tests": false,
@@ -84,7 +40,7 @@
     "platform": "claude",
     "created_at": "2026-04-29T17:35:00Z",
     "created_by": "andrei",
-    "updated_at": "2026-04-29T17:35:00Z",
+    "updated_at": "2026-04-30T14:34:03.661Z",
     "closed_at": ""
   },
   {
@@ -128,7 +84,7 @@
     "platform": "claude",
     "created_at": "2026-04-29T17:35:00Z",
     "created_by": "andrei",
-    "updated_at": "2026-04-29T17:35:00Z",
+    "updated_at": "2026-04-30T10:31:00Z",
     "closed_at": ""
   }
 ]

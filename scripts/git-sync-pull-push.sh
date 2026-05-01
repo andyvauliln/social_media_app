@@ -101,7 +101,9 @@ restore_autostash() {
     log_step "Applied local changes from autostash" "local work was stashed before syncing"
     if ! git stash pop --quiet; then
       log_error "autostash restore produced conflicts" "remote changes overlapped with local work"
-      run_resolve_conflicts_agent "autostash restore produced conflicts after syncing $MAIN_BRANCH" || true
+      if ! run_resolve_conflicts_agent "autostash restore produced conflicts after syncing $MAIN_BRANCH"; then
+        fail_sync "conflict agent failed" "autostash restore conflict still needs Git-capable resolution"
+      fi
       if has_git_operation_in_progress || ! git diff --diff-filter=U --quiet; then
         fail_sync "autostash conflict is still unresolved" "agent could not fully resolve the local restore conflict"
       fi
@@ -132,12 +134,16 @@ has_git_operation_in_progress() {
 run_resolve_conflicts_agent() {
   local reason="$1"
   local prompt
+  local output_file
+  local agent_status
 
   # Emergency switch: set GIT_SYNC_CONFLICT_AGENT=0 to stop automatic agent runs.
   if [[ "${GIT_SYNC_CONFLICT_AGENT:-1}" != "1" ]]; then
     log_error "conflict agent disabled" "$reason"
     return 1
   fi
+
+  output_file="$(mktemp "${TMPDIR:-/tmp}/git-sync-agent.XXXXXX.log")"
 
   prompt="Run the dev resolve-conflicts skill at agents/dev/.claude/skills/resolve-conflicts/SKILL.md.
 
@@ -146,6 +152,14 @@ Context from scripts/git-sync-pull-push.sh:
 - Main branch: $MAIN_BRANCH
 - Original branch: $(git branch --show-current 2>/dev/null || true)
 
+Hard preflight:
+1. Your first shell action must be: git status --short --branch
+2. If that command is rejected, blocked, unavailable, or produces no real Git output, stop immediately.
+3. When preflight fails, do not edit files, do not update unresolved_merge.md, and include this exact line in the final answer:
+GIT_SYNC_AGENT_GIT_BLOCKED
+4. Only after git status succeeds, include this exact line in the final answer:
+GIT_SYNC_AGENT_GIT_OK
+
 Resolve the Git conflict or divergence if one exists. You may complete the required merge/rebase/cherry-pick/revert continuation commit only when Git requires it to finish this resolution. Include unresolved_merge.md in that resolution commit when a commit is created. Do not create unrelated commits. Update unresolved_merge.md in the repository root only when you actually resolve conflicts or add uncertainty markers (see skill). If you are unsure about a materially significant choice, keep the best valid result and mark it with @unresolved_merge per the skill.
 
 In your final answer, report briefly what was resolved and why. If no conflict existed, say that directly. If any uncertainty remains, say where it was recorded in unresolved_merge.md."
@@ -153,24 +167,62 @@ In your final answer, report briefly what was resolved and why. If no conflict e
   if [[ "$RESOLVE_AGENT" == "cursor" ]]; then
     if [[ ! -f "$ROOT/ragent.cursor.sh" ]]; then
       log_error "cannot run conflict agent" "ragent.cursor.sh not found"
+      rm -f "$output_file"
       return 127
     fi
     log_step "Ran resolve-conflicts agent with Cursor" "$reason"
     echo "Agent report follows. Reason: $reason"
-    bash "$ROOT/ragent.cursor.sh" --print --trust --model auto -p "$prompt" 2> >(sed '/^cursor-retrieval: tracing to /d' >&2)
+    set +e
+    bash "$ROOT/ragent.cursor.sh" --print --trust --force --sandbox disabled --model auto -p "$prompt" 2> >(sed '/^cursor-retrieval: tracing to /d' >&2) | tee "$output_file"
+    agent_status="${PIPESTATUS[0]}"
+    set -e
     echo "Agent report ended. Reason: $reason"
-    return
+    if [[ "$agent_status" -ne 0 ]]; then
+      rm -f "$output_file"
+      return "$agent_status"
+    fi
+    if grep -Fxq "GIT_SYNC_AGENT_GIT_BLOCKED" "$output_file"; then
+      log_error "conflict agent cannot access Git" "agent reported GIT_SYNC_AGENT_GIT_BLOCKED"
+      rm -f "$output_file"
+      return 1
+    fi
+    if ! grep -Fxq "GIT_SYNC_AGENT_GIT_OK" "$output_file"; then
+      log_error "conflict agent did not prove Git access" "missing GIT_SYNC_AGENT_GIT_OK in agent report"
+      rm -f "$output_file"
+      return 1
+    fi
+    rm -f "$output_file"
+    return 0
   fi
 
   if [[ ! -f "$ROOT/ragent.claude.sh" ]]; then
     log_error "cannot run conflict agent" "ragent.claude.sh not found"
+    rm -f "$output_file"
     return 127
   fi
 
   log_step "Ran resolve-conflicts agent with Claude" "$reason"
   echo "Agent report follows. Reason: $reason"
-  bash "$ROOT/ragent.claude.sh" -p "$prompt"
+  set +e
+  bash "$ROOT/ragent.claude.sh" -p "$prompt" | tee "$output_file"
+  agent_status="${PIPESTATUS[0]}"
+  set -e
   echo "Agent report ended. Reason: $reason"
+  if [[ "$agent_status" -ne 0 ]]; then
+    rm -f "$output_file"
+    return "$agent_status"
+  fi
+  if grep -Fxq "GIT_SYNC_AGENT_GIT_BLOCKED" "$output_file"; then
+    log_error "conflict agent cannot access Git" "agent reported GIT_SYNC_AGENT_GIT_BLOCKED"
+    rm -f "$output_file"
+    return 1
+  fi
+  if ! grep -Fxq "GIT_SYNC_AGENT_GIT_OK" "$output_file"; then
+    log_error "conflict agent did not prove Git access" "missing GIT_SYNC_AGENT_GIT_OK in agent report"
+    rm -f "$output_file"
+    return 1
+  fi
+  rm -f "$output_file"
 }
 
 # Stop early if this is not a Git project.
@@ -181,7 +233,9 @@ fi
 # Existing conflicts are handled before the normal dirty-tree guard because
 # conflict files are local changes, but they are exactly what this agent fixes.
 if has_git_operation_in_progress || ! git diff --diff-filter=U --quiet; then
-  run_resolve_conflicts_agent "existing interrupted Git operation or unmerged paths before sync" || true
+  if ! run_resolve_conflicts_agent "existing interrupted Git operation or unmerged paths before sync"; then
+    fail_sync "conflict agent failed" "existing interrupted Git operation or unmerged paths need Git-capable resolution"
+  fi
   if has_git_operation_in_progress || ! git diff --diff-filter=U --quiet; then
     fail_sync "conflict agent finished but Git still has an unresolved operation" "existing interrupted Git operation or unmerged paths remain"
   fi
@@ -254,7 +308,9 @@ if [[ "$origin_anc_of_main" == 1 ]]; then
   if ! git push --quiet origin "$MAIN_BRANCH"; then
     # A push can fail if the remote changed after our fetch. Let the agent inspect it.
     log_error "push $MAIN_BRANCH failed" "remote changed or rejected the push"
-    run_resolve_conflicts_agent "push of local $MAIN_BRANCH to origin/$MAIN_BRANCH failed" || true
+    if ! run_resolve_conflicts_agent "push of local $MAIN_BRANCH to origin/$MAIN_BRANCH failed"; then
+      fail_sync "conflict agent failed" "push failure needs Git-capable resolution"
+    fi
     if has_local_changes; then
       fail_sync "conflict agent left uncommitted changes; not pushing" "push retry requires a clean tree"
     fi
@@ -308,7 +364,9 @@ else
   log_step "Skipped auto-merge and used agent" "GIT_SYNC_AUTO_MERGE=0 and branches diverged"
 fi
 
-run_resolve_conflicts_agent "local $MAIN_BRANCH and origin/$MAIN_BRANCH diverged (after auto-merge failed or disabled)" || true
+if ! run_resolve_conflicts_agent "local $MAIN_BRANCH and origin/$MAIN_BRANCH diverged (after auto-merge failed or disabled)"; then
+  fail_sync "conflict agent failed" "diverged branch conflict needs Git-capable resolution"
+fi
 
 # The agent must leave Git with no unfinished conflict operation.
 if has_git_operation_in_progress || ! git diff --diff-filter=U --quiet; then
