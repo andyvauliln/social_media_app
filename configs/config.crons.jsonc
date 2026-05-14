@@ -106,7 +106,7 @@
             "schedule": "0 23 * * 0",
             "end_date": null,
             "production": false,
-            "development": true,
+            "development": false,
             "runLocation": "github_actions",
             "run": {
                 "type": "claude",
