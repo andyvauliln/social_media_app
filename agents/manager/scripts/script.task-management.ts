@@ -34,6 +34,7 @@ type Task = {
 };
 
 const DEFAULT_TASKS_FILE = "agents/manager/data/tasks/tasks.index.jsonc";
+const DEFAULT_DONE_TASKS_FILE = "agents/manager/data/tasks/done/tasks.done.jsonc";
 const TEAM_CONFIG_FILE = "agents/manager/configs/config.manager.jsonc";
 const MANAGER_DOC_FILE = "agents/manager/docs/manager.index.md";
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
@@ -91,6 +92,26 @@ async function readTasks(filePath: string): Promise<Task[]> {
 async function writeTasks(filePath: string, tasks: Task[]): Promise<void> {
   const content = `${JSON.stringify(tasks, null, 2)}\n`;
   await fs.writeFile(filePath, content, "utf8");
+}
+
+async function readTasksFileOrEmpty(filePath: string): Promise<Task[]> {
+  try {
+    const raw = await fs.readFile(filePath, "utf8");
+    if (!raw.trim()) {
+      return [];
+    }
+    const parsed = parse(raw);
+    if (!Array.isArray(parsed)) {
+      throw new Error(`Expected array in tasks file: ${filePath}`);
+    }
+    return parsed as Task[];
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    if (code === "ENOENT") {
+      return [];
+    }
+    throw error;
+  }
 }
 
 function resolvePlanDir(tasksFilePath: string, planDirArg?: string): string {
@@ -246,6 +267,52 @@ function toRepoRelativePosixPath(absPath: string): string {
 
 function isDoneTaskStatus(status: unknown): boolean {
   return String(status ?? "").toLowerCase() === "done";
+}
+
+function separateDoneTasks(tasks: Task[]): { kept: Task[]; done: Task[] } {
+  const kept: Task[] = [];
+  const done: Task[] = [];
+  for (const task of tasks) {
+    if (isDoneTaskStatus(task.status)) {
+      done.push(task);
+    } else {
+      kept.push(task);
+    }
+  }
+  return { kept, done };
+}
+
+function mergeDoneTasks(existingDone: Task[], incomingDone: Task[]): Task[] {
+  const byIssueId = new Map<number, Task>();
+  for (const task of existingDone) {
+    if (typeof task.github_issue_id === "number" && Number.isFinite(task.github_issue_id)) {
+      byIssueId.set(task.github_issue_id, task);
+    }
+  }
+  for (const task of incomingDone) {
+    byIssueId.set(task.github_issue_id, task);
+  }
+  return Array.from(byIssueId.values()).sort((a, b) => a.github_issue_id - b.github_issue_id);
+}
+
+async function moveDoneTasksToDoneFile(indexFilePath: string, tasks: Task[]): Promise<Task[]> {
+  const { kept, done } = separateDoneTasks(tasks);
+  if (done.length === 0) {
+    console.log("done moved to done file: 0");
+    return tasks;
+  }
+
+  const doneFilePath = path.resolve(PROJECT_ROOT, DEFAULT_DONE_TASKS_FILE);
+  const existingDone = await readTasksFileOrEmpty(doneFilePath);
+  const mergedDone = mergeDoneTasks(existingDone, done);
+
+  await writeTasks(indexFilePath, kept);
+  await writeTasks(doneFilePath, mergedDone);
+
+  console.log(
+    `done moved to done file: ${done.length} (${done.map((t) => t.github_issue_id).join(", ")})`,
+  );
+  return kept;
 }
 
 function donePathSegmentsForTask(task: Task): string[] {
@@ -579,7 +646,8 @@ async function main(): Promise<void> {
     if (doneNormalized) {
       await writeTasks(filePath, kept);
     }
-    await syncTasksSchedule(kept, resolvedPlanDir);
+    const activeTasks = await moveDoneTasksToDoneFile(filePath, kept);
+    await syncTasksSchedule(activeTasks, resolvedPlanDir);
     return;
   }
 

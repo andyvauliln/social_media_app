@@ -60,97 +60,24 @@ worktree_container_prefixes = (
     (".cursor", "worktrees"),
 )
 
-AI_TODO_MARKER = re.compile(r"(?i)\bai_todo\s*:")
-# Double-quoted prompt; supports one physical line only (C/JSONC-style).
-PROMPT_QUOTED = re.compile(r'(?i)\bai_todo\s*:\s*"([^"]*)"')
-# Block or multiline string: allows escapes and newlines inside quotes.
-PROMPT_QUOTED_ML = re.compile(r'(?is)\bai_todo\s*:\s*"((?:\\.|[^"\\])*)"')
-BLOCK_COMMENT = re.compile(r"/\*[\s\S]*?\*/")
+AI_TODO_MARKER_LAST = re.compile(r"(?i)@ai_todo\s*$")
+MULTILINE_MARKER = re.compile(r"(?i)#ML:\s*")
 
 
-def innermost_block_containing(text: str, pos: int):
-    hits = [m for m in BLOCK_COMMENT.finditer(text) if m.start() <= pos < m.end()]
-    if not hits:
-        return None
-    return min(hits, key=lambda m: m.end() - m.start())
+def normalize_ws(text: str) -> str:
+    return " ".join(text.split()).strip()
 
 
-def extend_line_comment_forward(text: str, line_end: int, line_pat: re.Pattern) -> int:
-    end = line_end
-    while end < len(text):
-        if text[end] != "\n":
-            break
-        next_start = end + 1
-        next_nl = text.find("\n", next_start)
-        if next_nl == -1:
-            next_nl = len(text)
-        nxt = text[next_start:next_nl]
-        if nxt.strip() == "":
-            break
-        if not line_pat.match(nxt):
-            break
-        end = next_nl
-    return end
+def remove_ai_todo_suffix(text: str) -> str:
+    return re.sub(r"(?i)@ai_todo\s*$", "", text.rstrip()).rstrip()
 
 
-def snippet_for_match(text: str, m: re.Match) -> str:
-    pos = m.start()
-    line_start = text.rfind("\n", 0, pos) + 1
-    line_end = text.find("\n", pos)
-    if line_end == -1:
-        line_end = len(text)
-    line = text[line_start:line_end]
-
-    blk = innermost_block_containing(text, pos)
-    if blk is not None:
-        return blk.group(0).strip()
-
-    if re.match(r"(?i)^\s*//.*\bai_todo\s*:", line):
-        ext = extend_line_comment_forward(text, line_end, re.compile(r"^\s*//"))
-        return text[line_start:ext].strip()
-
-    if re.match(r"(?i)^\s*#(?!\!).*\bai_todo\s*:", line):
-        ext = extend_line_comment_forward(text, line_end, re.compile(r"^\s*#"))
-        return text[line_start:ext].strip()
-
-    return line.strip()
-
-
-def log_ai_todo_payload(snippet: str) -> str:
-    mq = PROMPT_QUOTED_ML.search(snippet)
-    if mq:
-        return " ".join(mq.group(1).split())
-
-    s = snippet.strip()
-    if s.startswith("/*"):
-        inner = s[2:]
-        if inner.rstrip().endswith("*/"):
-            inner = inner.rstrip()[:-2]
-        lines = [re.sub(r"^\s*\*\s?", "", ln) for ln in inner.splitlines()]
-        body = "\n".join(lines)
-    elif all(
-        re.match(r"^\s*//", ln) or not ln.strip()
-        for ln in snippet.splitlines()
-    ):
-        lines = [re.sub(r"^\s*//\s?", "", ln) for ln in snippet.splitlines() if ln.strip()]
-        body = "\n".join(lines)
-    elif all(
-        re.match(r"^\s*#", ln) or not ln.strip()
-        for ln in snippet.splitlines()
-    ):
-        lines = [re.sub(r"^\s*#\s?", "", ln) for ln in snippet.splitlines() if ln.strip()]
-        body = "\n".join(lines)
-    else:
-        body = snippet
-
-    mq1 = PROMPT_QUOTED.search(body)
-    if mq1:
-        return mq1.group(1)
-
-    mr = re.search(r"(?is)\bai_todo\s*:\s*(.*)", body)
-    if mr:
-        return " ".join(mr.group(1).split()).strip()
-    return snippet
+def extract_payload_from_snippet(snippet: str) -> str:
+    body = remove_ai_todo_suffix(snippet.strip())
+    ml = MULTILINE_MARKER.search(body)
+    if ml:
+        body = body[ml.end() :]
+    return normalize_ws(body)
 
 
 def raw_record_field(snippet: str) -> str:
@@ -190,26 +117,57 @@ for path in root.rglob("*"):
     except (UnicodeDecodeError, OSError):
         continue
 
-    for m in AI_TODO_MARKER.finditer(text):
-        line_no = text.count("\n", 0, m.start()) + 1
-        snippet = snippet_for_match(text, m)
-        match_key = (rel_posix, line_no, snippet)
-        existing = matches_by_key.get(match_key)
-        if existing is None or (not existing[3] and worktree_name):
-            matches_by_key[match_key] = (
-                rel_posix,
-                line_no,
-                snippet,
-                worktree_name,
-                raw_rel.as_posix(),
-            )
+    lines = text.splitlines()
+    idx = 0
+    while idx < len(lines):
+        line = lines[idx]
+        ml = MULTILINE_MARKER.search(line)
+
+        if ml:
+            start_idx = idx
+            chunk = [line]
+            while idx + 1 < len(lines) and not AI_TODO_MARKER_LAST.search(lines[idx]):
+                idx += 1
+                chunk.append(lines[idx])
+
+            if AI_TODO_MARKER_LAST.search(lines[idx]):
+                snippet = "\n".join(chunk).strip()
+                line_no = start_idx + 1
+                match_key = (rel_posix, line_no, snippet)
+                existing = matches_by_key.get(match_key)
+                if existing is None or (not existing[3] and worktree_name):
+                    matches_by_key[match_key] = (
+                        rel_posix,
+                        line_no,
+                        snippet,
+                        worktree_name,
+                        raw_rel.as_posix(),
+                    )
+            idx += 1
+            continue
+
+        if AI_TODO_MARKER_LAST.search(line):
+            snippet = line.strip()
+            line_no = idx + 1
+            match_key = (rel_posix, line_no, snippet)
+            existing = matches_by_key.get(match_key)
+            if existing is None or (not existing[3] and worktree_name):
+                matches_by_key[match_key] = (
+                    rel_posix,
+                    line_no,
+                    snippet,
+                    worktree_name,
+                    raw_rel.as_posix(),
+                )
+
+        idx += 1
 
 matches = list(matches_by_key.values())
 if not matches:
     print("NO_MATCHES")
 else:
     for rel_posix, line_no, snippet, worktree_name, raw_rel_posix in matches:
-        log_prompt = log_ai_todo_payload(snippet)
+        log_prompt = extract_payload_from_snippet(snippet)
         print(rel_posix)
         print(f'ai_todo: {log_prompt!r}')
         if worktree_name:

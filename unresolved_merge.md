@@ -24,3 +24,12 @@
 - Resolution: removed conflict markers, dropped accidental placeholder text, and kept the valid guidance about blocked shell output handling.
 - Validation: `git status --short --branch` now shows no unmerged paths; `rg "^(<<<<<<<|=======|>>>>>>>)" agents/dev/.claude/skills/resolve-conflicts/SKILL.md` returns no matches.
 - Remaining uncertainty: none.
+
+## 2026-05-01 17:45 - autostash conflict cleanup
+
+- Situation: autostash restore after syncing `main` left one unmerged task index file.
+- Branches/commits: current branch `main`; incoming branch `origin/main`; stashed local changes reapplied.
+- Conflicted files: `agents/manager/data/tasks/tasks.index.jsonc`
+- Resolution: removed conflict markers and kept the incoming synced values for issue 30 (`status: "done"`, `when: "today"`, `assigned_user: "andrei"`), preserving the latest branch task state.
+- Validation: `git diff --name-only --diff-filter=U` reports this file as the only former unmerged path; `rg "^(<<<<<<<|=======|>>>>>>>)" agents/manager/data/tasks/tasks.index.jsonc` returns no matches.
+- Remaining uncertainty: none.
