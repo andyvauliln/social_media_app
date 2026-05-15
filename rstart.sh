@@ -5,13 +5,23 @@ ROOT="$(cd "$(dirname "$0")" && pwd)"
 CONFIG="$ROOT/start.config.jsonc"
 LOGS_DIR="$ROOT/logs/start"
 
+# ENVIRONMENT comes from envs/root.env when set there (recommended). Shell export before this script is only a fallback when the file omits it.
+_environment_from_shell="${ENVIRONMENT-}"
 if [[ -f "$ROOT/envs/root.env" ]]; then
   set -a
   # shellcheck disable=SC1091
   source "$ROOT/envs/root.env"
   set +a
 fi
-ENVIRONMENT="${ENVIRONMENT:-development}"
+ENVIRONMENT="${ENVIRONMENT:-${_environment_from_shell:-development}}"
+# Normalize then classify: production → check productionEnabled; anything else → check developmentEnabled.
+_raw="$(printf '%s' "$ENVIRONMENT" | tr '[:upper:]' '[:lower:]')"
+if [[ "$_raw" == "prod" ]]; then
+  ENVIRONMENT="production"
+else
+  ENVIRONMENT="$_raw"
+fi
+export ENVIRONMENT
 
 if [[ ! -f "$CONFIG" ]]; then
   echo "[start] error: $CONFIG not found" >&2
@@ -70,15 +80,14 @@ kill_tree() {
 
 started_count=0
 while IFS=$'\t' read -r name type development_enabled svc_path init_cmd start_cmd service_managed production_enabled env_files; do
-  # Development: start services flagged for dev. Production: start services flagged for prod.
   if [[ "$ENVIRONMENT" == "production" ]]; then
     if [[ "$production_enabled" != "true" ]]; then
-      echo "[start] skip ${name}: productionEnabled is not true (ENVIRONMENT=production)" >&2
+      echo "[start] skip ${name}: productionEnabled is not true (ENVIRONMENT=${ENVIRONMENT})" >&2
       continue
     fi
   else
     if [[ "$development_enabled" != "true" ]]; then
-      echo "[start] skip ${name}: developmentEnabled is not true (ENVIRONMENT=development)" >&2
+      echo "[start] skip ${name}: developmentEnabled is not true (ENVIRONMENT=${ENVIRONMENT})" >&2
       continue
     fi
   fi

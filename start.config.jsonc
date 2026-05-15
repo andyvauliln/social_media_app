@@ -25,18 +25,18 @@
     },
     {
       "name": "main",
-      "description": "Content generation and publishing agent",
+      "description": "Root-repo Claude agent — Telegram via envs/main.telegram",
       "type": "agent",
       "developmentEnabled": false,
       "productionEnabled": true,
       "envFiles": [],
-      "path": ".",
+      "path": "agents/main",
       "init": "bun install",
       "start": "bash ./ragent.claude.sh --telegram"
     },
     {
       "name": "manager",
-      "description": "Content generation and publishing agent",
+      "description": "Legacy manager agent — Telegram via envs/manager.telegram (off unless you enable a flag)",
       "type": "agent",
       "developmentEnabled": false,
       "productionEnabled": false,
@@ -47,7 +47,7 @@
     },
     {
       "name": "dante",
-      "description": "Content generation and publishing agent",
+      "description": "Dante Claude agent — Telegram via envs/dante.telegram",
       "type": "agent",
       "developmentEnabled": false,
       "productionEnabled": true,
