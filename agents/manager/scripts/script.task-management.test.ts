@@ -13,7 +13,10 @@ type TaskStatus =
   | "in_review"
   | "done"
   | "blocked"
-  | "cancelled";
+  | "cancelled"
+  | "closed"
+  | "deleted"
+  | "delete";
 
 type SubTask = {
   sub_task_id: number;
@@ -46,6 +49,17 @@ const PROJECT_ROOT = resolveProjectRoot();
 
 function nowIso(): string {
   return new Date().toISOString();
+}
+
+function isRemovedFromTasksIndexStatus(status: unknown): boolean {
+  const normalized = String(status ?? "").toLowerCase();
+  return (
+    normalized === "cancelled" ||
+    normalized === "canceled" ||
+    normalized === "closed" ||
+    normalized === "deleted" ||
+    normalized === "delete"
+  );
 }
 
 function toNumber(value: string, label: string): number {
@@ -401,7 +415,8 @@ async function main(): Promise<void> {
     const current = tasks[index];
     current.status = nextStatus;
     current.blocked_reason = nextStatus === "blocked" ? blockedReason ?? current.blocked_reason ?? "" : "";
-    current.closed_at = nextStatus === "done" || nextStatus === "cancelled" ? nowIso() : "";
+    current.closed_at =
+      nextStatus === "done" || isRemovedFromTasksIndexStatus(nextStatus) ? nowIso() : "";
     current.updated_at = nowIso();
 
     await writeTasks(filePath, tasks);

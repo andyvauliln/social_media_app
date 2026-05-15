@@ -43,7 +43,9 @@ fi
 
 **Excluded file suffix:** `.json` only (**.jsonc is scanned**, e.g. manager config).
 
-**Extra excluded relative paths:** `agents/manager/scripts/collect-inline-tasks-if-needed.sh`, `!KNOWLEDGE_BASE/CODE_GUIDANCE.md`, `agents/manager/.claude/skills/collect-inline-tasks/SKILL.md`.
+**Extra excluded relative paths:** `agents/manager/scripts/collect-inline-tasks-if-needed.sh`, `!KNOWLEDGE_BASE/CODE_GUIDANCE.md`, `agents/manager/.claude/skills/collect-inline-tasks/SKILL.md`, `.cursor/skills/collect-inline-tasks.manager/SKILL.md`, `agents/manager/docs/AI_TODO_INLINE_TASKS.md`.
+
+**Symlinks:** not scanned — symlink files and anything under symlink directories are skipped (e.g. `agents/docs/AI_TODO_INLINE_TASKS.md` when it is a symlink).
 
 **Worktree path handling:** files under `!WORKTREES/<branch>/`, `.claude/worktrees/<branch>/`, or `.cursor/worktrees/<branch>/` are treated as if `<branch>/` was removed before applying excludes. If the same normalized `path:line:comment` exists in both main and a worktree, process it once and preserve the worktree branch for notes.
 
@@ -66,7 +68,8 @@ Use `raw=<actual_path>` for reading and removing the comment. Use `<normalized_p
 | Element | Required | Description |
 |---------|----------|-------------|
 | `@ai_todo` | yes | Marker keyword and must be the last token on the final line |
-| `<prompt>` | yes | Task description is everything before `@ai_todo` (single-line) or between `#ML:` and `@ai_todo` (multi-line) |
+| `@todo_ai` | multi-line only | Starts a multi-line block; put it on the first line of that block |
+| `<prompt>` | yes | Single-line: text before `@ai_todo`. Multi-line: text between `@todo_ai` and `@ai_todo` (after stripping markers), normalized |
 | `@ai` | no | Assign to AI (default) |
 | `@<user>` | no | Assign to a team member |
 | `@c` / `@context` | no | If present → set task JSON `context` (paths or `file:line` after the tag; if tag has no path, use source `path:line`). If absent → leave `context` empty |
@@ -84,14 +87,13 @@ plain text style @week @ai_todo
 
 The scanner and agent treat this as **one** todo:
 
-1. Start a multi-line todo with `#ML:` anywhere on a line.
-2. Continue on any following lines (commented or not).
-3. End at the first line whose last token is `@ai_todo`.
-4. Prompt content is everything after `#ML:` up to `@ai_todo`.
+1. Put **`@todo_ai`** on the opening line (same line starts the block).
+2. Continue on following lines until a line whose **last token** is `@ai_todo`.
+3. Prompt content is everything **between** `@todo_ai` and `@ai_todo` (whitespace-normalized).
 
 Example:
 ```txt
-// #ML: Need help for this task
+// @todo_ai Need help for this task
 // 1) How to finish sync project skill
 // 2) How to define sync skill completion plan @andrei @today @ai_todo
 ```
@@ -106,7 +108,7 @@ Example:
 
 3. **For each match** (process one at a time, never batch):
    - a. **Read context** — use Read tool on the raw file path from the scan entry (`raw=<actual_path>` when present), targeting the matched line ±8 lines (wider if the `ai_todo` sits in a multi-line `/* ... */` block). Why: need enough context to remove the **whole** comment safely in the actual source file.
-   - b. **Parse** — from the matched source unit: extract prompt text as either (a) single-line text before trailing `@ai_todo`, or (b) multi-line text between `#ML:` and trailing `@ai_todo`, normalizing whitespace. Parse `@params` from that prompt tail.
+   - b. **Parse** — from the matched source unit: extract prompt text as either (a) single-line text before trailing `@ai_todo`, or (b) multi-line text between `@todo_ai` and trailing `@ai_todo`, normalizing whitespace. Parse `@params` from that prompt tail.
    - c. **Build create-task call**:
      - Always add **`@main`** for execution agent **unless** the comment already has `@dev`, `@agent.dev`, or another explicit `@agent.*` (then pass those instead). Map to task `assigned_agent`: default `"main"`, or `"dev"` when `@dev` / `@agent.dev` is present.
      - Put **`@context` / `@c` in the `/create-task` invocation only when** the `ai_todo` line/block contains `@c` or `@context`. Then supply paths or `relative/path:line` as appropriate. **Do not** pass source location as `@context` when those tags are missing — the task JSON `context` must stay `""`.
@@ -115,7 +117,7 @@ Example:
    - d. **Call `/create-task "<prompt>" @ai @main …`** (plus optional tags) and wait for confirmation the task was created (task ID returned).
    - e. **On success → remove the matched source unit**:
      - **Single-line marker**: remove only the segment ending with `@ai_todo` from that line (or the full line if it only contains the task text).
-     - **`#ML:` multi-line marker**: remove from the line containing `#ML:` through the line ending with `@ai_todo`.
+     - **`@todo_ai` multi-line block**: remove from the line containing `@todo_ai` through the line ending with `@ai_todo`.
      - Never leave stray marker fragments behind.
    - f. **On failure** → log the error, leave the comment intact, continue to next match.
 

@@ -15,6 +15,7 @@
         "run": "bash scripts/test1.sh",
         "last_time_run": "2026-04-29 12:00:00",
         "last_time_result": "success",
-        "tags": "", // for building different set on test on different scenarious
+        "tags": "" // for building different set on test on different scenarious
     }
 ]
+// finish tests 

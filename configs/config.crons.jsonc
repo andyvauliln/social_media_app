@@ -29,14 +29,14 @@
             "name": "sync-tasks",
             "description": "sync task for today and week from tasks.index.jsonc and remove canceled issues from github and tasks.index.jsonc",
             "schedule": "* * * * *",
-            "production": false,
+            "production": true,
             "development": true,
             "end_date": null, // optional
             "runLocation": "supervisor",
             "run": {
                 "type": "shell",
                 "cwd": ".",
-                "command": "bun task-management sync-tasks"
+                "command": "npm run task-management -- sync-tasks"
             }
         },
         {

@@ -5,5 +5,5 @@ argument-hint: prompt
 ---
 
 add suggested folder or file or pattern into in ./slink.config.jsonc config
-make target symling
+make target symlink
 

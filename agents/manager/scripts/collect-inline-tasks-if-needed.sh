@@ -53,6 +53,8 @@ exclude_relative_paths = {
     "agents/manager/scripts/collect-inline-tasks-if-needed.sh",
     "!KNOWLEDGE_BASE/CODE_GUIDANCE.md",
     "agents/manager/.claude/skills/collect-inline-tasks/SKILL.md",
+    ".cursor/skills/collect-inline-tasks.manager/SKILL.md",
+    "agents/manager/docs/AI_TODO_INLINE_TASKS.md",
 }
 worktree_container_prefixes = (
     ("!WORKTREES",),
@@ -61,7 +63,7 @@ worktree_container_prefixes = (
 )
 
 AI_TODO_MARKER_LAST = re.compile(r"(?i)@ai_todo\s*$")
-MULTILINE_MARKER = re.compile(r"(?i)#ML:\s*")
+TODO_AI_START = re.compile(r"(?i)@todo_ai\b\s*")
 
 
 def normalize_ws(text: str) -> str:
@@ -74,9 +76,9 @@ def remove_ai_todo_suffix(text: str) -> str:
 
 def extract_payload_from_snippet(snippet: str) -> str:
     body = remove_ai_todo_suffix(snippet.strip())
-    ml = MULTILINE_MARKER.search(body)
-    if ml:
-        body = body[ml.end() :]
+    start = TODO_AI_START.search(body)
+    if start:
+        body = body[start.end() :]
     return normalize_ws(body)
 
 
@@ -93,10 +95,29 @@ def project_relative_path(rel: Path):
     return rel, ""
 
 
+def path_or_ancestor_is_symlink(path: Path, root: Path) -> bool:
+    """Skip symlinks: never scan symlink targets or anything inside symlink dirs."""
+    try:
+        rel = path.relative_to(root)
+    except ValueError:
+        return True
+    cur = root
+    for part in rel.parts:
+        cur = cur / part
+        try:
+            if cur.is_symlink():
+                return True
+        except OSError:
+            return True
+    return False
+
+
 matches_by_key = {}
 
 for path in root.rglob("*"):
     if not path.is_file():
+        continue
+    if path_or_ancestor_is_symlink(path, root):
         continue
 
     raw_rel = path.relative_to(root)
@@ -121,7 +142,7 @@ for path in root.rglob("*"):
     idx = 0
     while idx < len(lines):
         line = lines[idx]
-        ml = MULTILINE_MARKER.search(line)
+        ml = TODO_AI_START.search(line)
 
         if ml:
             start_idx = idx

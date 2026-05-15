@@ -1,0 +1,1 @@
+../manager/docs/AI_TODO_INLINE_TASKS.md

@@ -14,7 +14,10 @@ type TaskStatus =
   | "in_review"
   | "done"
   | "blocked"
-  | "cancelled";
+  | "cancelled"
+  | "closed"
+  | "deleted"
+  | "delete";
 
 type SubTask = {
   sub_task_id: number;
@@ -121,6 +124,38 @@ function resolvePlanDir(tasksFilePath: string, planDirArg?: string): string {
   return path.resolve(path.dirname(tasksFilePath), "in_plan");
 }
 
+async function listScheduleSliceUsers(planDir: string, suffix: string): Promise<string[]> {
+  let entries: string[];
+  try {
+    entries = await fs.readdir(planDir);
+  } catch {
+    return [];
+  }
+  return entries
+    .filter((name) => name.endsWith(suffix))
+    .map((name) => name.slice(0, -suffix.length))
+    .filter(Boolean);
+}
+
+async function writeUserScheduleSliceFiles(
+  planDir: string,
+  suffix: string,
+  grouped: Record<string, Task[]>,
+): Promise<string> {
+  const existingUsers = await listScheduleSliceUsers(planDir, suffix);
+  const allUsers = new Set([...existingUsers, ...Object.keys(grouped)]);
+
+  for (const user of allUsers) {
+    const list = grouped[user] ?? [];
+    const file = path.join(planDir, `${user}${suffix}`);
+    await fs.writeFile(file, `${JSON.stringify(list, null, 2)}\n`, "utf8");
+  }
+
+  return Array.from(allUsers)
+    .map((user) => `${user}:${(grouped[user] ?? []).length}`)
+    .join(", ");
+}
+
 async function rebuildAssignedUserTodayFiles(tasks: Task[], planDir: string): Promise<void> {
   await fs.mkdir(planDir, { recursive: true });
 
@@ -134,14 +169,7 @@ async function rebuildAssignedUserTodayFiles(tasks: Task[], planDir: string): Pr
     return acc;
   }, {});
 
-  for (const [user, list] of Object.entries(grouped)) {
-    const file = path.join(planDir, `${user}.today.jsonc`);
-    await fs.writeFile(file, `${JSON.stringify(list, null, 2)}\n`, "utf8");
-  }
-
-  const counts = Object.entries(grouped)
-    .map(([user, list]) => `${user}:${list.length}`)
-    .join(", ");
+  const counts = await writeUserScheduleSliceFiles(planDir, ".today.jsonc", grouped);
 
   console.log(`today tasks: ${todayTasks.length}`);
   console.log(`today files: ${counts || "none"}`);
@@ -158,14 +186,7 @@ async function rebuildAssignedUserWeekFiles(tasks: Task[], planDir: string): Pro
     return acc;
   }, {});
 
-  for (const [user, list] of Object.entries(grouped)) {
-    const file = path.join(planDir, `${user}.week.jsonc`);
-    await fs.writeFile(file, `${JSON.stringify(list, null, 2)}\n`, "utf8");
-  }
-
-  const counts = Object.entries(grouped)
-    .map(([user, list]) => `${user}:${list.length}`)
-    .join(", ");
+  const counts = await writeUserScheduleSliceFiles(planDir, ".week.jsonc", grouped);
 
   console.log(`week tasks: ${weekTasks.length}`);
   console.log(`week files: ${counts || "none"}`);
@@ -176,16 +197,23 @@ async function syncTasksSchedule(tasks: Task[], planDir: string): Promise<void> 
   await rebuildAssignedUserWeekFiles(tasks, planDir);
 }
 
-function isCancelledTaskStatus(status: unknown): boolean {
+/** Statuses purged from tasks.index on sync-tasks (same handling as cancelled). */
+function isRemovedFromTasksIndexStatus(status: unknown): boolean {
   const normalized = String(status ?? "").toLowerCase();
-  return normalized === "cancelled" || normalized === "canceled";
+  return (
+    normalized === "cancelled" ||
+    normalized === "canceled" ||
+    normalized === "closed" ||
+    normalized === "deleted" ||
+    normalized === "delete"
+  );
 }
 
 function separateCancelledTasks(tasks: Task[]): { kept: Task[]; removed: Task[] } {
   const kept: Task[] = [];
   const removed: Task[] = [];
   for (const task of tasks) {
-    if (isCancelledTaskStatus(task.status)) {
+    if (isRemovedFromTasksIndexStatus(task.status)) {
       removed.push(task);
     } else {
       kept.push(task);
@@ -222,7 +250,7 @@ function tryCloseGithubIssueForCancelledTask(githubIssueId: number): void {
         "close",
         String(githubIssueId),
         "--comment",
-        "Cancelled task removed from tasks index (task-management sync-tasks).",
+        "Task removed from tasks index (task-management sync-tasks).",
       ],
       { cwd: PROJECT_ROOT, stdio: ["ignore", "pipe", "pipe"] },
     );
@@ -241,7 +269,7 @@ async function purgeCancelledTasksFromFiles(
 ): Promise<Task[]> {
   const { kept, removed } = separateCancelledTasks(tasks);
   if (removed.length === 0) {
-    console.log("cancelled removed from index: 0");
+    console.log("purged from tasks index: 0");
     return tasks;
   }
 
@@ -255,7 +283,7 @@ async function purgeCancelledTasksFromFiles(
 
   await writeTasks(filePath, kept);
   console.log(
-    `cancelled removed from index: ${removed.length} (${removed.map((t) => t.github_issue_id).join(", ")})`,
+    `purged from tasks index: ${removed.length} (${removed.map((t) => t.github_issue_id).join(", ")})`,
   );
   return kept;
 }
@@ -382,7 +410,7 @@ async function normalizeDoneTasks(tasks: Task[]): Promise<boolean> {
       let subChanged = false;
       for (const st of task.sub_tasks) {
         const s = String(st.status ?? "").toLowerCase();
-        if (s === "done" || s === "cancelled") {
+        if (s === "done" || isRemovedFromTasksIndexStatus(s)) {
           continue;
         }
         st.status = "done";
@@ -442,7 +470,7 @@ Commands:
 
 Options:
   --file <path>   custom tasks index file
-  --no-github     with sync-tasks: skip closing GitHub issues (still drop cancelled rows from index)
+  --no-github     with sync-tasks: skip closing GitHub issues (still drop cancelled/closed/deleted rows from index)
 
 Example:
   bun task-management get-task 7
@@ -744,7 +772,8 @@ async function main(): Promise<void> {
     const current = tasks[index];
     current.status = nextStatus;
     current.blocked_reason = nextStatus === "blocked" ? blockedReason ?? current.blocked_reason ?? "" : "";
-    current.closed_at = nextStatus === "done" || nextStatus === "cancelled" ? nowIso() : "";
+    current.closed_at =
+      nextStatus === "done" || isRemovedFromTasksIndexStatus(nextStatus) ? nowIso() : "";
     current.updated_at = nowIso();
 
     await writeTasks(filePath, tasks);
