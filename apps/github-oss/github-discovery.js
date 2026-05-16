@@ -49,6 +49,34 @@
     return q;
   }
 
+  function buildFileCodeSearchQuery(contentPhrase, fileName, langs) {
+    var q = phraseSearchTermForGitHub(contentPhrase);
+    if (!q) return null;
+    var fn = String(fileName || '').trim();
+    if (!fn) return null;
+    if (fn.indexOf('/') !== -1) q += ' path:' + fn;
+    else q += ' filename:' + fn;
+    if (langs && langs.length) {
+      q += ' ' + langs.map(function (l) { return 'language:' + l; }).join(' ');
+    }
+    return q;
+  }
+
+  function fileSearchScope(opt) {
+    return !!opt.includeFileSearch;
+  }
+
+  function fileSearchTerms(opt, kws) {
+    var terms = [];
+    var fc = String(opt.fileContains || '').trim();
+    if (fc) terms.push(fc);
+    for (var i = 0; i < (kws || []).length; i++) {
+      var t = String(kws[i] || '').trim();
+      if (t && terms.indexOf(t) === -1) terms.push(t);
+    }
+    return terms;
+  }
+
   function fullRepoToSearchItem(data) {
     if (!data || data.id == null) return null;
     return {
@@ -149,8 +177,17 @@
    * @param {boolean} opt.inTopics
    * @param {boolean} opt.inReadme
    * @param {boolean} opt.includeCodeSearch
+   * @param {boolean} opt.includeFileSearch
+   * @param {string} opt.fileName
+   * @param {string} opt.fileContains
    */
   function validateDiscoveryOptions(opt) {
+    if (fileSearchScope(opt)) {
+      if (!String(opt.fileName || '').trim()) {
+        throw new Error('Specify a file name to search in.');
+      }
+      return;
+    }
     var anyRepo = opt.inName || opt.inDescription || opt.inTopics || opt.inReadme;
     if (!anyRepo && !opt.includeCodeSearch) {
       throw new Error('Select at least one place to search.');
@@ -174,6 +211,24 @@
   }
 
   function discoveryContextDetail(kw, kwIndex, kwTotal, langs, opt) {
+    if (fileSearchScope(opt)) {
+      var langPart = langs && langs.length ? 'Languages: ' + langs.join(', ') : 'Languages: any';
+      var filt = discoveryFiltersSummary(opt);
+      var tail = filt ? ' · ' + filt : '';
+      return (
+        'File search ' +
+        (kwIndex + 1) +
+        '/' +
+        kwTotal +
+        ': ' +
+        kw +
+        ' · file: ' +
+        String(opt.fileName || '').trim() +
+        ' · ' +
+        langPart +
+        tail
+      );
+    }
     var fields = repoFieldsLabel(opt);
     var langPart = langs && langs.length ? 'Languages: ' + langs.join(', ') : 'Languages: any';
     var filt = discoveryFiltersSummary(opt);
@@ -219,6 +274,90 @@
     var repos = [];
     var anyRepoScope = opt.inName || opt.inDescription || opt.inTopics || opt.inReadme;
     var readmeOnly = readmeOnlyScope(opt);
+
+    if (fileSearchScope(opt)) {
+      var fileName = String(opt.fileName || '').trim();
+      var fterms = fileSearchTerms(opt, kws);
+      if (!fterms.length) {
+        throw new Error('Enter what the file must contain, or add keywords.');
+      }
+      var budgetFilePerTerm = Math.max(1, Math.ceil(maxResults / fterms.length / CODE_PER_PAGE));
+      onProgress(
+        5,
+        'File search',
+        'GitHub code search in "' +
+          fileName +
+          '" for each phrase (filename/path qualifier + file body)'
+      );
+      for (var fti = 0; fti < fterms.length && repos.length < maxResults; fti++) {
+        var fterm = fterms[fti];
+        var fq = buildFileCodeSearchQuery(fterm, fileName, langs);
+        if (!fq) continue;
+        onProgress(
+          8 + Math.round((fti / fterms.length) * 75),
+          'File search',
+          discoveryContextDetail(fterm, fti, fterms.length, langs, opt) +
+            ' · matches file contents with filename/path filter'
+        );
+        for (var fpage = 1; fpage <= budgetFilePerTerm && repos.length < maxResults; fpage++) {
+          try {
+            var furl =
+              'https://api.github.com/search/code?q=' +
+              encodeURIComponent(fq) +
+              '&per_page=' +
+              CODE_PER_PAGE +
+              '&page=' +
+              fpage;
+            var fdata = await ghFetch(furl);
+            var fadded = 0;
+            for (var fi = 0; fi < (fdata.items || []).length; fi++) {
+              var fitem = fdata.items[fi];
+              var frepo = fitem.repository;
+              if (!frepo || frepo.id == null) continue;
+              if (seenIds.has(frepo.id)) continue;
+              var fmapped = codeRepositoryToItem(frepo);
+              if (!fmapped) continue;
+              if (fmapped.stargazers_count == null || fmapped.fork == null) {
+                try {
+                  var fsegs = String(fmapped.full_name || '')
+                    .split('/')
+                    .map(function (s) {
+                      return encodeURIComponent(s);
+                    })
+                    .join('/');
+                  var ffull = await ghFetch('https://api.github.com/repos/' + fsegs);
+                  var fmerged = fullRepoToSearchItem(ffull);
+                  if (fmerged) fmapped = fmerged;
+                } catch (e) {
+                  /* keep partial */
+                }
+                await sleep(80);
+              }
+              if (!passesStarForkFilter(fmapped, opt)) continue;
+              if (seenIds.has(fmapped.id)) continue;
+              seenIds.add(fmapped.id);
+              var filePath = String(fitem.path || fileName || '').trim();
+              repos.push(
+                Object.assign({}, fmapped, {
+                  search_file_path: filePath,
+                })
+              );
+              fadded++;
+            }
+            onProgress(
+              10 + Math.round(((fti * budgetFilePerTerm + fpage) / (fterms.length * budgetFilePerTerm)) * 72),
+              'File search · page ' + fpage,
+              '"' + fterm + '" in ' + fileName + ' · +' + fadded + ' new · ' + repos.length + '/' + maxResults
+            );
+            await sleep(CODE_PAGE_SLEEP_MS);
+          } catch (e) {
+            if (e.message && (e.message.indexOf('422') !== -1 || e.message.indexOf('403') !== -1)) break;
+            throw e;
+          }
+        }
+      }
+      return repos.slice(0, maxResults);
+    }
 
     if (anyRepoScope && readmeOnly) {
       var verifiedIds = new Set();
@@ -407,5 +546,8 @@
     inTopics: true,
     inReadme: false,
     includeCodeSearch: false,
+    includeFileSearch: false,
+    fileName: '',
+    fileContains: '',
   };
 })(typeof window !== 'undefined' ? window : globalThis);

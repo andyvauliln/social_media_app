@@ -88,7 +88,22 @@ has_local_changes() {
   ! git diff --quiet || ! git diff --cached --quiet
 }
 
+wait_for_agents_idle() {
+  if [[ "${GIT_SYNC_WAIT_AGENTS:-1}" != "1" ]]; then
+    return 0
+  fi
+  local waiter="${SCRIPT_DIR}/agent-task-busy.py"
+  if [[ ! -f "$waiter" ]]; then
+    fail_sync "agent wait script missing" "$waiter"
+  fi
+  log_step "Waiting for agents to finish the current task" "autostash must not run while Claude or Cursor is mid-turn"
+  if ! python3 "$waiter" wait --root "$ROOT"; then
+    fail_sync "timed out waiting for agents" "set GIT_SYNC_AGENT_WAIT_TIMEOUT_SEC or GIT_SYNC_WAIT_AGENTS=0 to override"
+  fi
+}
+
 autostash_local_changes() {
+  wait_for_agents_idle
   log_step "Stashed local changes before sync" "updating $MAIN_BRANCH requires a clean working tree"
   if ! git stash push --quiet -u -m "git-sync autostash $(date -u +%Y-%m-%dT%H:%M:%SZ)"; then
     fail_sync "autostash failed" "local changes must be protected before syncing"

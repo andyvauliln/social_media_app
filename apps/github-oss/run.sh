@@ -29,4 +29,8 @@ kill_port() {
 
 kill_port "$PORT"
 cd "$ROOT"
-exec npm run dev
+if [[ "${ENVIRONMENT:-development}" == "production" ]]; then
+  exec npm start
+else
+  exec npm run dev
+fi

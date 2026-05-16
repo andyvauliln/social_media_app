@@ -51,6 +51,34 @@ if (!TOKEN) {
 const INBOX_DIR = join(STATE_DIR, 'inbox')
 const PID_FILE = join(STATE_DIR, 'bot.pid')
 const TELEGRAM_LOG_FILE = join(STATE_DIR, 'teleram.logs')
+const VOICE_QUEUE_FILE = join(STATE_DIR, 'voice-queue.json')
+
+type VoiceQueueEntry = {
+  message_id: string
+  chat_id: string
+  ts: string
+  user: string
+  user_id: string
+  text: string
+}
+
+function readVoiceQueue(): VoiceQueueEntry[] {
+  try {
+    const raw = readFileSync(VOICE_QUEUE_FILE, 'utf8')
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+
+function writeVoiceQueue(entries: VoiceQueueEntry[]): void {
+  try {
+    writeFileSync(VOICE_QUEUE_FILE, JSON.stringify(entries, null, 2))
+  } catch (err) {
+    process.stderr.write(`telegram channel: voice queue write failed: ${err}\n`)
+  }
+}
 const ROOT_DIR = realpathSync(join(import.meta.dir, '..', '..'))
 const MANAGER_RAGENT = join(ROOT_DIR, 'agents', 'manager', 'ragent.claude.sh')
 const MANAGER_TIMEOUT_MS = 2 * 60 * 1000
@@ -968,7 +996,8 @@ async function transcribeVoice(file_id: string): Promise<string | undefined> {
     const url = `https://api.telegram.org/file/bot${TOKEN}/${file.file_path}`
     const res = await fetch(url)
     const buf = Buffer.from(await res.arrayBuffer())
-    const ext = file.file_path.split('.').pop() ?? 'ogg'
+    const rawExt = file.file_path.split('.').pop() ?? 'ogg'
+    const ext = rawExt === 'oga' ? 'ogg' : rawExt
     const formData = new FormData()
     formData.append('file', new Blob([buf], { type: 'audio/ogg' }), `voice.${ext}`)
     formData.append('model', 'whisper-large-v3-turbo')
@@ -1105,6 +1134,39 @@ async function handleInbound(
     return
   }
 
+  // Voice-queue intercept: voice messages are stored silently and only
+  // forwarded to Claude when the next non-voice message arrives. This keeps
+  // the agent dormant while the user dictates a series of notes.
+  if (attachment?.kind === 'voice') {
+    const queue = readVoiceQueue()
+    queue.push({
+      message_id: msgId != null ? String(msgId) : '',
+      chat_id,
+      ts: new Date((ctx.message?.date ?? 0) * 1000).toISOString(),
+      user: from.username ?? String(from.id),
+      user_id: String(from.id),
+      text,
+    })
+    writeVoiceQueue(queue)
+    if (msgId != null) {
+      void bot.api.setMessageReaction(chat_id, msgId, [
+        { type: 'emoji', emoji: '👀' as ReactionTypeEmoji['emoji'] },
+      ]).catch(() => {})
+    }
+    return
+  }
+
+  // If there are queued voice transcriptions, flush them into this message.
+  const queued = readVoiceQueue()
+  let forwardText = text
+  if (queued.length > 0) {
+    const queuedBlocks = queued.map(q =>
+      `<queued-voice message_id="${q.message_id}" ts="${q.ts}">\n${q.text}\n</queued-voice>`,
+    ).join('\n')
+    forwardText = `${queuedBlocks}\n\n${text}`
+    writeVoiceQueue([])
+  }
+
   // Typing indicator — signals "processing" until we reply (or ~5s elapses).
   void bot.api.sendChatAction(chat_id, 'typing').catch(() => {})
 
@@ -1126,7 +1188,7 @@ async function handleInbound(
   mcp.notification({
     method: 'notifications/claude/channel',
     params: {
-      content: text,
+      content: forwardText,
       meta: {
         chat_id,
         ...(msgId != null ? { message_id: String(msgId) } : {}),

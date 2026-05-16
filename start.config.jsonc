@@ -17,11 +17,11 @@
       "description": "GitHub OSS discovery and project intelligence UI (static + API on one port)",
       "type": "app",
       "developmentEnabled": true,
-      "productionEnabled": false,
+      "productionEnabled": true,
       "port": 3847,
-      "envFiles": [],
+      "envFiles": ["envs/app.github-oss.symlink.env"],
       "path": "apps/github-oss",
-      "init": "npm install && npm --prefix server install && test -f server/.env || cp server/.env.example server/.env",
+      "init": "npm install && npm --prefix server install && test -f .env || cp .env.example .env",
       "start": "bash ./run.sh"
     },
     {

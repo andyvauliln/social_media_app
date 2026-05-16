@@ -10,6 +10,12 @@
     "source_path": "~/.cursor",
     "target_path": "./configs/global-cursor.symlink"
   },
+  // GITHUB-OSS APP
+  {
+    "name": "ENVS: github-oss",
+    "source_path": "./apps/github-oss/.env",
+    "target_path": "./envs/app.github-oss.symlink.env"
+  },
   // CONTENT-FACTORY AGENT
   {
     "name": "DOCS: content-factory",

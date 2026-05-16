@@ -1,5 +1,19 @@
 {
   "enabledPlugins": {
   },
-  "autoMemoryEnabled": false
+  "autoMemoryEnabled": false,
+  "model": "sonnet",
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/turn-audit.sh"
+          }
+        ]
+      }
+    ]
+  }
 }

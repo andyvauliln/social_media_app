@@ -1,0 +1,26 @@
+// Claude Code audit / quota config — consumed by scripts/turn_audit.py
+//
+// plan:                  your active Anthropic subscription tier
+// model_quota_5h:        per-model rolling 5h budget in "api-equivalent tokens"
+//                        (community-estimated baselines for Pro — will be
+//                        auto-calibrated to real numbers after first 429
+//                        throttle, written to logs/claude/_meta/quota-state.json)
+// weights:               coefficients used to convert raw usage into
+//                        api-equivalent tokens — match Anthropic's price ratios
+//                        relative to plain input.
+{
+  "plan": "pro",
+
+  "model_quota_5h": {
+    "sonnet": 88000,
+    "opus":   22000,
+    "haiku":  264000
+  },
+
+  "weights": {
+    "input":        1.0,
+    "output":       5.0,
+    "cache_create": 1.25,
+    "cache_read":   0.10
+  }
+}

@@ -1,0 +1,1 @@
+`For own use and for inline tasks creation if needs`

@@ -185,8 +185,28 @@ a:hover { text-decoration:underline; }
 }
 .tab-add-btn:hover { border-color:var(--accent); color:var(--accent-text); background:var(--accent-dim); }
 .repo-list-actions {
+  display:grid;
+  grid-template-columns:minmax(0, 1fr) auto;
+  align-items:center;
+  gap:var(--sp2) var(--sp3);
+  margin-top:var(--sp2);
+  padding-top:var(--sp2);
+  border-top:1px dashed var(--border);
+}
+.repo-list-actions-collections {
   display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp2);
-  margin-top:var(--sp2); padding-top:var(--sp2); border-top:1px dashed var(--border);
+  min-width:0;
+}
+.repo-list-actions-primary {
+  display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-end; gap:var(--sp2);
+  flex-shrink:0;
+}
+@media (max-width: 720px) {
+  .repo-list-actions {
+    grid-template-columns:1fr;
+    gap:var(--sp2);
+  }
+  .repo-list-actions-primary { justify-self:end; }
 }
 .repo-list-btn {
   padding:3px 8px; border-radius:var(--rad-sm); font-size:10px;
@@ -195,6 +215,16 @@ a:hover { text-decoration:underline; }
 }
 .repo-list-btn:hover { border-color:var(--accent); color:var(--accent-text); background:var(--accent-dim); }
 .repo-list-btn.danger:hover { border-color:var(--red); color:var(--red); background:var(--red-dim); }
+.repo-list-btn.repo-ask-ai-btn { color:var(--purple); border-color:color-mix(in srgb, var(--purple) 40%, transparent); background:var(--purple-dim); }
+.repo-list-btn.repo-ask-ai-btn:hover { background:var(--purple); color:var(--surface); }
+.repo-list-btn.repo-clone-btn { color:var(--green); border-color:color-mix(in srgb, var(--green) 40%, transparent); background:color-mix(in srgb, var(--green) 12%, transparent); }
+.repo-list-btn.repo-clone-btn:hover { background:var(--green); color:var(--surface); }
+.repo-list-btn.repo-clone-btn:disabled { opacity:0.55; cursor:wait; }
+.repo-list-btn.repo-clone-btn.is-cloned { opacity:0.85; }
+.ai-docs-pane { padding:var(--sp3) 0; }
+.ai-docs-meta { font-size:11px; font-family:var(--font-mono); color:var(--text-faint); margin-bottom:var(--sp3); }
+.ai-docs-turn { border:1px solid var(--border); border-radius:var(--rad-md); padding:var(--sp3); margin-bottom:var(--sp3); background:var(--surface-2); }
+.ai-docs-turn .ai-turn-q, .ai-docs-turn .ai-turn-a { margin-top:var(--sp2); }
 .results-count strong { color:var(--accent-text); }
 .active-filter-info { color:var(--text-faint); font-size:11px; }
 
@@ -244,9 +274,22 @@ a:hover { text-decoration:underline; }
 .col-num strong { color:var(--text); font-weight:600; }
 .date-fresh { color:var(--accent-text); font-weight:500; }
 .date-old   { color:var(--text-faint); }
-.ai-btn-cell { padding-top:2px; display:flex; align-items:flex-start; }
+.ai-btn-cell { padding-top:2px; display:flex; align-items:flex-start; gap:4px; flex-wrap:wrap; justify-content:flex-end; }
 .ai-btn { display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:var(--rad-full); font-size:10px; font-family:var(--font-mono); font-weight:600; background:var(--purple-dim); color:var(--purple); border:1px solid color-mix(in srgb, var(--purple) 40%, transparent); transition:all var(--trans); white-space:nowrap; }
 .ai-btn:hover { background:var(--purple); color:var(--surface); }
+.ai-btn.ai-clone-btn { background:color-mix(in srgb, var(--green) 12%, transparent); color:var(--green); border-color:color-mix(in srgb, var(--green) 40%, transparent); }
+.ai-btn.ai-clone-btn:hover { background:var(--green); color:var(--surface); }
+.ai-btn.ai-clone-btn:disabled { opacity:0.55; cursor:wait; }
+.ai-btn.ai-clone-btn.is-cloned { opacity:0.85; }
+.clone-indicator {
+  font-size:10px; font-family:var(--font-mono); font-weight:600;
+  border-radius:var(--rad-full); padding:1px 7px; flex-shrink:0;
+  border:1px solid var(--border-2); color:var(--text-faint); background:var(--surface-3);
+}
+.clone-indicator.cloned {
+  color:var(--green); border-color:color-mix(in srgb, var(--green) 45%, transparent);
+  background:color-mix(in srgb, var(--green) 10%, transparent);
+}
 
 /* ── Accordion detail ───────────────────────── */
 .repo-detail { display:none; border-top:1px solid var(--border); background:var(--surface-2); }
@@ -259,6 +302,21 @@ a:hover { text-decoration:underline; }
 .tab-btn.active { color:var(--accent-text); border-bottom-color:var(--accent); }
 .tab-pane { display:none; }
 .tab-pane.active { display:block; }
+.tab-pane-toolbar {
+  display:flex; justify-content:flex-end; margin-bottom:var(--sp3);
+  padding-bottom:var(--sp2); border-bottom:1px dashed var(--border);
+}
+.tab-ask-ai-btn {
+  padding:4px 10px; border-radius:var(--rad-sm); font-size:10px;
+  font-family:var(--font-mono); font-weight:600;
+  border:1px solid color-mix(in srgb, var(--purple) 40%, transparent);
+  background:var(--purple-dim); color:var(--purple);
+  transition:all var(--trans);
+}
+.tab-ask-ai-btn:hover { background:var(--purple); color:var(--surface); }
+.tab-btn.tab-doc { text-transform:none; letter-spacing:0; }
+.doc-file-pane { padding:var(--sp2) 0; }
+.doc-file-meta { font-size:11px; font-family:var(--font-mono); color:var(--text-faint); margin-bottom:var(--sp3); }
 
 /* Stack tab */
 .pkg-list { display:flex; flex-direction:column; gap:var(--sp2); }
@@ -363,6 +421,23 @@ a:hover { text-decoration:underline; }
 .gc-acc.stack-section .stack-section-body { max-height:320px; overflow-y:auto; }
 .empty-state { padding:var(--sp6); text-align:center; color:var(--text-faint); font-family:var(--font-mono); font-size:var(--text-xs); }
 
+/* Matched search file tab */
+.search-file-wrap {
+  border:1px solid var(--border); border-radius:var(--rad-md);
+  background:var(--surface-2); overflow:hidden;
+}
+.search-file-path {
+  padding:var(--sp2) var(--sp4); font-size:11px; font-family:var(--font-mono);
+  color:var(--text-muted); border-bottom:1px solid var(--border);
+  background:var(--surface-3); word-break:break-all;
+}
+.search-file-code {
+  margin:0; padding:var(--sp4); overflow:auto; max-height:min(70vh, 640px);
+  font-size:12px; line-height:1.5; font-family:var(--font-mono); color:var(--text);
+  white-space:pre-wrap; word-break:break-word;
+}
+.search-file-body { padding:var(--sp4); overflow:auto; max-height:min(70vh, 640px); }
+
 /* README tab */
 .readme-wrap { background:var(--surface); border:1px solid var(--border); border-radius:var(--rad-md); padding:var(--sp5) var(--sp6); max-height:600px; overflow-y:auto; }
 .readme-wrap.readme-preview { cursor:pointer; transition:border-color var(--trans), box-shadow var(--trans); }
@@ -435,6 +510,12 @@ a:hover { text-decoration:underline; }
 .search-scope-grid input[type=checkbox],
 .search-scope-grid input[type=radio] { accent-color:var(--accent); }
 .search-scope-grid fieldset { border:none; padding:0; margin:0; min-width:0; }
+.search-file-scope-panel {
+  display:none; flex-direction:column; gap:var(--sp2); margin-top:var(--sp2);
+  padding:var(--sp3); border:1px solid var(--border); border-radius:var(--rad-md);
+  background:var(--surface-2);
+}
+.search-file-scope-panel.open { display:flex; }
 .keyword-row-actions { margin-top:var(--sp2); display:flex; flex-wrap:wrap; gap:var(--sp2); align-items:center; }
 .lang-add-row .form-input { margin:0; }
 .form-label { font-size:11px; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:.08em; color:var(--text-muted); font-weight:600; }
@@ -581,6 +662,7 @@ a:hover { text-decoration:underline; }
   &nbsp;·&nbsp; <span id="footerDate"></span>
 </footer>
 
+
 <!-- ── AI Modal ───────────────────────────────── -->
 <div class="modal-backdrop" id="aiModal" onclick="handleModalBackdropClick(event)">
   <div class="modal">
@@ -607,9 +689,8 @@ a:hover { text-decoration:underline; }
         <label class="form-label">AI provider</label>
         <div class="context-mode-row" id="aiProviderRow">
           <label class="context-mode-opt"><input type="radio" name="aiProvider" value="openrouter" checked/> OpenRouter</label>
-          <label class="context-mode-opt"><input type="radio" name="aiProvider" value="cursor"/> Cursor agent</label>
-          <label class="context-mode-opt" style="opacity:0.45;cursor:not-allowed" title="Coming soon"><input type="radio" name="aiProvider" value="claude-code" disabled/> Claude Code</label>
-          <label class="context-mode-opt" style="opacity:0.45;cursor:not-allowed" title="Coming soon"><input type="radio" name="aiProvider" value="codex" disabled/> Codex</label>
+          <label class="context-mode-opt"><input type="radio" name="aiProvider" value="claude"/> Claude (ragent.claude.sh)</label>
+          <label class="context-mode-opt"><input type="radio" name="aiProvider" value="cursor"/> Cursor (ragent.cursor.sh)</label>
         </div>
       </div>
       <div class="form-group" id="openrouterModelRow">
@@ -622,6 +703,13 @@ a:hover { text-decoration:underline; }
           <span class="model-meta-pill">Input: <strong id="mdInp">—</strong></span>
           <span class="model-meta-pill">Output: <strong id="mdOut">—</strong></span>
         </div>
+      </div>
+      <div class="form-group" id="claudeModelRow" style="display:none">
+        <label class="form-label">Claude model</label>
+        <select class="form-select" id="claudeModelSelect">
+          <option value="sonnet">Loading models…</option>
+        </select>
+        <p class="form-hint" id="claudeModelHint" style="display:none;margin-top:var(--sp2)"></p>
       </div>
       <div class="form-group" id="cursorModelRow" style="display:none">
         <label class="form-label">Cursor model</label>
@@ -715,7 +803,15 @@ a:hover { text-decoration:underline; }
           <label><input type="radio" name="extendDiscoveryScope" id="extendScopeMeta" value="meta" checked/> Repository name, description, and topics (GitHub index)</label>
           <label><input type="radio" name="extendDiscoveryScope" id="extendScopeReadme" value="readme"/> README — verify phrase in fetched README body</label>
           <label><input type="radio" name="extendDiscoveryScope" id="extendScopeCode" value="code"/> Files / code <span style="color:var(--text-faint);font-weight:400">(slower; strict rate limits)</span></label>
+          <label><input type="radio" name="extendDiscoveryScope" id="extendScopeFile" value="file"/> Search in file <span style="color:var(--text-faint);font-weight:400">(filename + body phrase)</span></label>
         </fieldset>
+        <div id="extendFileScopePanel" class="search-file-scope-panel">
+          <label class="form-label" for="extendFileName">File name or path</label>
+          <input class="form-input" id="extendFileName" type="text" placeholder="e.g. package.json or docs/README.md" autocomplete="off"/>
+          <label class="form-label" for="extendFileContains">File must contain</label>
+          <input class="form-input" id="extendFileContains" type="text" placeholder="Phrase to find inside that file" autocomplete="off"/>
+          <span class="form-hint">Uses GitHub code search with a filename or path qualifier. You can also add keywords above; each keyword is searched in the same file.</span>
+        </div>
       </div>
       <div class="form-group">
         <label style="display:flex;align-items:center;gap:var(--sp2);font-size:var(--text-xs);color:var(--text-muted);cursor:pointer">
@@ -725,6 +821,7 @@ a:hover { text-decoration:underline; }
       <div class="form-group">
         <label class="form-label">How many repos to fetch?</label>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+          <button type="button" class="extend-result-preset" data-val="10">10 — super fast</button>
           <button type="button" class="extend-result-preset active" data-val="100">100 — fast</button>
           <button type="button" class="extend-result-preset" data-val="300">300 — normal</button>
           <button type="button" class="extend-result-preset" data-val="500">500 — thorough</button>
@@ -784,8 +881,7 @@ a:hover { text-decoration:underline; }
 <script>
 /* ═══════════════════════════════════════════════════════════════
    OSS Intelligence — Project Detail Page
-   Loads project JSON from data/projects/{fname}.json (then data/, then root for legacy),
-   merges VFS edits; normalizes every repo to the same shape for any project source.
+   Loads and saves project JSON under data/projects/{fname}.json via the local server.
 ═══════════════════════════════════════════════════════════════ */
 
 function resolveApiBase() {
@@ -794,6 +890,10 @@ function resolveApiBase() {
   return window.location.protocol === 'file:' ? 'http://127.0.0.1:3847' : '';
 }
 const API_BASE = resolveApiBase();
+function apiUrl(path) {
+  const p = path.startsWith('/') ? path : `/${path}`;
+  return `${API_BASE || ''}${p}`;
+}
 function resolveGhToken() {
   if (typeof window === 'undefined') return '';
   if (Object.prototype.hasOwnProperty.call(window, 'GITHUB_TOKEN')) return String(window.GITHUB_TOKEN);
@@ -829,9 +929,27 @@ function discoveryScopeRadioName(pfx) {
 function scopeFromSaved(o) {
   if (!o) return 'meta';
   const anyIn = !!(o.inName || o.inDescription || o.inTopics || o.inReadme);
+  if (o.includeFileSearch && !anyIn) return 'file';
   if (o.includeCodeSearch && !anyIn) return 'code';
   if (o.inReadme && !o.inName && !o.inDescription && !o.inTopics) return 'readme';
   return 'meta';
+}
+
+function updateFileScopePanelVisibility(pfx) {
+  const rname = discoveryScopeRadioName(pfx);
+  const el = document.querySelector(`input[name="${rname}"]:checked`);
+  const isFile = el && el.value === 'file';
+  const panel = document.getElementById(pfx + 'FileScopePanel');
+  if (panel) panel.classList.toggle('open', !!isFile);
+}
+
+function bindDiscoveryScopeRadios(pfx) {
+  const rname = discoveryScopeRadioName(pfx);
+  document.querySelectorAll(`input[name="${rname}"]`).forEach((r) => {
+    if (r.dataset.fileScopeBound === pfx) return;
+    r.dataset.fileScopeBound = pfx;
+    r.addEventListener('change', () => updateFileScopePanelVisibility(pfx));
+  });
 }
 
 function applyDiscoveryForm(pfx, o) {
@@ -841,11 +959,17 @@ function applyDiscoveryForm(pfx, o) {
   document.getElementById(pfx + 'ExcludeForks').checked = !!d.excludeForks;
   const ex = document.getElementById(pfx + 'ExtractPackages');
   if (ex) ex.checked = !!d.extractPackagesOnSearch;
+  const fnEl = document.getElementById(pfx + 'FileName');
+  const fcEl = document.getElementById(pfx + 'FileContains');
+  if (fnEl) fnEl.value = d.fileName || '';
+  if (fcEl) fcEl.value = d.fileContains || '';
   const scope = scopeFromSaved(o);
   const rname = discoveryScopeRadioName(pfx);
   document.querySelectorAll(`input[name="${rname}"]`).forEach((r) => {
     r.checked = r.value === scope;
   });
+  bindDiscoveryScopeRadios(pfx);
+  updateFileScopePanelVisibility(pfx);
 }
 
 function readDiscoveryOptions(pfx) {
@@ -856,6 +980,16 @@ function readDiscoveryOptions(pfx) {
     minStars: Math.max(0, parseInt(document.getElementById(pfx + 'MinStars').value, 10) || 0),
     excludeForks: document.getElementById(pfx + 'ExcludeForks').checked,
   };
+  const emptyRepoFields = {
+    inName: false,
+    inDescription: false,
+    inTopics: false,
+    inReadme: false,
+    includeCodeSearch: false,
+    includeFileSearch: false,
+    fileName: '',
+    fileContains: '',
+  };
   if (scope === 'meta') {
     return {
       ...base,
@@ -864,26 +998,58 @@ function readDiscoveryOptions(pfx) {
       inTopics: true,
       inReadme: false,
       includeCodeSearch: false,
+      includeFileSearch: false,
+      fileName: '',
+      fileContains: '',
     };
   }
   if (scope === 'readme') {
     return {
       ...base,
-      inName: false,
-      inDescription: false,
-      inTopics: false,
+      ...emptyRepoFields,
       inReadme: true,
-      includeCodeSearch: false,
+    };
+  }
+  if (scope === 'file') {
+    const fnEl = document.getElementById(pfx + 'FileName');
+    const fcEl = document.getElementById(pfx + 'FileContains');
+    return {
+      ...base,
+      ...emptyRepoFields,
+      includeFileSearch: true,
+      fileName: fnEl ? fnEl.value.trim() : '',
+      fileContains: fcEl ? fcEl.value.trim() : '',
     };
   }
   return {
     ...base,
-    inName: false,
-    inDescription: false,
-    inTopics: false,
-    inReadme: false,
+    ...emptyRepoFields,
     includeCodeSearch: true,
   };
+}
+
+function validateDiscoveryBeforeSearch(pfx, keywords) {
+  const opt = readDiscoveryOptions(pfx);
+  if (opt.includeFileSearch) {
+    if (!opt.fileName) {
+      alert('Enter a file name or path to search in.');
+      const fnEl = document.getElementById(pfx + 'FileName');
+      if (fnEl) fnEl.focus();
+      return false;
+    }
+    if (!opt.fileContains && !(keywords && keywords.length)) {
+      alert('Enter what the file must contain, or add at least one keyword.');
+      const fcEl = document.getElementById(pfx + 'FileContains');
+      if (fcEl) fcEl.focus();
+      return false;
+    }
+    return true;
+  }
+  if (!keywords || !keywords.length) {
+    alert('Add at least one keyword.');
+    return false;
+  }
+  return true;
 }
 
 function readExtractPackages(pfx) {
@@ -1003,32 +1169,70 @@ async function packagesFromTreePypi(full_name, branch) {
   return out;
 }
 
+async function packagesFromTreePyproject(full_name, branch) {
+  const paths = await fetchRepoBlobPaths(full_name, branch);
+  const rels = manifestPathsForBasename(paths, 'pyproject.toml').slice(0, MAX_MANIFEST_FILES);
+  const rawHdr = { headers: { 'Authorization': `Bearer ${GH_TOKEN}` } };
+  const seen = new Set();
+  const out = [];
+  for (const rel of rels) {
+    try {
+      const res = await fetch(
+        `https://raw.githubusercontent.com/${full_name}/${branch}/${rel}`,
+        rawHdr
+      );
+      if (!res.ok) continue;
+      const text = await res.text();
+      for (const d of parsePyproject(text)) {
+        const k = d.name.toLowerCase();
+        if (seen.has(k)) continue;
+        seen.add(k);
+        out.push({ name: d.name, version: d.ver || '', registry: 'pypi', description: '' });
+        if (out.length >= MAX_PACKAGE_DEPS) return out;
+      }
+    } catch { /* next file */ }
+  }
+  return out;
+}
+
 async function fillRepoPackagesForRecord(r) {
   const branch = r.default_branch || 'main';
+  const slug = r.full_name;
   const lang = (r.language || '').toLowerCase();
   if (lang === 'javascript' || lang === 'typescript') {
-    return packagesFromTreeNpm(r.full_name, branch);
+    return packagesFromTreeNpm(slug, branch);
   }
   if (lang === 'python' || lang === 'jupyter notebook') {
-    return packagesFromTreePypi(r.full_name, branch);
+    const req = await packagesFromTreePypi(slug, branch);
+    if (req.length) return req;
+    return packagesFromTreePyproject(slug, branch);
   }
-  return [];
+  const npm = await packagesFromTreeNpm(slug, branch);
+  if (npm.length) return npm;
+  const req = await packagesFromTreePypi(slug, branch);
+  if (req.length) return req;
+  return packagesFromTreePyproject(slug, branch);
 }
 
 async function enrichRepos(rawRepos, onProgress, enrichOpts) {
   const extract = !!(enrichOpts && enrichOpts.extractPackagesOnSearch);
+  const fetchFile = !!(enrichOpts && enrichOpts.fetchSearchFile);
+  const fallbackFilePath = (enrichOpts && enrichOpts.searchFileName)
+    ? String(enrichOpts.searchFileName).trim()
+    : '';
   const enriched = [];
   const total    = rawRepos.length;
   for (let i = 0; i < total; i++) {
     const r = rawRepos[i];
     if (i % 5 === 0 && total > 0) {
       const pct = 60 + Math.round(i / total * 30);
-      onProgress(
-        pct,
-        `Enriching ${i+1}/${total}: ${r.name}`,
-        extract ? 'Per repo: commit count + dependency tree scan' : 'Per repo: commit count'
-      );
+      const bits = ['commit count'];
+      if (fetchFile) bits.push('matched file download');
+      if (extract) bits.push('dependency tree scan');
+      onProgress(pct, `Enriching ${i+1}/${total}: ${r.name}`, `Per repo: ${bits.join(' + ')}`);
     }
+    const filePath = String(r.search_file_path || fallbackFilePath || '').trim();
+    const existingFileText = typeof r.search_file_text === 'string' ? r.search_file_text : '';
     const base = {
       id:          r.id,
       name:        r.name,
@@ -1052,6 +1256,13 @@ async function enrichRepos(rawRepos, onProgress, enrichOpts) {
         !!r.readme_fetched || (typeof r.readme === 'string' && r.readme.length > 0),
       stack_fetched: false,
       packages:    [],
+      search_file_path: filePath,
+      search_file_text: existingFileText,
+      search_file_fetched:
+        !!r.search_file_fetched || existingFileText.length > 0,
+      cloned: false,
+      cloned_at: '',
+      github_collection: '',
     };
     try {
       const res = await fetch(
@@ -1062,6 +1273,13 @@ async function enrichRepos(rawRepos, onProgress, enrichOpts) {
       const m = link.match(/page=(\d+)>; rel="last"/);
       base.commit_count = m ? parseInt(m[1]) : null;
     } catch {}
+    if (fetchFile && filePath && !base.search_file_fetched) {
+      try {
+        const text = await ghFetchFile(r.full_name, filePath);
+        base.search_file_text = text || '';
+        base.search_file_fetched = true;
+      } catch { /* keep empty */ }
+    }
     if (extract) {
       try {
         base.packages = await fillRepoPackagesForRecord(r);
@@ -1069,7 +1287,7 @@ async function enrichRepos(rawRepos, onProgress, enrichOpts) {
       } catch { /* keep [] */ }
     }
     enriched.push(base);
-    await sleep(extract ? 100 : 80);
+    await sleep(extract || fetchFile ? 100 : 80);
   }
   return enriched;
 }
@@ -1201,45 +1419,6 @@ function parsePyproject(text) {
   }
   return results.slice(0, 40);
 }
-/* ── Virtual File System (mirrors index.html's VFS) ───── */
-const VFS_STORE_KEY = 'oss-vfs';
-function _getStore() {
-  try { return window['local'+'Storage']; } catch(e) { return null; }
-}
-function vfsRead() {
-  try {
-    const store = _getStore();
-    const raw = (store && store.getItem(VFS_STORE_KEY)) || window.name || '{}';
-    return JSON.parse(raw);
-  } catch(e) { return {}; }
-}
-function vfsWrite(data) {
-  const s = JSON.stringify(data);
-  try { window.name = s; } catch(e) {}
-  try {
-    const store = _getStore();
-    if (store) store.setItem(VFS_STORE_KEY, s);
-  } catch(e) {}
-}
-function vfsGet(fname) {
-  const data = vfsRead();
-  const meta = (data.files || {})[fname];
-  return meta ? { ...meta, _fname: fname } : null;
-}
-function vfsPut(meta) {
-  const data = vfsRead();
-  if (!data.files) data.files = {};
-  const existing = data.files[meta._fname];
-  if (!existing) {
-    const nums = Object.values(data.files).map(m => m._num || 0);
-    meta._num = nums.length ? Math.max(...nums) + 1 : 1;
-  } else {
-    meta._num = existing._num;
-  }
-  data.files[meta._fname] = meta;
-  vfsWrite(data);
-}
-
 function reposForPersistence(repos) {
   return (repos || []).map(r => ({ ...r }));
 }
@@ -1465,7 +1644,6 @@ async function runExtendAiKeywordsGenerate() {
 
 function persistMergedProjectMeta() {
   if (!S.projectFname || !S.projectLoaded) return;
-  const base = vfsGet(S.projectFname) || S.projectLoaded || {};
   const langMap = {};
   S.repos.forEach(r => { if (r.language) langMap[r.language]=(langMap[r.language]||0)+1; });
   const topLangs = Object.entries(langMap).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([l])=>l);
@@ -1473,25 +1651,14 @@ function persistMergedProjectMeta() {
   S.projectLoaded.languages = S.projectLoaded.languages || [];
   S.projectLoaded.topLangs = topLangs;
   S.projectLoaded.repoCount = S.repos.length;
-  S.projectLoaded.repos = [...S.repos];
-  vfsPut({
-    ...base,
-    _fname: S.projectFname,
-    repos: reposForPersistence(S.repos),
-    keywords: [...S.projectLoaded.keywords],
-    languages: [...S.projectLoaded.languages],
-    repoCount: S.repos.length,
-    topLangs,
-    searchOptions: S.projectLoaded.searchOptions || base.searchOptions,
-  });
+  S.projectLoaded.repos = reposForPersistence(S.repos);
   void persistProjectFileOnServer();
 }
 
 async function runExtendSearchMerge() {
   flushExtendKeywordInput();
-  if (!extendKeywords.length) {
-    alert('Add at least one keyword.');
-    document.getElementById('extendKeywordInput').focus();
+  if (!validateDiscoveryBeforeSearch('extend', extendKeywords)) {
+    if (!extendKeywords.length) document.getElementById('extendKeywordInput').focus();
     return;
   }
   const maxResults = Math.min(parseInt(document.getElementById('extendMaxResults').value, 10) || 200, 1000);
@@ -1522,10 +1689,16 @@ async function runExtendSearchMerge() {
       90,
       `Enriching ${reposRaw.length} repos…`,
       progressCtx(
-        `Commit counts per repo${extractPkgs ? '; scanning trees for package manifests' : ''}`
+        `Commit counts per repo${
+          discoveryOpt.includeFileSearch ? '; downloading matched files' : ''
+        }${extractPkgs ? '; scanning trees for package manifests' : ''}`
       )
     );
-    const enriched = await enrichRepos(reposRaw, extendDiscoveryProgress, { extractPackagesOnSearch: extractPkgs });
+    const enriched = await enrichRepos(reposRaw, extendDiscoveryProgress, {
+      extractPackagesOnSearch: extractPkgs,
+      fetchSearchFile: !!discoveryOpt.includeFileSearch,
+      searchFileName: discoveryOpt.fileName || '',
+    });
     setExtendProgress(
       95,
       'Merging into project…',
@@ -1587,6 +1760,8 @@ function normalizeRepoRecord(r) {
   const readme_fetched = !!r.readme_fetched || readme.length > 0;
   const packages = Array.isArray(r.packages) ? r.packages : [];
   const stack_fetched = !!r.stack_fetched || packages.length > 0;
+  const search_file_text = typeof r.search_file_text === 'string' ? r.search_file_text : '';
+  const search_file_fetched = !!r.search_file_fetched || search_file_text.length > 0;
   return {
     id: r.id,
     name: r.name ?? '',
@@ -1609,6 +1784,12 @@ function normalizeRepoRecord(r) {
     readme_fetched,
     stack_fetched,
     packages,
+    search_file_path: typeof r.search_file_path === 'string' ? r.search_file_path : '',
+    search_file_text,
+    search_file_fetched,
+    cloned: !!r.cloned,
+    cloned_at: typeof r.cloned_at === 'string' ? r.cloned_at : '',
+    github_collection: typeof r.github_collection === 'string' ? r.github_collection : '',
   };
 }
 
@@ -1648,22 +1829,18 @@ async function fetchProjectJson(fname) {
   return null;
 }
 
-/** Use VFS repos only when the key exists (user saved edits); else JSON file repos. */
-function resolveProjectRepos(fetched, vfsP) {
-  const fromFile = fetched && Array.isArray(fetched.repos) ? fetched.repos : [];
-  if (vfsP && Object.prototype.hasOwnProperty.call(vfsP, 'repos')) {
-    return Array.isArray(vfsP.repos) ? vfsP.repos : [];
-  }
-  return fromFile;
-}
-
 /* ── Repo lists per project (IndexedDB; localStorage legacy + fallback) ─── */
+function _getStore() {
+  try { return window['local'+'Storage']; } catch (e) { return null; }
+}
 const OSS_REPO_LISTS_KEY = 'oss-repo-lists-v1';
 const OSS_IDB_NAME = 'oss-intelligence';
 const OSS_IDB_VER = 1;
 const OSS_IDB_LISTS = 'repoLists';
 /** Prefix for custom list tab ids (`custom:` is 7 chars — do not use slice(8)). */
 const REPO_LIST_CUSTOM_PREFIX = 'custom:';
+/** Prefix for github-projects collection tabs (`gp:` + folder name). */
+const REPO_LIST_GP_PREFIX = 'gp:';
 
 let _ossIdbPromise = null;
 function openOssIDB() {
@@ -1762,8 +1939,12 @@ function normalizeRepoListBucket(raw) {
         }))
     : [];
   let activeTab = raw.activeTab;
-  if (activeTab !== 'all' && activeTab !== 'favourite') {
-    if (typeof activeTab === 'string' && activeTab.startsWith(REPO_LIST_CUSTOM_PREFIX)) {
+  if (activeTab === 'favourite') activeTab = REPO_LIST_GP_PREFIX + 'favourite';
+  if (activeTab !== 'all') {
+    if (typeof activeTab === 'string' && activeTab.startsWith(REPO_LIST_GP_PREFIX)) {
+      const coll = activeTab.slice(REPO_LIST_GP_PREFIX.length);
+      if (!S.githubCollections.some((c) => c.name === coll)) activeTab = 'all';
+    } else if (typeof activeTab === 'string' && activeTab.startsWith(REPO_LIST_CUSTOM_PREFIX)) {
       const cid = activeTab.slice(REPO_LIST_CUSTOM_PREFIX.length);
       if (!customLists.some(c => c.id === cid)) activeTab = 'all';
     } else activeTab = 'all';
@@ -1799,19 +1980,109 @@ function saveRepoListBucket(state) {
   });
 }
 
-function setActiveRepoListTab(tab) {
+async function setActiveRepoListTab(tab) {
   const b = getRepoListBucket();
   b.activeTab = tab;
   saveRepoListBucket(b);
+  if (tab.startsWith(REPO_LIST_GP_PREFIX)) {
+    await refreshCollectionProjects(tab.slice(REPO_LIST_GP_PREFIX.length));
+  }
+  renderRepoListTabs();
   renderTable();
+}
+
+function repoListTabForCollection(name) {
+  return REPO_LIST_GP_PREFIX + name;
+}
+
+function normalizeCollProject(p) {
+  if (typeof p === 'string') {
+    return { projectDir: p, fullName: '', github: '', installed: false };
+  }
+  return {
+    projectDir: String(p.projectDir || ''),
+    fullName: String(p.fullName || ''),
+    github: String(p.github || ''),
+    installed: !!p.installed,
+  };
+}
+
+function collectionTabLabel(coll) {
+  const name = typeof coll === 'string' ? coll : coll.name;
+  const n = typeof coll === 'object' && Array.isArray(coll.projects) ? coll.projects.length : 0;
+  const base = name === S.defaultCloneCollection ? 'Favourite' : name;
+  return n ? `${base} (${n})` : base;
+}
+
+function diskRepoNumericId(collection, projectDir) {
+  const s = `disk:${collection}:${projectDir}`;
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
+  return Math.abs(h) || 1;
+}
+
+function syntheticDiskRepo(p, collection) {
+  const fn = p.fullName;
+  return normalizeRepoRecord({
+    id: diskRepoNumericId(collection, p.projectDir),
+    name: p.projectDir,
+    full_name: fn || `_disk/${collection}/${p.projectDir}`,
+    description: fn
+      ? `github-projects/${collection}/${p.projectDir}/`
+      : `On disk only — folder github-projects/${collection}/${p.projectDir}/ (not matched in OSS project JSON)`,
+    html_url: p.github || (fn ? `https://github.com/${fn}` : ''),
+    homepage: '',
+    language: '',
+    stars: 0,
+    forks: 0,
+    open_issues: 0,
+    topics: [],
+    archived: false,
+    github_collection: collection,
+    cloned: p.installed,
+    cloned_at: p.installed ? new Date().toISOString() : '',
+    readme: '',
+    readme_fetched: false,
+    stack_fetched: false,
+    packages: [],
+    _diskOnly: !fn,
+  });
+}
+
+function reposForCollectionTab(collName) {
+  const coll = S.githubCollections.find((c) => c.name === collName);
+  if (!coll) return [];
+  const projects = (coll.projects || []).map(normalizeCollProject);
+  const matched = [];
+  for (const r of S.repos) {
+    const dir = (r.full_name || '').split('/')[1];
+    const hit = projects.some(
+      (p) =>
+        (p.fullName && p.fullName.toLowerCase() === (r.full_name || '').toLowerCase()) ||
+        (p.projectDir && p.projectDir === dir) ||
+        r.github_collection === collName,
+    );
+    if (hit) matched.push(r);
+  }
+  for (const p of projects) {
+    const inMatched = matched.some((r) => {
+      const dir = (r.full_name || '').split('/')[1];
+      return dir === p.projectDir || (p.fullName && r.full_name === p.fullName);
+    });
+    if (!inMatched) matched.push(syntheticDiskRepo(p, collName));
+  }
+  return matched;
 }
 
 function repoListAddButtonsHtml(slugAttr) {
   const b = getRepoListBucket();
   const tab = b.activeTab;
   let h = '';
-  if (tab !== 'favourite') {
-    h += `<button type="button" class="repo-list-btn repo-add-to-list" data-slug="${slugAttr}" data-list-target="favourite" title="Add to Favourite">+ Favourite</button>`;
+  for (const coll of S.githubCollections) {
+    const tabId = repoListTabForCollection(coll.name);
+    if (tab === tabId) continue;
+    const label = collectionTabLabel(coll.name);
+    h += `<button type="button" class="repo-list-btn repo-add-to-collection" data-slug="${slugAttr}" data-collection="${escAttr(coll.name)}" title="Clone into github-projects/${escAttr(coll.name)}/">+ ${esc(label)}</button>`;
   }
   b.customLists.forEach(c => {
     const target = REPO_LIST_CUSTOM_PREFIX + c.id;
@@ -1837,22 +2108,26 @@ function renderRepoListTabs() {
     wrap.appendChild(el);
   }
   addTab('all', 'All');
-  addTab('favourite', 'Favourite');
+  for (const coll of S.githubCollections) {
+    addTab(repoListTabForCollection(coll.name), collectionTabLabel(coll));
+  }
   const addListBtn = document.createElement('button');
   addListBtn.type = 'button';
   addListBtn.className = 'tab-add-btn';
-  addListBtn.textContent = 'Add list';
-  addListBtn.title = 'Create a new custom list';
-  addListBtn.addEventListener('click', () => promptAndAddCustomRepoList());
+  addListBtn.textContent = 'Add Collection';
+  addListBtn.title = 'Create a folder under github-projects/';
+  addListBtn.addEventListener('click', () => promptAndAddGithubCollection());
   wrap.appendChild(addListBtn);
   b.customLists.forEach(c => addTab(REPO_LIST_CUSTOM_PREFIX + c.id, c.name));
 }
 
 function filterReposByListTab(repos, tab, b) {
   if (tab === 'all') return repos;
+  if (tab.startsWith(REPO_LIST_GP_PREFIX)) {
+    return reposForCollectionTab(tab.slice(REPO_LIST_GP_PREFIX.length));
+  }
   if (tab === 'favourite') {
-    const set = new Set(b.favourites);
-    return repos.filter(r => set.has(r.full_name));
+    return filterReposByListTab(repos, repoListTabForCollection(S.defaultCloneCollection), b);
   }
   if (tab.startsWith(REPO_LIST_CUSTOM_PREFIX)) {
     const id = tab.slice(REPO_LIST_CUSTOM_PREFIX.length);
@@ -1899,6 +2174,27 @@ function removeRepoSlugFromAllStoredLists(fullName) {
   saveRepoListBucket(b);
 }
 
+async function promptAndAddGithubCollection() {
+  const name = prompt('New collection name (folder under github-projects/)');
+  if (name == null) return;
+  const t = String(name).trim().toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '');
+  if (!t) return;
+  try {
+    const res = await fetch(apiUrl('/api/collections'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: t }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    await loadGithubCollections();
+    renderRepoListTabs();
+    setActiveRepoListTab(repoListTabForCollection(data.name || t));
+  } catch (err) {
+    window.alert(`Could not create collection: ${err.message}`);
+  }
+}
+
 function promptAndAddCustomRepoList() {
   const name = prompt('Name for the new list');
   if (name == null) return;
@@ -1918,11 +2214,206 @@ function addCustomRepoList(name) {
 }
 
 function persistProjectRepos() {
-  if (!S.projectFname) return;
-  const base = vfsGet(S.projectFname) || S.projectLoaded || {};
-  vfsPut({ ...base, _fname: S.projectFname, repos: reposForPersistence(S.repos) });
-  S.projectLoaded = { ...S.projectLoaded, repos: [...S.repos] };
+  if (!S.projectFname || !S.projectLoaded) return;
+  S.projectLoaded.repos = reposForPersistence(S.repos);
+  S.projectLoaded.repoCount = S.repos.length;
   void persistProjectFileOnServer();
+}
+
+const CLONE_STATUS_CHUNK = 100;
+
+async function fetchCloneStatuses(fullNames) {
+  const names = [...new Set(fullNames.map((n) => String(n || '').trim()).filter(Boolean))];
+  if (!names.length) return {};
+  const merged = {};
+  for (let i = 0; i < names.length; i += CLONE_STATUS_CHUNK) {
+    const chunk = names.slice(i, i + CLONE_STATUS_CHUNK);
+    const res = await fetch(`${API_BASE}/api/repos/clone-status`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fullNames: chunk }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    Object.assign(merged, data.statuses || {});
+  }
+  return merged;
+}
+
+function setRepoCloneState(fullName, cloned, collection) {
+  const r = S.repos.find((x) => x.full_name === fullName);
+  if (!r) return false;
+  const next = !!cloned;
+  const prev = !!r.cloned;
+  const coll = collection ? String(collection).trim() : '';
+  let changed = false;
+  if (prev !== next) {
+    r.cloned = next;
+    changed = true;
+  }
+  if (next) {
+    if (!r.cloned_at) {
+      r.cloned_at = new Date().toISOString();
+      changed = true;
+    }
+  } else if (r.cloned_at) {
+    r.cloned_at = '';
+    changed = true;
+  }
+  if (coll && r.github_collection !== coll) {
+    r.github_collection = coll;
+    changed = true;
+  }
+  return changed;
+}
+
+function applyCloneStatusMap(statusMap) {
+  let changed = false;
+  let countsChanged = false;
+  for (const [fullName, raw] of Object.entries(statusMap || {})) {
+    const st =
+      typeof raw === 'object' && raw !== null
+        ? raw
+        : {
+            installed: !!raw,
+            collection: '',
+            projectDir: '',
+            aiTurnCount: 0,
+            docFileCount: 0,
+          };
+    if (setRepoCloneState(fullName, st.installed, st.collection)) changed = true;
+    const r = S.repos.find((x) => x.full_name === fullName);
+    if (!r) continue;
+    if (typeof st.docFileCount === 'number') {
+      if (r.doc_file_count !== st.docFileCount) {
+        r.doc_file_count = st.docFileCount;
+        countsChanged = true;
+      }
+      if (st.docFileCount > 0) invalidateRepoDocsCache(r.id);
+    }
+  }
+  if (changed) persistProjectRepos();
+  if (countsChanged && !changed) updateRepoListCountLabels(filteredRepos());
+  return changed || countsChanged;
+}
+
+async function refreshCloneStatusForProject() {
+  if (!S.repos.length) return;
+  try {
+    const statusMap = await fetchCloneStatuses(S.repos.map((r) => r.full_name));
+    if (applyCloneStatusMap(statusMap)) renderTable();
+  } catch (e) {
+    console.warn('clone status sync failed', e);
+  }
+}
+
+function pollRepoCloneUntil(fullName, { intervalMs = 8000, maxAttempts = 45 } = {}) {
+  let attempts = 0;
+  const tick = async () => {
+    attempts += 1;
+    try {
+      const statusMap = await fetchCloneStatuses([fullName]);
+      const installed = !!statusMap[fullName];
+      if (installed) {
+        if (applyCloneStatusMap(statusMap)) renderTable();
+        return;
+      }
+    } catch { /* retry */ }
+    if (attempts < maxAttempts) setTimeout(tick, intervalMs);
+  };
+  setTimeout(tick, intervalMs);
+}
+
+function cloneIndicatorHtml(r) {
+  const cloned = !!r.cloned;
+  const coll = r.github_collection ? ` · ${r.github_collection}` : '';
+  const title = cloned
+    ? (r.cloned_at ? `Cloned (saved ${r.cloned_at})${coll}` : `Cloned locally${coll}`)
+    : 'Not cloned — use Clone or add to a collection';
+  const label = cloned ? `Cloned${coll}` : 'Not cloned';
+  return `<span class="clone-indicator${cloned ? ' cloned' : ''}" title="${escAttr(title)}">${esc(label)}</span>`;
+}
+
+async function loadGithubCollections() {
+  try {
+    const res = await fetch(apiUrl('/api/collections'));
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    S.githubCollections = Array.isArray(data.collections) ? data.collections : [];
+    S.defaultCloneCollection = data.defaultCollection || 'favourite';
+  } catch (e) {
+    console.warn('collections load failed', e);
+    if (!S.githubCollections.length) {
+      S.githubCollections = [{ name: 'favourite', projects: [], projectCount: 0 }];
+      S.defaultCloneCollection = 'favourite';
+    }
+  }
+}
+
+async function refreshCollectionProjects(collName) {
+  if (!collName) return;
+  try {
+    const res = await fetch(apiUrl(`/api/collections/${encodeURIComponent(collName)}`));
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    const i = S.githubCollections.findIndex((c) => c.name === data.name);
+    if (i >= 0) S.githubCollections[i] = data;
+    else S.githubCollections.push(data);
+    S.githubCollections.sort((a, b) => {
+      if (a.name === S.defaultCloneCollection) return -1;
+      if (b.name === S.defaultCloneCollection) return 1;
+      return a.name.localeCompare(b.name);
+    });
+  } catch (e) {
+    console.warn(`collection ${collName} refresh failed`, e);
+  }
+}
+
+async function addRepoToGithubCollection(fullName, collection) {
+  const coll = collection || S.defaultCloneCollection;
+  const sel = `.repo-add-to-collection[data-slug="${CSS.escape(fullName)}"][data-collection="${CSS.escape(coll)}"]`;
+  const btn = document.querySelector(sel);
+  const prev = btn ? btn.textContent : '';
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = '…';
+  }
+  try {
+    const res = await fetch(`${API_BASE}/api/repos/install-to-collection`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fullName,
+        collection: coll,
+        useAiInstaller: false,
+        searchProjectSlug: S.searchProjectSlug,
+        projectName: S.projectLoaded?.name || '',
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    const r = S.repos.find((x) => x.full_name === fullName);
+    if (r) {
+      if (data.cloned) setRepoCloneState(fullName, true, coll);
+      else r.github_collection = coll;
+      invalidateRepoDocsCache(r.id);
+      persistProjectRepos();
+    }
+    await loadGithubCollections();
+    renderRepoListTabs();
+    renderTable();
+    const moveHint = data.moved && data.fromCollection
+      ? ` (moved from ${data.fromCollection})`
+      : '';
+    window.alert(`Installed ${fullName} under github-projects/${coll}/${data.projectDir || ''}/repo${moveHint}`);
+  } catch (err) {
+    window.alert(`Could not install to ${coll}: ${err.message}`);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = prev;
+    }
+  }
 }
 
 function deleteRepoFromProject(fullName) {
@@ -1933,6 +2424,7 @@ function deleteRepoFromProject(fullName) {
     S.openRows.delete(rid);
     delete S.openTabs[rid];
     delete S.aiSessions[rid];
+    invalidateRepoDocsCache(rid);
   }
   S.repos = S.repos.filter(x => x.full_name !== fullName);
   removeRepoSlugFromAllStoredLists(fullName);
@@ -1941,7 +2433,92 @@ function deleteRepoFromProject(fullName) {
   renderTable();
 }
 
+async function onAiCloneClick(repoId) {
+  const r = S.repos.find((x) => String(x.id) === String(repoId));
+  if (!r) return;
+  const btn = document.querySelector(`.repo-clone-btn[data-ai-clone-id="${CSS.escape(String(repoId))}"]`);
+  const prevLabel = btn ? btn.textContent : 'Clone';
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = '…';
+  }
+  try {
+    const res = await fetch(`${API_BASE}/api/repos/ai-clone`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fullName: r.full_name,
+        collection: r.github_collection || S.defaultCloneCollection || 'favourite',
+        searchProjectSlug: S.searchProjectSlug,
+        projectName: S.projectLoaded?.name || '',
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    const logHint = data.logFile ? `\nLog: ${data.logFile}` : '';
+    const cmdHint = data.command ? `\n\n${data.command}` : '';
+    if (data.command) {
+      try {
+        await navigator.clipboard.writeText(data.command);
+      } catch { /* ignore */ }
+    }
+    window.alert(
+      `AI Clone started for ${r.full_name} (pid ${data.pid || '—'}).` +
+        `${logHint}${cmdHint}\n\nCommand copied to clipboard when possible.`,
+    );
+    if (data.collection) setRepoCloneState(r.full_name, !!data.cloned, data.collection);
+    else if (data.cloned) setRepoCloneState(r.full_name, true);
+    if (data.cloned) {
+      invalidateRepoDocsCache(repoId);
+      persistProjectRepos();
+      renderTable();
+    } else {
+      pollRepoCloneUntil(r.full_name);
+    }
+    if (btn) {
+      btn.textContent = data.cloned ? 'Cloned' : '…';
+      btn.title = data.logFile ? `Log: ${data.logFile}` : 'AI Clone started';
+    }
+  } catch (err) {
+    window.alert(`AI Clone failed: ${err.message}`);
+    if (btn) btn.textContent = prevLabel;
+  } finally {
+    if (btn) {
+      setTimeout(() => {
+        btn.disabled = false;
+        if (btn.textContent === '…' && !r.cloned) btn.textContent = prevLabel;
+      }, 4000);
+    }
+  }
+}
+
 function handleRepoListClick(e) {
+  const askBtn = e.target.closest('.repo-ask-ai-btn');
+  if (askBtn) {
+    e.preventDefault();
+    e.stopPropagation();
+    const repoId = askBtn.dataset.askAiId;
+    if (repoId) onAiRowButtonClick(repoId);
+    return;
+  }
+  const cloneBtn = e.target.closest('.repo-clone-btn');
+  if (cloneBtn) {
+    e.preventDefault();
+    e.stopPropagation();
+    const repoId = cloneBtn.dataset.aiCloneId;
+    if (repoId) onAiCloneClick(repoId);
+    return;
+  }
+  const tabAskBtn = e.target.closest('.tab-ask-ai-btn');
+  if (tabAskBtn) {
+    e.preventDefault();
+    e.stopPropagation();
+    const repoId = tabAskBtn.dataset.askAiId;
+    const tabKey = tabAskBtn.dataset.tabKey || 'readme';
+    const docFile = tabAskBtn.dataset.docFile || '';
+    if (repoId) onAiRowButtonClick(repoId, { tabKey, docFile });
+    return;
+  }
   const readmePrev = e.target.closest('.readme-preview');
   if (readmePrev) {
     if (e.target.closest('a')) return;
@@ -1950,6 +2527,15 @@ function handleRepoListClick(e) {
     const slug = readmePrev.dataset.readmeSlug;
     const r = S.repos.find(x => x.full_name === slug);
     if (r && r.readme) openReadmeFullscreenModal(slug, r.readme);
+    return;
+  }
+  const collBtn = e.target.closest('.repo-add-to-collection');
+  if (collBtn) {
+    e.preventDefault();
+    e.stopPropagation();
+    const collection = collBtn.dataset.collection;
+    const slug = collBtn.dataset.slug;
+    if (collection && slug) void addRepoToGithubCollection(slug, collection);
     return;
   }
   const addBtn = e.target.closest('.repo-add-to-list');
@@ -1982,6 +2568,8 @@ const S = {
   projectFname: null,
   projectLoaded: null,
   searchProjectSlug: '',
+  githubCollections: [],
+  defaultCloneCollection: 'favourite',
   repoListBucket: null,
   repoListsUseLS: false,
   search:     '',
@@ -1990,13 +2578,25 @@ const S = {
   openRows:   new Set(),
   openTabs:   {},
   aiSessions: {},
+  repoDocsListCache: {},
+  repoDocFileCache: {},
   models:     [],
   modelsLoaded: false,
   cursorModels: [],
   cursorModelsLoaded: false,
-  pendingCursorPack: null,
+  claudeModels: [],
+  claudeModelsLoaded: false,
+  claudeModelsError: null,
+  pendingRagentLaunch: null,
   activeModal: null,
-  aiModalOpts: { contextMode: 'repo', githubTopic: '', topicContextBlock: '' },
+  aiModalOpts: {
+    contextMode: 'repo',
+    githubTopic: '',
+    topicContextBlock: '',
+    docFile: '',
+    tabKey: '',
+    tabLabel: '',
+  },
   repoListRenderedCount: 0,
   repoListObserver: null,
   repoListLoadBusy: false,
@@ -2077,8 +2677,9 @@ function filteredRepos() {
   const b = getRepoListBucket();
   const listTab = b.activeTab;
   const byList = filterReposByListTab([...S.repos], listTab, b);
-  return byList.sort(SORT_FNS[S.sortKey]||SORT_FNS.composite)
-    .filter(r => matchesSearch(r, q) && (S.langFilter.size===0 || S.langFilter.has(r.language)));
+  return byList
+    .filter((r) => matchesSearch(r, q) && (S.langFilter.size === 0 || S.langFilter.has(r.language)))
+    .sort(SORT_FNS[S.sortKey] || SORT_FNS.composite);
 }
 
 /* ── Format helpers ─────────────────────────── */
@@ -2120,16 +2721,250 @@ function closeReadmeFullscreenModal() {
   if (body) body.innerHTML = '';
 }
 
+function projectUsesFileSearch() {
+  const so = S.projectLoaded && S.projectLoaded.searchOptions;
+  return !!(so && so.includeFileSearch);
+}
+
+function searchFilePathForRepo(r) {
+  if (r && r.search_file_path) return String(r.search_file_path).trim();
+  const so = S.projectLoaded && S.projectLoaded.searchOptions;
+  return so && so.fileName ? String(so.fileName).trim() : '';
+}
+
+function repoShowsSearchFileTab(r) {
+  return projectUsesFileSearch() || !!searchFilePathForRepo(r);
+}
+
+function searchFileTabLabel(r) {
+  const p = searchFilePathForRepo(r);
+  if (!p) return 'Matched file';
+  const parts = p.split('/');
+  return parts[parts.length - 1] || p;
+}
+
+function isMarkdownFilePath(path) {
+  return /\.(md|markdown)$/i.test(path || '');
+}
+
+function renderSearchFileContent(path, text) {
+  if (isMarkdownFilePath(path)) {
+    return `<div class="search-file-body md-body">${parseMarkdown(text)}</div>`;
+  }
+  return `<pre class="search-file-code"><code>${esc(text)}</code></pre>`;
+}
+
+function buildSearchFilePane(r) {
+  if (!repoShowsSearchFileTab(r)) return '';
+  const path = searchFilePathForRepo(r);
+  const header = path
+    ? `<div class="search-file-path" title="${escAttr(path)}">${esc(path)}</div>`
+    : '';
+  const fetched = !!r.search_file_fetched || (typeof r.search_file_text === 'string' && r.search_file_text.length > 0);
+  if (fetched) {
+    if (r.search_file_text) {
+      return `<div class="search-file-wrap">${header}${renderSearchFileContent(path, r.search_file_text)}</div>`;
+    }
+    return `<div class="search-file-wrap">${header}<div class="empty-state">File not available for this repository.</div></div>`;
+  }
+  return `<div class="search-file-lazy" data-repo="${escAttr(r.full_name)}" data-path="${escAttr(path)}"></div>`;
+}
+
+function docTabKey(fileName) {
+  return `doc:${fileName}`;
+}
+
+function docFileFromTabKey(tabKey) {
+  return String(tabKey || '').startsWith('doc:') ? tabKey.slice(4) : '';
+}
+
+function tabPaneToolbarHtml(r, tabKey, docFile) {
+  const id = String(r.id);
+  return `<div class="tab-pane-toolbar"><button type="button" class="tab-ask-ai-btn" data-ask-ai-id="${id}" data-tab-key="${escAttr(tabKey)}" data-doc-file="${escAttr(docFile || '')}">Ask AI</button></div>`;
+}
+
+function tabLabelForDocFile(name) {
+  if (name === 'notes.md') return 'Notes';
+  if (name === 'qa-log.md') return 'Q&A log';
+  return String(name || '').replace(/\.md$/i, '');
+}
+
+function repoDocTabFiles(r) {
+  return S.repoDocsListCache[String(r.id)]?.files || [];
+}
+
+function invalidateRepoDocsCache(repoId) {
+  delete S.repoDocsListCache[String(repoId)];
+  delete S.repoDocFileCache[String(repoId)];
+}
+
+function buildDocFilePane(r, fileName) {
+  const id = String(r.id);
+  const tabKey = docTabKey(fileName);
+  const toolbar = tabPaneToolbarHtml(r, tabKey, fileName);
+  const cached = S.repoDocFileCache[id]?.[fileName];
+  if (cached?.loading) {
+    return `${toolbar}<div class="doc-file-pane empty-state">Loading docs/${esc(fileName)}…</div>`;
+  }
+  if (cached?.error) {
+    return `${toolbar}<div class="doc-file-pane empty-state">${esc(cached.error)}</div>`;
+  }
+  const content = cached?.content ?? '';
+  if (!String(content).trim()) {
+    return `${toolbar}<div class="doc-file-pane"><div class="doc-file-meta"><code>docs/${esc(fileName)}</code></div><div class="empty-state">Empty — use <strong>Ask AI</strong> to start this document.</div></div>`;
+  }
+  return `${toolbar}<div class="doc-file-pane"><div class="doc-file-meta"><code>docs/${esc(fileName)}</code></div><div class="md-body">${parseMarkdown(content)}</div></div>`;
+}
+
+function refreshDocFilePaneInRow(row, r, fileName) {
+  const pane = row.querySelector(`.tab-pane[data-pane="${CSS.escape(docTabKey(fileName))}"]`);
+  if (pane) pane.innerHTML = buildDocFilePane(r, fileName);
+}
+
+async function ensureRepoDocsListLoaded(row) {
+  const id = row.dataset.id;
+  const r = S.repos.find((x) => String(x.id) === id);
+  if (!r) return;
+  const prev = S.repoDocsListCache[id];
+  if (prev?.loaded) return;
+  S.repoDocsListCache[id] = { loading: true, files: prev?.files || [] };
+  try {
+    const q = new URLSearchParams({ fullName: r.full_name });
+    if (r.github_collection) q.set('collection', r.github_collection);
+    const res = await fetch(`${apiUrl('/api/repos/docs')}?${q}`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    const prevCount = prev?.files?.length ?? -1;
+    S.repoDocsListCache[id] = { loaded: true, files: data.files || [] };
+    if (data.collection && r.github_collection !== data.collection) {
+      r.github_collection = data.collection;
+      persistProjectRepos();
+    }
+    r.doc_file_count = (data.files || []).length;
+    if (prevCount !== (data.files || []).length) renderTable();
+  } catch (err) {
+    S.repoDocsListCache[id] = { loaded: true, error: err.message, files: [] };
+  }
+}
+
+async function ensureDocFileLoadedForRow(row, fileName) {
+  const id = row.dataset.id;
+  const r = S.repos.find((x) => String(x.id) === id);
+  if (!r || !fileName) return;
+  if (!S.repoDocFileCache[id]) S.repoDocFileCache[id] = {};
+  const cached = S.repoDocFileCache[id][fileName];
+  if (cached?.loaded) {
+    refreshDocFilePaneInRow(row, r, fileName);
+    return;
+  }
+  S.repoDocFileCache[id][fileName] = { loading: true };
+  refreshDocFilePaneInRow(row, r, fileName);
+  try {
+    const q = new URLSearchParams({ fullName: r.full_name, file: fileName });
+    if (r.github_collection) q.set('collection', r.github_collection);
+    const res = await fetch(`${apiUrl('/api/repos/docs/file')}?${q}`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    S.repoDocFileCache[id][fileName] = { loaded: true, content: data.content || '' };
+    if (data.collection && r.github_collection !== data.collection) {
+      r.github_collection = data.collection;
+      persistProjectRepos();
+    }
+    refreshDocFilePaneInRow(row, r, fileName);
+  } catch (err) {
+    S.repoDocFileCache[id][fileName] = { loaded: true, error: err.message, content: '' };
+    refreshDocFilePaneInRow(row, r, fileName);
+  }
+}
+
+function tabLabelForKey(tabKey, r) {
+  if (tabKey === 'readme') return 'README';
+  if (tabKey === 'stack') return 'Stack & Topics';
+  if (tabKey === 'matchfile') return searchFileTabLabel(r);
+  const df = docFileFromTabKey(tabKey);
+  if (df) return tabLabelForDocFile(df);
+  return tabKey;
+}
+
+async function gatherTabContextForAsk(r, tabKey, docFile) {
+  const label = tabLabelForKey(tabKey || 'readme', r);
+  if (docFile) {
+    const id = String(r.id);
+    const cached = S.repoDocFileCache[id]?.[docFile];
+    if (cached?.content) return { tabLabel: label, tabContext: cached.content };
+    try {
+      const q = new URLSearchParams({ fullName: r.full_name, file: docFile });
+      if (r.github_collection) q.set('collection', r.github_collection);
+      const res = await fetch(`${apiUrl('/api/repos/docs/file')}?${q}`);
+      const data = await res.json();
+      if (res.ok) {
+        if (!S.repoDocFileCache[id]) S.repoDocFileCache[id] = {};
+        S.repoDocFileCache[id][docFile] = { loaded: true, content: data.content || '' };
+        return { tabLabel: label, tabContext: data.content || '' };
+      }
+    } catch { /* ignore */ }
+    return { tabLabel: label, tabContext: '' };
+  }
+  if (tabKey === 'readme') {
+    if (!r.readme_fetched && !(typeof r.readme === 'string' && r.readme.length)) {
+      const md = await fetchReadme(r.full_name);
+      r.readme = md || '';
+      r.readme_fetched = true;
+      persistProjectRepos();
+    }
+    return { tabLabel: label, tabContext: String(r.readme || '').slice(0, 80000) };
+  }
+  if (tabKey === 'stack') {
+    if (!r.stack_fetched) {
+      const pane = document.querySelector(`.repo-row[data-id="${CSS.escape(String(r.id))}"] .stack-lazy`);
+      if (pane) await new Promise((resolve) => { loadStackPane(pane); setTimeout(resolve, 1500); });
+    }
+    const topics = (r.topics || []).join(', ');
+    const pkgs = (r.packages || []).map((p) => `${p.name}@${p.version || ''}`).join('\n');
+    return {
+      tabLabel: label,
+      tabContext: [`Topics: ${topics}`, pkgs].filter(Boolean).join('\n\n').slice(0, 80000),
+    };
+  }
+  if (tabKey === 'matchfile') {
+    const path = searchFilePathForRepo(r);
+    if (!r.search_file_fetched && path) {
+      const text = await ghFetchFile(r.full_name, path);
+      r.search_file_text = text || '';
+      r.search_file_fetched = true;
+      r.search_file_path = path;
+      persistProjectRepos();
+    }
+    const body = r.search_file_text || '';
+    return {
+      tabLabel: label,
+      tabContext: (path ? `# ${path}\n\n${body}` : body).slice(0, 80000),
+    };
+  }
+  return { tabLabel: label, tabContext: '' };
+}
 /* ── RENDER: Single row ─────────────────────── */
 function onAiRowButtonClick(repoId, modalOpts) {
   openModal(repoId, modalOpts || {});
 }
 
+function repoHasValidGithubSlug(r) {
+  return /^[^/\s]+\/[^/\s]+$/.test(String(r.full_name || '').trim());
+}
+
+function repoDocFileCount(r) {
+  const files = S.repoDocsListCache[String(r.id)]?.files;
+  if (files) return files.length;
+  return typeof r.doc_file_count === 'number' ? r.doc_file_count : 0;
+}
+
 function renderRow(r) {
   const id        = String(r.id);
   const isOpen    = S.openRows.has(id);
-  let activeTab   = S.openTabs[id] || 'readme';
-  if (activeTab === 'ai') activeTab = 'readme';
+  const canGithub = repoHasValidGithubSlug(r);
+  const showFileTab = repoShowsSearchFileTab(r);
+  let activeTab   = S.openTabs[id] || (showFileTab && projectUsesFileSearch() ? 'matchfile' : 'readme');
+  if (activeTab === 'matchfile' && !showFileTab) activeTab = 'readme';
   const langColor = getLangColor(r.language);
   const daysSince = r.pushed_at ? (Date.now()-new Date(r.pushed_at))/86400000 : 9999;
   const topicsHtml = (r.topics||[]).slice(0,8)
@@ -2140,9 +2975,15 @@ function renderRow(r) {
   const slugAttr = escAttr(r.full_name);
   const listRow = `
       <div class="repo-list-actions">
-        ${repoListAddButtonsHtml(slugAttr)}
-        ${showListRemove ? `<button type="button" class="repo-list-btn repo-remove-from-list" data-slug="${slugAttr}">Remove from list</button>` : ''}
-        <button type="button" class="repo-list-btn danger repo-delete-from-project" data-slug="${slugAttr}">Delete</button>
+        <div class="repo-list-actions-collections">
+          ${repoListAddButtonsHtml(slugAttr)}
+          ${showListRemove ? `<button type="button" class="repo-list-btn repo-remove-from-list" data-slug="${slugAttr}">Remove from list</button>` : ''}
+        </div>
+        <div class="repo-list-actions-primary">
+          ${canGithub ? `<button type="button" class="repo-list-btn danger repo-delete-from-project" data-slug="${slugAttr}">Delete</button>` : ''}
+          ${canGithub ? `<button type="button" class="repo-list-btn repo-clone-btn${r.cloned ? ' is-cloned' : ''}" data-ai-clone-id="${id}" title="${r.cloned ? 'Already cloned locally' : 'Clone via github-installer'}">${r.cloned ? 'Cloned' : 'Clone'}</button>` : ''}
+          ${canGithub ? `<button type="button" class="repo-list-btn repo-ask-ai-btn" data-ask-ai-id="${id}">Ask AI</button>` : ''}
+        </div>
       </div>`;
 
   const metaParts = [
@@ -2153,15 +2994,30 @@ function renderRow(r) {
     `<span class="row-meta-sep">·</span><span class="row-meta-item" style="color:${r.archived?'var(--orange)':daysSince<90?'var(--green)':daysSince>730?'var(--orange)':'var(--text-muted)'}">${r.archived?'Archived':daysSince<7?'Active now':daysSince<90?'Active':daysSince>730?'Stale':'Maintained'}</span>`,
   ].filter(Boolean).join('');
 
-  const tabs = [
-    { key:'readme', label:'README' },
-    { key:'stack',  label:'Stack & Topics' },
-  ];
+  const tabs = [{ key:'readme', label:'README' }];
+  if (showFileTab) tabs.push({ key:'matchfile', label: searchFileTabLabel(r) });
+  tabs.push({ key:'stack', label:'Stack & Topics' });
+  for (const f of repoDocTabFiles(r)) {
+    tabs.push({ key: docTabKey(f.name), label: tabLabelForDocFile(f.name), doc: true });
+  }
 
-  const tabBtns  = tabs.map(t=>`<button class="tab-btn${activeTab===t.key?' active':''}" data-tab="${t.key}">${t.label}</button>`).join('');
+  const tabBtns = tabs.map((t) => {
+    const cls = `tab-btn${activeTab === t.key ? ' active' : ''}${t.doc ? ' tab-doc' : ''}`;
+    return `<button type="button" class="${cls}" data-tab="${escAttr(t.key)}">${esc(t.label)}</button>`;
+  }).join('');
+  const docPanes = repoDocTabFiles(r)
+    .map((f) => {
+      const key = docTabKey(f.name);
+      return `<div class="tab-pane${activeTab === key ? ' active' : ''}" data-pane="${escAttr(key)}" data-doc-file="${escAttr(f.name)}">${buildDocFilePane(r, f.name)}</div>`;
+    })
+    .join('');
   const tabPanes = [
-    `<div class="tab-pane${activeTab==='readme'?' active':''}" data-pane="readme">${buildReadmePane(r)}</div>`,
-    `<div class="tab-pane${activeTab==='stack'?' active':''}" data-pane="stack">${buildStackPane(r)}</div>`,
+    `<div class="tab-pane${activeTab === 'readme' ? ' active' : ''}" data-pane="readme">${tabPaneToolbarHtml(r, 'readme', '')}${buildReadmePane(r)}</div>`,
+    showFileTab
+      ? `<div class="tab-pane${activeTab === 'matchfile' ? ' active' : ''}" data-pane="matchfile">${tabPaneToolbarHtml(r, 'matchfile', '')}${buildSearchFilePane(r)}</div>`
+      : '',
+    `<div class="tab-pane${activeTab === 'stack' ? ' active' : ''}" data-pane="stack">${tabPaneToolbarHtml(r, 'stack', '')}${buildStackPane(r)}</div>`,
+    docPanes,
   ].join('');
 
   return `
@@ -2172,6 +3028,7 @@ function renderRow(r) {
       <div class="repo-name-row">
         <span class="repo-owner">${esc(r.full_name.split('/')[0])}/</span>
         <span class="repo-name">${esc(r.name)}</span>
+        ${cloneIndicatorHtml(r)}
         ${r.archived?'<span class="archived-badge">archived</span>':''}
       </div>
       <div class="repo-desc">${esc(r.description||'No description')}</div>
@@ -2184,7 +3041,7 @@ function renderRow(r) {
     <div class="col-num">${fmtN(r.forks)}</div>
     <div class="col-num"><strong>${r.commit_count?fmtN(r.commit_count):'—'}</strong></div>
     <div class="col-num">${fmtDate(r.pushed_at)}</div>
-    <div class="ai-btn-cell"><button type="button" class="ai-btn" onclick="onAiRowButtonClick(${id})" title="Ask AI about this project">🤖</button></div>
+    <div class="ai-btn-cell">${canGithub ? `<button type="button" class="ai-btn repo-ask-ai-btn" data-ask-ai-id="${id}" title="Ask AI about this project">🤖</button>` : ''}</div>
   </div>
   <div class="repo-detail">
     <div class="detail-inner">
@@ -2229,22 +3086,15 @@ function stackSectionsHtmlFromPackages(r) {
 
 /* ── Build panes: Stack (lazy or cached) ────────────── */
 function buildStackPane(r) {
-  const topics = r.topics||[];
-  const topicsHtml = topics.length
-    ? `<div class="topics-section" style="margin-top:0">
-        <div class="topics-label">GitHub Topics</div>
-        <div class="topics-chips">${topics.map(t=>`<span class="topic-chip">${esc(t)}</span>`).join('')}</div>
-       </div>`
-    : '';
   const stackReady = !!r.stack_fetched || (Array.isArray(r.packages) && r.packages.length > 0);
   if (stackReady) {
     const inner = stackSectionsHtmlFromPackages(r);
     if (inner) {
-      return `<div class="stack-cached">${inner}</div>${topicsHtml}`;
+      return `<div class="stack-cached">${inner}</div>`;
     }
-    return `<div class="empty-state">No dependencies found (tree scan and root manifests).</div>${topicsHtml}`;
+    return '<div class="empty-state">No dependencies found (tree scan and root manifests).</div>';
   }
-  return `<div class="stack-lazy" data-repo="${esc(r.full_name)}" data-lang="${esc(r.language||'')}"></div>${topicsHtml}`;
+  return `<div class="stack-lazy" data-repo="${esc(r.full_name)}" data-lang="${esc(r.language||'')}"></div>`;
 }
 
 function stackDepRowsHtml(deps) {
@@ -2301,7 +3151,6 @@ function renderStackSection(registry, deps, labelOverride) {
 
 /* Lazy-load stack deps for a row. Mutates the .stack-lazy el and may set r.packages. */
 async function loadStackPane(lazyEl) {
-  lazyEl.dataset.loaded = '1';
   const slug = lazyEl.dataset.repo;
   lazyEl.innerHTML = `<div style="display:flex;align-items:center;gap:8px;color:var(--text-muted);font-size:13px;padding:var(--sp3) 0"><span class="spinner"></span> Loading dependencies…</div>`;
 
@@ -2390,13 +3239,17 @@ async function loadStackPane(lazyEl) {
     r.stack_fetched = true;
     persistProjectRepos();
   } catch (e) {
-    lazyEl.innerHTML = '<div class="empty-state">Could not load dependency data.</div>';
+    delete lazyEl.dataset.loaded;
+    lazyEl.innerHTML = '<div class="empty-state">Could not load dependency data. Click Stack again to retry.</div>';
   }
 }
 
 function activeTabForRow(row) {
   const id = row.dataset.id;
-  return S.openTabs[id] || 'readme';
+  if (S.openTabs[id]) return S.openTabs[id];
+  const rec = S.repos.find(x => String(x.id) === id);
+  if (rec && projectUsesFileSearch() && repoShowsSearchFileTab(rec)) return 'matchfile';
+  return 'readme';
 }
 
 function ensureReadmeLoadedForRow(row) {
@@ -2433,7 +3286,55 @@ function ensureStackLoadedForRow(row) {
   const pane = row.querySelector('.tab-pane[data-pane="stack"]');
   const lazy = pane && pane.querySelector('.stack-lazy');
   if (!lazy || lazy.dataset.loaded === '1') return;
+  lazy.dataset.loaded = '1';
   loadStackPane(lazy);
+}
+
+function ensureLazyPanesForOpenRow(row) {
+  if (!row || !row.classList.contains('open')) return;
+  ensureReadmeLoadedForRow(row);
+  ensureSearchFileLoadedForRow(row);
+  ensureStackLoadedForRow(row);
+  ensureRepoDocsListLoaded(row);
+  const docKeyOpen = docFileFromTabKey(activeTabForRow(row));
+  if (docKeyOpen) ensureDocFileLoadedForRow(row, docKeyOpen);
+}
+
+function ensureSearchFileLoadedForRow(row) {
+  if (activeTabForRow(row) !== 'matchfile') return;
+  const pane = row.querySelector('.tab-pane[data-pane="matchfile"]');
+  const lazy = pane && pane.querySelector('.search-file-lazy');
+  if (!lazy || lazy.dataset.loaded === '1') return;
+  const slug = lazy.dataset.repo;
+  const path = lazy.dataset.path || '';
+  if (!slug || !path) {
+    lazy.innerHTML = '<div class="empty-state">No file path for this repository.</div>';
+    lazy.dataset.loaded = '1';
+    return;
+  }
+  lazy.dataset.loaded = '1';
+  lazy.innerHTML = `<div style="display:flex;align-items:center;gap:8px;color:var(--text-muted);font-size:13px;padding:var(--sp3) 0"><span class="spinner"></span> Loading ${esc(path)}…</div>`;
+  ghFetchFile(slug, path).then(text => {
+    const rec = S.repos.find(x => x.full_name === slug);
+    if (rec) {
+      rec.search_file_path = path;
+      rec.search_file_text = text || '';
+      rec.search_file_fetched = true;
+      persistProjectRepos();
+    }
+    lazy.innerHTML = text
+      ? `<div class="search-file-wrap"><div class="search-file-path">${esc(path)}</div>${renderSearchFileContent(path, text)}</div>`
+      : '<div class="empty-state">Could not load file from GitHub.</div>';
+  }).catch(() => {
+    const rec = S.repos.find(x => x.full_name === slug);
+    if (rec) {
+      rec.search_file_text = '';
+      rec.search_file_fetched = true;
+      rec.search_file_path = path;
+      persistProjectRepos();
+    }
+    lazy.innerHTML = '<div class="empty-state">Could not load file from GitHub.</div>';
+  });
 }
 
 function maxOpenRowIndexInList(repos) {
@@ -2469,7 +3370,7 @@ function updateRepoListCountLabels(repos) {
   if (statShown) statShown.textContent = String(loaded);
   document.getElementById('statTotal').textContent = String(S.repos.length);
   document.getElementById('statAI').textContent = String(
-    Object.values(S.aiSessions).filter(s => s && s.session?.turns?.length > 0).length
+    S.repos.filter((repo) => repoDocFileCount(repo) > 0).length
   );
 }
 
@@ -2478,8 +3379,7 @@ function wireRepoRow(row) {
   if (!summary || summary.dataset.wired === '1') return;
   summary.dataset.wired = '1';
   summary.addEventListener('click', e => {
-    if (e.target.closest('.ai-btn')) return;
-    if (e.target.closest('.repo-list-actions')) return;
+    if (e.target.closest('.repo-list-actions, .ai-btn-cell')) return;
     const r = summary.closest('.repo-row');
     const id = r.dataset.id;
     if (S.openRows.has(id)) {
@@ -2489,7 +3389,11 @@ function wireRepoRow(row) {
       S.openRows.add(id);
       r.classList.add('open');
       ensureReadmeLoadedForRow(r);
+      ensureSearchFileLoadedForRow(r);
       ensureStackLoadedForRow(r);
+      ensureRepoDocsListLoaded(r);
+      const docKeyOpen = docFileFromTabKey(activeTabForRow(r));
+      if (docKeyOpen) ensureDocFileLoadedForRow(r, docKeyOpen);
     }
   });
   row.querySelectorAll('.tab-btn').forEach(btn => {
@@ -2502,9 +3406,13 @@ function wireRepoRow(row) {
       r.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === btn.dataset.tab));
       r.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('active', p.dataset.pane === btn.dataset.tab));
       if (btn.dataset.tab === 'readme') ensureReadmeLoadedForRow(r);
+      if (btn.dataset.tab === 'matchfile') ensureSearchFileLoadedForRow(r);
       if (btn.dataset.tab === 'stack') ensureStackLoadedForRow(r);
+      const docKeyTab = docFileFromTabKey(btn.dataset.tab);
+      if (docKeyTab) ensureDocFileLoadedForRow(r, docKeyTab);
     });
   });
+  if (row.classList.contains('open')) ensureLazyPanesForOpenRow(row);
 }
 
 function wireRepoRowsIn(container) {
@@ -2578,10 +3486,19 @@ function renderTable(options) {
   updateRepoListCountLabels(repos);
 
   const infoParts = [];
+  const listTab = getRepoListBucket().activeTab;
+  if (listTab.startsWith(REPO_LIST_GP_PREFIX)) {
+    const collName = listTab.slice(REPO_LIST_GP_PREFIX.length);
+    const coll = S.githubCollections.find((c) => c.name === collName);
+    const dirs = (coll?.projects || []).map((p) => normalizeCollProject(p).projectDir).filter(Boolean);
+    infoParts.push(
+      `github-projects/${collName}/ (${dirs.length} on disk${dirs.length ? ': ' + dirs.join(', ') : ''})`,
+    );
+  }
   if (S.search) infoParts.push(`"${S.search}"`);
   if (S.langFilter.size > 0) infoParts.push([...S.langFilter].join(', '));
   document.getElementById('activeFilterInfo').textContent =
-    infoParts.length ? `Filtered by: ${infoParts.join(' · ')}` : '';
+    infoParts.length ? infoParts.join(' · ') : '';
 
   document.querySelectorAll('.th.sortable').forEach(th => {
     th.classList.toggle('active-sort', th.dataset.sort === S.sortKey);
@@ -2611,6 +3528,7 @@ function renderTable(options) {
   list.innerHTML =
     chunk.map(renderRow).join('') + (more ? '<div class="repo-list-sentinel" aria-hidden="true"></div>' : '');
   wireRepoRowsIn(list);
+  list.querySelectorAll('.repo-row.open').forEach(ensureLazyPanesForOpenRow);
   if (more) setupRepoListScrollObserver();
 }
 
@@ -2720,11 +3638,17 @@ function getAiProvider() {
 function syncAiProviderUI() {
   const p = getAiProvider();
   const orRow = document.getElementById('openrouterModelRow');
+  const clRow = document.getElementById('claudeModelRow');
   const curRow = document.getElementById('cursorModelRow');
   const label = document.getElementById('askBtnLabel');
   if (orRow) orRow.style.display = p === 'openrouter' ? '' : 'none';
+  if (clRow) clRow.style.display = p === 'claude' ? '' : 'none';
   if (curRow) curRow.style.display = p === 'cursor' ? '' : 'none';
-  if (label) label.textContent = p === 'cursor' ? 'Build Cursor prompt' : 'Ask AI';
+  if (p === 'claude' && S.claudeModelsError) loadClaudeModels(true);
+  if (label) {
+    if (p === 'openrouter') label.textContent = 'Ask AI';
+    else label.textContent = 'Run agent';
+  }
 }
 
 async function loadCursorModels() {
@@ -2756,37 +3680,77 @@ function populateCursorModelSelect() {
   if (opt) sel.value = opt.value;
 }
 
-function renderCursorPackResult(pack) {
-  S.pendingCursorPack = pack;
-  const fp = pack.filteredPaths || [];
-  const paths = fp.slice(0, 12).map(esc).join(', ');
-  const more = fp.length > 12 ? '…' : '';
-  const repoLine = pack.fullName ? ` · ${esc(pack.fullName)}` : '';
-  const topicLine = pack.githubTopic ? ` · topic <strong>${esc(pack.githubTopic)}</strong>` : '';
+
+const CLAUDE_MODELS_FALLBACK = [
+  'sonnet', 'opus', 'haiku',
+  'claude-sonnet-4-5', 'claude-sonnet-4-6',
+  'claude-opus-4-6', 'claude-opus-4-5',
+  'claude-haiku-4-5', 'claude-haiku-4-6',
+].map((id) => ({ id, label: id }));
+
+async function loadClaudeModels(force) {
+  if (S.claudeModelsLoaded && !force) return;
+  try {
+    const res = await fetch(`${API_BASE}/api/claude-models`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || data.message || 'claude-models');
+    const models = Array.isArray(data.models) ? data.models : [];
+    if (!models.length) throw new Error('empty model list');
+    S.claudeModels = models;
+    S.claudeModelsLoaded = true;
+    S.claudeModelsError = null;
+  } catch (err) {
+    S.claudeModels = CLAUDE_MODELS_FALLBACK.slice();
+    S.claudeModelsLoaded = true;
+    S.claudeModelsError = err?.message || 'API unavailable';
+  }
+  populateClaudeModelSelect();
+}
+
+function populateClaudeModelSelect() {
+  const sel = document.getElementById('claudeModelSelect');
+  const hint = document.getElementById('claudeModelHint');
+  if (!sel) return;
+  if (hint) {
+    hint.textContent = S.claudeModelsError
+      ? `Using built-in list (${S.claudeModelsError}). Restart github-oss server for /api/claude-models.`
+      : '';
+    hint.style.display = S.claudeModelsError ? '' : 'none';
+  }
+  sel.innerHTML = S.claudeModels.map(m => {
+    const id = m.id || m.label;
+    const lab = m.label || m.id;
+    return `<option value="${esc(id)}">${esc(lab)}</option>`;
+  }).join('');
+  const opt = Array.from(sel.options).find(o => o.value.toLowerCase() === 'sonnet');
+  if (opt) sel.value = opt.value;
+}
+
+function renderRagentLaunchResult(launch, provider) {
+  S.pendingRagentLaunch = launch;
+  const agentLabel = provider === 'cursor' ? 'ragent.cursor.sh' : 'ragent.claude.sh';
+  const modelLine = launch.agentModel ? ` · model <strong>${esc(launch.agentModel)}</strong>` : '';
+  const repoLine = launch.fullName ? ` · ${esc(launch.fullName)}` : '';
+  const topicLine = launch.githubTopic ? ` · topic <strong>${esc(launch.githubTopic)}</strong>` : '';
   const meta =
-    `Cursor · model: <strong>${esc(pack.cursorModel || '')}</strong>${repoLine}${topicLine}` +
-    (paths ? `<br/><span style="font-size:0.95em;opacity:0.92">Files: ${paths}${more}</span>` : '');
+    `${esc(agentLabel)}${modelLine}${repoLine}${topicLine}` +
+    (launch.pid ? ` · pid <strong>${esc(String(launch.pid))}</strong>` : '') +
+    (launch.logFile ? `<br/><span style="font-size:0.95em;opacity:0.92">Log: ${esc(launch.logFile)}</span>` : '');
+  const cmd = launch.command ? `<pre class="ai-cursor-pre">${esc(launch.command)}</pre>` : '';
   return (
     `<div class="ai-modal-result-meta">${meta}</div>` +
-    `<p class="form-hint" style="margin:0 0 var(--sp2)">Copy into Cursor Composer and choose the model above in Cursor.</p>` +
+    `<p class="form-hint" style="margin:0 0 var(--sp2)">Repo installs use github-installer via ragent.claude.sh when needed. Agent runs on the server — tail the log or copy the command.</p>` +
     `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:var(--sp2)">` +
-    `<button type="button" class="btn-secondary" onclick="copyCursorPackField('system')">Copy system</button>` +
-    `<button type="button" class="btn-secondary" onclick="copyCursorPackField('user')">Copy user</button>` +
-    `<button type="button" class="btn-primary" onclick="copyCursorPackField('all')">Copy all</button>` +
+    `<button type="button" class="btn-primary" onclick="copyRagentCommand()">Copy command</button>` +
     `</div>` +
-    `<div class="ai-turn-a"><strong>System</strong><pre class="ai-cursor-pre">${esc(pack.system || '')}</pre></div>` +
-    `<div class="ai-turn-a"><strong>User</strong><pre class="ai-cursor-pre">${esc(pack.user || '')}</pre></div>`
+    cmd
   );
 }
 
-window.copyCursorPackField = function(part) {
-  const p = S.pendingCursorPack;
-  if (!p) return;
-  let t = '';
-  if (part === 'system') t = p.system || '';
-  else if (part === 'user') t = p.user || '';
-  else t = `${p.system ? `## System\n${p.system}\n\n## User\n` : ''}${p.user || ''}`;
-  navigator.clipboard.writeText(t).catch(() => {});
+window.copyRagentCommand = function() {
+  const p = S.pendingRagentLaunch;
+  if (!p?.command) return;
+  navigator.clipboard.writeText(p.command).catch(() => {});
 };
 
 function slugFromProjectFname(fname) {
@@ -2811,11 +3775,15 @@ function openModal(repoId, opts = {}) {
       opts.contextMode === 'global' && opts.topicContextBlock != null
         ? String(opts.topicContextBlock)
         : '',
+    docFile: opts.docFile != null ? String(opts.docFile) : '',
+    tabKey: opts.tabKey != null ? String(opts.tabKey) : '',
+    tabLabel: '',
   };
+  const docHint = S.aiModalOpts.docFile ? ` · docs/${S.aiModalOpts.docFile}` : '';
   document.getElementById('modalTitle').textContent =
     S.aiModalOpts.contextMode === 'global'
       ? `🌐 Global: ${r.name}`
-      : `🤖 Ask AI: ${r.name}`;
+      : `🤖 Ask AI: ${r.name}${docHint}`;
   document.getElementById('modalSubtitle').textContent =
     S.aiModalOpts.contextMode === 'global'
       ? `${r.full_name} · ${S.searchProjectSlug}${S.aiModalOpts.githubTopic ? ' · #' + S.aiModalOpts.githubTopic : ''}`
@@ -2838,6 +3806,7 @@ function openModal(repoId, opts = {}) {
   syncAiProviderUI();
   if (!S.modelsLoaded) loadModels();
   if (!S.cursorModelsLoaded) loadCursorModels();
+  if (!S.claudeModelsLoaded) loadClaudeModels();
 }
 function closeModal() {
   document.getElementById('aiModal').classList.remove('open');
@@ -2913,15 +3882,17 @@ async function submitAiQuery() {
     resBoxStart.innerHTML = '';
   }
   askBtn.disabled = true;
-  let statusMsg =
-    mode === 'global'
-      ? 'Answering (global context)…'
-      : 'Cloning / selecting files / answering…';
-  if (provider === 'cursor') {
+  let statusMsg;
+  if (provider === 'openrouter') {
     statusMsg =
       mode === 'global'
-        ? 'Building Cursor prompt…'
-        : 'Cloning / selecting files / building prompt…';
+        ? 'Answering (global context)…'
+        : 'Installing (github-installer) / selecting files / answering…';
+  } else {
+    statusMsg =
+      mode === 'global'
+        ? `Starting ${provider === 'cursor' ? 'ragent.cursor.sh' : 'ragent.claude.sh'}…`
+        : 'Installing (github-installer) / starting agent…';
   }
   statusEl.innerHTML =
     '<span style="display:flex;align-items:center;gap:8px"><span class="spinner"></span> ' + statusMsg + '</span>';
@@ -2943,8 +3914,19 @@ async function submitAiQuery() {
     };
     if (provider === 'openrouter') {
       body.userModel = document.getElementById('modelSelect').value;
+    } else if (provider === 'claude') {
+      body.claudeModel = document.getElementById('claudeModelSelect').value;
     } else if (provider === 'cursor') {
       body.cursorModel = document.getElementById('cursorModelSelect').value;
+    }
+    if (mode === 'repo') {
+      body.docFile = S.aiModalOpts.docFile || '';
+      const ctx = await gatherTabContextForAsk(r, S.aiModalOpts.tabKey || 'readme', body.docFile);
+      body.tabLabel = ctx.tabLabel;
+      body.tabContext = ctx.tabContext;
+      body.searchProjectSlug = S.searchProjectSlug;
+      body.projectName = S.projectLoaded?.name || '';
+      body.collection = r.github_collection || S.defaultCloneCollection || 'favourite';
     }
     if (mode === 'global') {
       body.searchProjectSlug = S.searchProjectSlug;
@@ -2959,12 +3941,31 @@ async function submitAiQuery() {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
 
-    if (data.provider === 'cursor' && data.cursorPack) {
-      const pack = data.cursorPack;
+    if ((data.provider === 'claude' || data.provider === 'cursor') && data.ragentLaunch) {
+      const launch = data.ragentLaunch;
       const resBox = document.getElementById('aiModalResult');
       if (resBox) {
-        resBox.innerHTML = renderCursorPackResult(pack);
+        resBox.innerHTML = renderRagentLaunchResult(launch, data.provider);
         resBox.classList.add('visible');
+      }
+      if (launch.command) {
+        try {
+          await navigator.clipboard.writeText(launch.command);
+        } catch { /* ignore */ }
+      }
+      if (mode === 'repo') {
+        setRepoCloneState(r.full_name, true, data.collection || r.github_collection);
+        if (data.docFile) {
+          S.openTabs[id] = docTabKey(data.docFile);
+          if (!S.repoDocFileCache[id]) S.repoDocFileCache[id] = {};
+          S.repoDocFileCache[id][data.docFile] = {
+            loaded: true,
+            content: data.docContent || '',
+          };
+        }
+        invalidateRepoDocsCache(id);
+        persistProjectRepos();
+        renderTable();
       }
       document.getElementById('aiPrompt').value = '';
       statusEl.textContent = '';
@@ -2975,19 +3976,23 @@ async function submitAiQuery() {
     const turn = data.lastTurn;
     const isGlobal = data.contextMode === 'global';
     if (!isGlobal) {
-      let st = S.aiSessions[id];
-      if (!st) {
-        st = { session: null, loaded: true, loading: false, error: null };
-        S.aiSessions[id] = st;
+      setRepoCloneState(r.full_name, true, data.collection || r.github_collection);
+      if (data.docFile) {
+        S.openTabs[id] = docTabKey(data.docFile);
+        if (!S.repoDocFileCache[id]) S.repoDocFileCache[id] = {};
+        S.repoDocFileCache[id][data.docFile] = {
+          loaded: true,
+          content: data.docContent || '',
+        };
       }
-      st.session = data.session;
-      st.loaded = true;
-      st.error = null;
+      invalidateRepoDocsCache(id);
+      persistProjectRepos();
+      renderTable();
       updateRepoListCountLabels(filteredRepos());
     }
     const meta = isGlobal
       ? `Saved for topic <strong>${esc(turn.githubTopic || '')}</strong>. Open <strong>Global context</strong> in the header to browse or download.`
-      : `Model: ${esc(turn.userModel || '—')} · This repository (saved on server)`;
+      : `Model: ${esc(turn.userModel || '—')} · Updated <code>docs/${esc(data.docFile || '')}</code>`;
     const resBox = document.getElementById('aiModalResult');
     if (resBox) {
       resBox.innerHTML =
@@ -3121,20 +4126,14 @@ async function init() {
     </div>`;
 
   const fetched = await fetchProjectJson(fname);
-  const vfsP = vfsGet(fname);
-
-  let project = fetched;
-  if (vfsP) {
-    const merged = { ...(fetched || {}), ...vfsP, _fname: vfsP._fname || fname };
-    project = normalizeProjectMeta(merged, fname);
-  }
+  const project = fetched ? normalizeProjectMeta(fetched, fname) : null;
 
   if (!project) {
     loadEl.innerHTML = `
       <div style="font-family:var(--font-mono);padding:3rem 2rem;text-align:center">
         <div style="font-size:2rem;margin-bottom:1rem">\ud83d\udea7</div>
         <div style="color:var(--red);font-size:14px;margin-bottom:.5rem">File \u201c${esc(fname)}.json\u201d not found</div>
-        <div style="color:var(--text-muted);font-size:12px;margin-bottom:1.5rem">This project may have been created in a different browser session and the data wasn\u2019t saved.</div>
+        <div style="color:var(--text-muted);font-size:12px;margin-bottom:1.5rem">Check data/projects/ on disk and that the local server is running.</div>
         <a href="/" style="display:inline-flex;align-items:center;gap:.5rem;background:var(--accent);color:white;padding:.5rem 1.25rem;border-radius:.375rem;font-size:12px;font-weight:700">
           \u2190 Back to Projects
         </a>
@@ -3148,7 +4147,7 @@ async function init() {
   document.getElementById('projectKw').textContent =
     `${project._fname}.json \u00b7 ${(project.keywords||[]).slice(0,3).join(', ')}`;
 
-  const repos = normalizeRepoList(resolveProjectRepos(fetched, vfsP));
+  const repos = normalizeRepoList(project.repos || []);
   project.repos = repos;
   project.schemaVersion = Number(project.schemaVersion) || 1;
 
@@ -3157,23 +4156,37 @@ async function init() {
   S.projectLoaded = project;
   S.repos = repos;
 
+  await loadGithubCollections();
+
   if (!S.repos.length) {
     await hydrateRepoListBucket(S.projectFname);
+    const tab0 = getRepoListBucket().activeTab;
+    if (tab0.startsWith(REPO_LIST_GP_PREFIX)) {
+      await refreshCollectionProjects(tab0.slice(REPO_LIST_GP_PREFIX.length));
+    }
     loadEl.remove();
     buildLayout();
     setupEvents();
     renderLangFilter();
+    renderRepoListTabs();
     renderTable();
+    void refreshCloneStatusForProject();
     return;
   }
 
   await hydrateRepoListBucket(S.projectFname);
+  const initialListTab = getRepoListBucket().activeTab;
+  if (initialListTab.startsWith(REPO_LIST_GP_PREFIX)) {
+    await refreshCollectionProjects(initialListTab.slice(REPO_LIST_GP_PREFIX.length));
+  }
 
   loadEl.remove();
   buildLayout();
   setupEvents();
   renderLangFilter();
+  renderRepoListTabs();
   renderTable();
+  void refreshCloneStatusForProject();
 }
 
 init();

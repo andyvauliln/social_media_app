@@ -1,6 +1,7 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
 import fs from 'node:fs';
 import path from 'node:path';
+import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
@@ -9,12 +10,23 @@ import simpleGit from 'simple-git';
 import archiver from 'archiver';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+/** App root (`apps/github-oss`): HTML, data/, `.env` */
+const APP_ROOT = path.resolve(__dirname, '..', '..');
+dotenv.config({ path: path.join(APP_ROOT, '.env') });
 
 const PORT = Number(process.env.PORT) || 3847;
-/** Repo root (parent of `server/`): HTML + data/ */
-const STATIC_ROOT = path.resolve(process.env.STATIC_ROOT || path.join(__dirname, '..', '..'));
-const REPOS_ROOT = path.resolve(process.env.REPOS_ROOT || path.join(__dirname, '..', 'data', 'clones'));
-const OR_KEY = process.env.OPENROUTER_API_KEY || '';
+const STATIC_ROOT = path.resolve(process.env.STATIC_ROOT || APP_ROOT);
+/** Monorepo root (ragent.claude.sh, github-projects/). Default: two levels above apps/github-oss. */
+const REPO_ROOT = path.resolve(
+  process.env.REPO_ROOT || path.join(STATIC_ROOT, '..', '..'),
+);
+const RAGENT_CLAUDE_SH = path.join(REPO_ROOT, 'ragent.claude.sh');
+const RAGENT_CURSOR_SH = path.join(REPO_ROOT, 'ragent.cursor.sh');
+const AI_PROVIDERS = new Set(['openrouter', 'claude', 'cursor']);
+const GITHUB_INSTALLER_SKILL = 'agents/dev/.claude/skills/github-installer/SKILL.md';
+const AI_CLONE_LOG_DIR = path.join(APP_ROOT, 'data', 'ai-clone-logs');
+const INSTALL_TIMEOUT_MS = Number(process.env.AI_INSTALL_TIMEOUT_MS) || 45 * 60 * 1000;
+const OR_KEY = process.env.OPENROUTER_API_KEY || process.env.OPEN_ROUTER_API_KEY || '';
 const GH_TOKEN = process.env.GITHUB_TOKEN || '';
 const FILTER_MODEL = process.env.FILTER_MODEL || 'minimax/minimax-m2.5';
 const KEYWORDS_MODEL = process.env.OPENROUTER_KEYWORDS_MODEL || 'google/gemini-2.5-flash';
@@ -24,8 +36,13 @@ const CURSOR_MODELS_EXTRA = (process.env.CURSOR_MODELS || '')
   .split(',')
   .map((s) => s.trim())
   .filter(Boolean);
+/** Extra Claude Code model ids for Ask AI dropdown (comma-separated). */
+const CLAUDE_MODELS_EXTRA = (process.env.CLAUDE_MODELS || '')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
 
-/** Display names aligned with Cursor’s model picker (see cursor.com/docs/models); order = preferred defaults first. */
+/** Display names aligned with Cursor's model picker (see cursor.com/docs/models); order = preferred defaults first. */
 const CURSOR_BUILTIN_MODEL_LABELS = [
   'Composer 2 Fast',
   'Composer 2',
@@ -64,6 +81,19 @@ const CURSOR_BUILTIN_MODEL_LABELS = [
   'o4-mini',
 ];
 
+/** Claude Code `--model` values (aliases or full ids). */
+const CLAUDE_BUILTIN_MODEL_LABELS = [
+  'sonnet',
+  'opus',
+  'haiku',
+  'claude-sonnet-4-5',
+  'claude-sonnet-4-6',
+  'claude-opus-4-6',
+  'claude-opus-4-5',
+  'claude-haiku-4-5',
+  'claude-haiku-4-6',
+];
+
 const MAX_KEYWORDS_FROM_AI = 20;
 const MAX_KEYWORD_STRING_LEN = 120;
 
@@ -71,12 +101,13 @@ const MAX_PATHS_LIST = 2500;
 const MAX_FILTERED_FILES = 25;
 const MAX_BYTES_PER_FILE = 100_000;
 const MAX_GLOBAL_PRIOR_MD = 100_000;
-const FOLLOWUP_CONTEXT_CHARS = 4000;
-/** Single conversation log per clone (UI: one tab, many accordion turns). */
-const THREAD_TOPIC_ID = '__thread';
 
 const GLOBAL_CONTEXT_ROOT = path.join(STATIC_ROOT, 'data', 'global_context');
 const PROJECTS_DIR = path.join(STATIC_ROOT, 'data', 'projects');
+const GITHUB_PROJECTS_ROOT = path.join(REPO_ROOT, 'github-projects');
+const PROJECTS_INDEX_PATH = path.join(GITHUB_PROJECTS_ROOT, '!index.jsonc');
+const DEFAULT_CLONE_COLLECTION = 'favourite';
+const GP_COLLECTIONS_HIDDEN = new Set(['misc']);
 
 /** Matches client `buildFileName`: digits_slug.json base name */
 function assertSafeProjectFname(fname) {
@@ -174,47 +205,22 @@ function appendGlobalMarkdown(projectSlug, topicKey, githubTopic, userPrompt, mo
   fs.appendFileSync(fp, block, 'utf8');
 }
 
-function loadGlobalTopicSession(projectSlug, topicKey) {
-  const fp = globalTopicJsonPath(projectSlug, topicKey);
-  if (!fs.existsSync(fp)) return null;
-  try {
-    const raw = JSON.parse(fs.readFileSync(fp, 'utf8'));
-    if (raw.session && Array.isArray(raw.session.turns)) return raw.session;
-  } catch {
-    return null;
-  }
-  const now = new Date().toISOString();
-  return {
-    topicId: `global:${topicKey}`,
-    fullName: assertSafeProjectSlug(projectSlug),
-    createdAt: now,
-    updatedAt: now,
-    turns: [],
-  };
-}
-
-function saveGlobalTopicBundle(projectSlug, topicKey, githubTopic, session) {
+/** Save minimal topic metadata (label + timestamp). No session turns. */
+function saveGlobalTopicMeta(projectSlug, topicKey, githubTopic) {
   const dir = globalContextDir(projectSlug);
   fs.mkdirSync(dir, { recursive: true });
-  const now = new Date().toISOString();
-  session.updatedAt = now;
-  session.topicId = `global:${topicKey}`;
-  session.fullName = assertSafeProjectSlug(projectSlug);
-  const payload = {
-    topic: githubTopic,
-    topicKey,
-    updatedAt: now,
-    session,
-  };
-  fs.writeFileSync(globalTopicJsonPath(projectSlug, topicKey), JSON.stringify(payload, null, 2), 'utf8');
+  fs.writeFileSync(
+    globalTopicJsonPath(projectSlug, topicKey),
+    JSON.stringify({ topic: githubTopic, topicKey, updatedAt: new Date().toISOString() }, null, 2),
+    'utf8',
+  );
 }
 
 function listGlobalContextTopics(projectSlug) {
   const dir = globalContextDir(projectSlug);
   if (!fs.existsSync(dir)) return [];
-  const names = fs.readdirSync(dir);
   const topics = [];
-  for (const name of names) {
+  for (const name of fs.readdirSync(dir)) {
     if (!name.endsWith('.md')) continue;
     const topicKey = name.slice(0, -3);
     if (!topicKey || topicKey.startsWith('_')) continue;
@@ -231,112 +237,414 @@ function listGlobalContextTopics(projectSlug) {
         const j = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
         if (j.topic) label = j.topic;
         if (j.updatedAt) updatedAt = j.updatedAt;
-      } catch {
-        /* ignore */
-      }
+      } catch { /* ignore */ }
     }
     if (!updatedAt) {
-      try {
-        updatedAt = fs.statSync(mdPath).mtime.toISOString();
-      } catch {
-        updatedAt = null;
-      }
+      try { updatedAt = fs.statSync(mdPath).mtime.toISOString(); } catch { updatedAt = null; }
     }
-    topics.push({
-      topicKey,
-      label,
-      updatedAt,
-      mdPreview,
-      hasJson: fs.existsSync(jsonPath),
-    });
+    topics.push({ topicKey, label, updatedAt, mdPreview, hasJson: fs.existsSync(jsonPath) });
   }
   topics.sort((a, b) => (a.label || '').localeCompare(b.label || ''));
   return topics;
 }
 
-function repoDirName(fullName) {
-  const [owner, name] = fullName.split('/');
-  if (!owner || !name) throw new Error('Invalid fullName; expected owner/repo');
-  return `${owner}__${name}`;
+/** Parse JSONC (JSON with // comments) safely preserving URLs inside strings. */
+function parseJsonc(text) {
+  return JSON.parse(
+    text.replace(/("(?:[^"\\]|\\.)*")|\/\/[^\n]*/g, (m, str) => str ?? ''),
+  );
 }
 
-function repoPath(fullName) {
-  return path.join(REPOS_ROOT, repoDirName(fullName));
+function assertSafeCollectionName(name) {
+  const s = String(name || '').trim();
+  if (!/^[a-z0-9][a-z0-9_-]*$/.test(s) || GP_COLLECTIONS_HIDDEN.has(s)) {
+    const e = new Error('Invalid collection name');
+    e.statusCode = 400;
+    throw e;
+  }
+  return s;
 }
 
-function userDataDir(fullName) {
-  return path.join(repoPath(fullName), 'USER_AI_DATA');
+function assertSafeProjectDirName(name) {
+  const s = String(name || '').trim();
+  if (!/^[a-zA-Z0-9][a-zA-Z0-9._-]*$/.test(s)) {
+    const e = new Error('Invalid project directory name');
+    e.statusCode = 400;
+    throw e;
+  }
+  return s;
 }
 
-async function openRouterChat(model, messages) {
-  const res = await fetch(`${OR_API}/chat/completions`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${OR_KEY}`,
-      'HTTP-Referer': 'https://oss-intelligence.local',
-      'X-Title': 'OSS Intelligence',
-    },
-    body: JSON.stringify({ model, messages }),
+function projectDirFromFullName(fullName) {
+  const parts = String(fullName || '').trim().split('/');
+  return assertSafeProjectDirName(parts[1] || parts[0].replace(/\//g, '__'));
+}
+
+function repoDirInCollection(collection, projectDir) {
+  const coll = assertSafeCollectionName(collection);
+  const proj = assertSafeProjectDirName(projectDir);
+  const projectRoot = path.join(GITHUB_PROJECTS_ROOT, coll, proj);
+  const normRoot = path.normalize(projectRoot);
+  if (!normRoot.startsWith(path.normalize(GITHUB_PROJECTS_ROOT + path.sep))) {
+    const e = new Error('Path escapes github-projects');
+    e.statusCode = 400;
+    throw e;
+  }
+  return path.join(projectRoot, 'repo');
+}
+
+function projectRootInCollection(collection, projectDir) {
+  return path.dirname(repoDirInCollection(collection, projectDir));
+}
+
+function listGithubProjectCollections() {
+  if (!fs.existsSync(GITHUB_PROJECTS_ROOT)) return [];
+  return fs
+    .readdirSync(GITHUB_PROJECTS_ROOT, { withFileTypes: true })
+    .filter((d) => d.isDirectory() && !d.name.startsWith('.') && !GP_COLLECTIONS_HIDDEN.has(d.name))
+    .map((d) => d.name)
+    .sort((a, b) => {
+      if (a === DEFAULT_CLONE_COLLECTION) return -1;
+      if (b === DEFAULT_CLONE_COLLECTION) return 1;
+      return a.localeCompare(b);
+    });
+}
+
+function listProjectsInCollection(collection) {
+  const coll = assertSafeCollectionName(collection);
+  const dir = path.join(GITHUB_PROJECTS_ROOT, coll);
+  if (!fs.existsSync(dir)) return [];
+  return fs
+    .readdirSync(dir, { withFileTypes: true })
+    .filter((d) => d.isDirectory() && !d.name.startsWith('.'))
+    .map((d) => d.name)
+    .sort((a, b) => a.localeCompare(b));
+}
+
+/** Projects under github-projects/<collection>/ with index + install metadata. */
+function listCollectionProjectsDetail(collection) {
+  const coll = assertSafeCollectionName(collection);
+  const indexByDir = {};
+  for (const e of readGithubProjectsIndex()) {
+    if (String(e.collection || '') !== coll || !e.progect_name) continue;
+    const m = String(e.github || '').match(/github\.com\/([^/?#]+\/[^/?#.]+)/i);
+    indexByDir[e.progect_name] = {
+      fullName: m ? m[1] : '',
+      github: e.github || '',
+    };
+  }
+  return listProjectsInCollection(coll).map((projectDir) => {
+    const idx = indexByDir[projectDir] || {};
+    const repoDir = repoDirInCollection(coll, projectDir);
+    const installed = fs.existsSync(path.join(repoDir, '.git'));
+    return {
+      projectDir,
+      fullName: idx.fullName || '',
+      github: idx.github || (idx.fullName ? githubUrlFromFullName(idx.fullName) : ''),
+      installed,
+    };
   });
-  if (!res.ok) {
-    const t = await res.text();
-    throw new Error(`OpenRouter ${res.status}: ${t.slice(0, 500)}`);
-  }
-  const data = await res.json();
-  return data.choices?.[0]?.message?.content ?? '';
 }
 
-function extractJsonObject(text) {
-  const s = String(text).trim();
-  const fence = s.match(/```(?:json)?\s*([\s\S]*?)```/);
-  const raw = fence ? fence[1].trim() : s;
-  const start = raw.indexOf('{');
-  const end = raw.lastIndexOf('}');
-  if (start === -1 || end === -1) throw new Error('No JSON object in model response');
-  return JSON.parse(raw.slice(start, end + 1));
+function describeCollection(name) {
+  const coll = assertSafeCollectionName(name);
+  const projects = listCollectionProjectsDetail(coll);
+  return { name: coll, projects, projectCount: projects.length };
 }
 
-function looksBinary(buf) {
-  const n = Math.min(buf.length, 8000);
-  for (let i = 0; i < n; i++) if (buf[i] === 0) return true;
-  return false;
+function readGithubProjectsIndex() {
+  if (!fs.existsSync(PROJECTS_INDEX_PATH)) return [];
+  try {
+    return parseJsonc(fs.readFileSync(PROJECTS_INDEX_PATH, 'utf8'));
+  } catch {
+    return [];
+  }
 }
 
-function readRepoFile(repoRoot, relPath) {
-  const abs = path.join(repoRoot, relPath);
-  const norm = path.normalize(abs);
-  if (!norm.startsWith(path.normalize(repoRoot + path.sep))) {
-    throw new Error('Path escapes repo');
-  }
-  if (!fs.existsSync(norm) || !fs.statSync(norm).isFile()) {
-    return { relPath, content: null, skipped: 'missing' };
-  }
-  const buf = fs.readFileSync(norm);
-  if (looksBinary(buf)) {
-    return { relPath, content: null, skipped: 'binary' };
-  }
-  let text = buf.toString('utf8');
-  let truncated = false;
-  if (text.length > MAX_BYTES_PER_FILE) {
-    text = text.slice(0, MAX_BYTES_PER_FILE);
-    truncated = true;
-  }
-  return { relPath, content: text + (truncated ? '\n\n[truncated]' : ''), skipped: null };
+function githubUrlFromFullName(fullName) {
+  return `https://github.com/${String(fullName || '').trim()}`;
 }
 
-async function gitLsFiles(repoRoot) {
-  const git = simpleGit(repoRoot);
-  const out = await git.raw(['ls-files']);
-  return out
-    .split('\n')
-    .map((l) => l.trim())
-    .filter(Boolean);
+function upsertGithubProjectsIndexEntry({ collection, progect_name, github }) {
+  const coll = assertSafeCollectionName(collection);
+  const proj = assertSafeProjectDirName(progect_name);
+  const url = String(github || '').trim();
+  if (!url) return;
+  const entries = readGithubProjectsIndex();
+  const list = Array.isArray(entries) ? [...entries] : [];
+  const slug = url.match(/github\.com\/([^/?#]+\/[^/?#.]+)/i)?.[1]?.toLowerCase();
+  let found = false;
+  for (const e of list) {
+    const eSlug = String(e.github || '')
+      .match(/github\.com\/([^/?#]+\/[^/?#.]+)/i)?.[1]
+      ?.toLowerCase();
+    if ((slug && eSlug === slug) || e.progect_name === proj) {
+      e.collection = coll;
+      e.progect_name = proj;
+      e.github = url;
+      found = true;
+      break;
+    }
+  }
+  if (!found) {
+    list.push({
+      progect_name: proj,
+      collection: coll,
+      github: url,
+      languages: [],
+      description: '',
+    });
+  }
+  fs.mkdirSync(path.dirname(PROJECTS_INDEX_PATH), { recursive: true });
+  fs.writeFileSync(PROJECTS_INDEX_PATH, `${JSON.stringify(list, null, 2)}\n`, 'utf8');
 }
 
-async function ensureClone(fullName, branch) {
-  fs.mkdirSync(REPOS_ROOT, { recursive: true });
+function findInstalledProject(fullName) {
+  const fn = String(fullName || '').trim().toLowerCase();
+  if (!fn.includes('/')) return null;
+
+  try {
+    const entries = readGithubProjectsIndex();
+    for (const e of Array.isArray(entries) ? entries : []) {
+      if (!e.github || !e.collection || !e.progect_name) continue;
+      const m = String(e.github).match(/github\.com\/([^/?#]+\/[^/?#.]+)/i);
+      if (!m || m[1].toLowerCase() !== fn) continue;
+      const repoDir = repoDirInCollection(e.collection, e.progect_name);
+      if (fs.existsSync(path.join(repoDir, '.git'))) {
+        return {
+          collection: e.collection,
+          projectDir: e.progect_name,
+          repoDir,
+          projectRoot: projectRootInCollection(e.collection, e.progect_name),
+        };
+      }
+    }
+  } catch { /* scan below */ }
+
+  const projectDir = projectDirFromFullName(fullName);
+  for (const collection of listGithubProjectCollections()) {
+    const repoDir = repoDirInCollection(collection, projectDir);
+    if (fs.existsSync(path.join(repoDir, '.git'))) {
+      return {
+        collection,
+        projectDir,
+        repoDir,
+        projectRoot: projectRootInCollection(collection, projectDir),
+      };
+    }
+  }
+
+  const miscDir = path.join(GITHUB_PROJECTS_ROOT, 'misc', projectDir, 'repo');
+  if (fs.existsSync(path.join(miscDir, '.git'))) {
+    return {
+      collection: 'misc',
+      projectDir,
+      repoDir: miscDir,
+      projectRoot: path.dirname(miscDir),
+    };
+  }
+  return null;
+}
+
+/**
+ * Target clone path: existing install, else favourite/<repo-name>/repo, else misc.
+ */
+function repoPath(fullName) {
+  const installed = findInstalledProject(fullName);
+  if (installed) return installed.repoDir;
+  try {
+    return repoDirInCollection(DEFAULT_CLONE_COLLECTION, projectDirFromFullName(fullName));
+  } catch {
+    const repoName = fullName.split('/')[1] || fullName.replace('/', '__');
+    return path.join(GITHUB_PROJECTS_ROOT, 'misc', repoName, 'repo');
+  }
+}
+
+function repoIsInstalledAt(dir) {
+  return fs.existsSync(path.join(dir, '.git'));
+}
+
+function safeLogSlug(fullName) {
+  return String(fullName)
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, '__')
+    .slice(0, 120);
+}
+
+function buildGithubInstallerPrompt(fullName, opts = {}) {
+  const lines = [
+    `Run the github-installer skill at ${GITHUB_INSTALLER_SKILL}.`,
+    '',
+    `Target repository: ${fullName}`,
+    `GitHub URL: https://github.com/${fullName}`,
+  ];
+  const slug = String(opts.searchProjectSlug || '').trim();
+  const pname = String(opts.projectName || '').trim();
+  const collection = String(opts.collection || '').trim();
+  const projectDir = String(opts.projectDir || '').trim();
+  if (collection) {
+    lines.push(`Target collection: github-projects/${collection}/`);
+    if (projectDir) lines.push(`Target project folder: ${projectDir}`);
+    lines.push(`Clone into: github-projects/${collection}/${projectDir || '<repo-name>'}/repo`);
+  }
+  if (slug) lines.push(`OSS search project slug (collection hint): ${slug}`);
+  if (pname) lines.push(`OSS project display name: ${pname}`);
+  lines.push('', 'Complete all skill steps for this repository.');
+  return lines.join('\n');
+}
+
+function normalizeAiProvider(raw) {
+  const p = String(raw || 'openrouter')
+    .toLowerCase()
+    .replace(/_/g, '-');
+  if (p === 'claude-code') return 'claude';
+  return p;
+}
+
+function ragentScriptBasename(which) {
+  return which === 'cursor' ? 'ragent.cursor.sh' : 'ragent.claude.sh';
+}
+
+function ragentScriptPath(which) {
+  return which === 'cursor' ? RAGENT_CURSOR_SH : RAGENT_CLAUDE_SH;
+}
+
+function assertRagentAvailable(which = 'claude') {
+  const script = ragentScriptPath(which);
+  if (!fs.existsSync(script)) {
+    const e = new Error(`${ragentScriptBasename(which)} not found at ${script}`);
+    e.statusCode = 503;
+    throw e;
+  }
+}
+
+function repoIsInstalled(fullName) {
+  const installed = findInstalledProject(fullName);
+  if (installed) return repoIsInstalledAt(installed.repoDir);
+  return repoIsInstalledAt(repoPath(fullName));
+}
+
+function openAiRagentLog(fullName, label) {
+  const logSlug = safeLogSlug(fullName);
+  const ts = new Date().toISOString().replace(/[:.]/g, '-');
+  fs.mkdirSync(AI_CLONE_LOG_DIR, { recursive: true });
+  const logFile = path.join(AI_CLONE_LOG_DIR, `${logSlug}__${label}__${ts}.log`);
+  const logFd = fs.openSync(logFile, 'a');
+  fs.writeSync(logFd, `[github-oss] ${label} ${new Date().toISOString()} ${fullName}\n`);
+  return { logFile, logFd };
+}
+
+function ragentShellCommand(which, ragentArgs) {
+  const script = ragentScriptBasename(which);
+  const parts = [`./${script}`, ...ragentArgs].map((a) => JSON.stringify(a));
+  return `cd ${JSON.stringify(REPO_ROOT)} && bash ${parts.join(' ')}`;
+}
+
+function spawnRagentDetached(which, ragentArgs, { fullName, label }) {
+  assertRagentAvailable(which);
+  const script = ragentScriptBasename(which);
+  const { logFile, logFd } = openAiRagentLog(fullName, label);
+  const child = spawn('bash', [script, ...ragentArgs], {
+    cwd: REPO_ROOT,
+    detached: true,
+    stdio: ['ignore', logFd, logFd],
+    env: { ...process.env },
+  });
+  child.unref();
+  fs.closeSync(logFd);
+  return {
+    pid: child.pid,
+    logFile,
+    command: ragentShellCommand(which, ragentArgs),
+    repoRoot: REPO_ROOT,
+    ragent: script,
+    ...(which === 'claude' && label === 'github-installer' ? { skill: GITHUB_INSTALLER_SKILL } : {}),
+  };
+}
+
+function runRagentSync(which, ragentArgs, { fullName, label }) {
+  assertRagentAvailable(which);
+  const script = ragentScriptBasename(which);
+  const { logFile, logFd } = openAiRagentLog(fullName, label);
+  return new Promise((resolve, reject) => {
+    const child = spawn('bash', [script, ...ragentArgs], {
+      cwd: REPO_ROOT,
+      stdio: ['ignore', logFd, logFd],
+      env: { ...process.env },
+    });
+    const timer = setTimeout(() => {
+      child.kill('SIGTERM');
+      reject(new Error(`ragent timed out after ${INSTALL_TIMEOUT_MS}ms (log: ${logFile})`));
+    }, INSTALL_TIMEOUT_MS);
+    child.on('error', (err) => {
+      clearTimeout(timer);
+      fs.closeSync(logFd);
+      reject(err);
+    });
+    child.on('close', (code) => {
+      clearTimeout(timer);
+      fs.closeSync(logFd);
+      if (code === 0) {
+        resolve({ logFile, command: ragentShellCommand(which, ragentArgs) });
+        return;
+      }
+      reject(new Error(`ragent exited with code ${code} (log: ${logFile})`));
+    });
+  });
+}
+
+function buildRagentAskArgs(which, workspaceDir, prompt, agentModel) {
+  const absWorkspace = path.resolve(workspaceDir);
+  const args =
+    which === 'cursor'
+      ? ['--workspace', absWorkspace, '--trust', '-p', prompt]
+      : [
+          '--add-dir',
+          path.relative(REPO_ROOT, absWorkspace).replace(/\\/g, '/') || '.',
+          '-p',
+          prompt,
+        ];
+  if (agentModel) {
+    args.splice(args.length - 2, 0, '--model', agentModel);
+  }
+  return args;
+}
+
+function launchRagentAsk(which, { workspaceDir, prompt, fullName, label, agentModel }) {
+  const ragentArgs = buildRagentAskArgs(which, workspaceDir, prompt, agentModel);
+  const launched = spawnRagentDetached(which, ragentArgs, { fullName, label });
+  return { ...launched, agentModel: agentModel || null };
+}
+
+async function runGithubInstaller(fullName, opts = {}, { sync = false } = {}) {
+  const prompt = buildGithubInstallerPrompt(fullName, opts);
+  const ragentArgs = ['-p', prompt];
+  if (sync) {
+    return runRagentSync('claude', ragentArgs, { fullName, label: 'github-installer' });
+  }
+  return spawnRagentDetached('claude', ragentArgs, { fullName, label: 'github-installer' });
+}
+
+/** Install via github-installer skill when missing; shallow pull when already cloned. */
+async function ensureRepoInstalled(fullName, opts = {}, branch = null) {
   const dir = repoPath(fullName);
+  if (repoIsInstalled(fullName)) {
+    return ensureClone(fullName, branch);
+  }
+  await runGithubInstaller(fullName, opts, { sync: true });
+  if (!repoIsInstalled(fullName)) {
+    const e = new Error(
+      `github-installer completed but ${fullName} is not at ${dir}. Check logs under ${AI_CLONE_LOG_DIR}`,
+    );
+    e.statusCode = 500;
+    throw e;
+  }
+  return dir;
+}
+
+async function ensureCloneAt(dir, fullName, branch) {
+  fs.mkdirSync(dir, { recursive: true });
   const [owner, name] = fullName.split('/');
   if (!owner || !name) throw new Error('Invalid fullName');
   const auth = GH_TOKEN ? `${GH_TOKEN}@` : '';
@@ -354,7 +662,382 @@ async function ensureClone(fullName, branch) {
       /* offline or conflict — continue with existing tree */
     }
   }
+  if (fs.existsSync(path.join(dir, '.git'))) {
+    ensureDefaultNotesForInstalledRepo(fullName);
+  }
   return dir;
+}
+
+async function ensureClone(fullName, branch) {
+  return ensureCloneAt(repoPath(fullName), fullName, branch);
+}
+
+/**
+ * Clone or move github-projects/<collection>/<project>/repo.
+ * Moves the whole project folder when already installed under another collection.
+ */
+async function installRepoToCollection(fullName, collection, opts = {}) {
+  const fn = String(fullName || '').trim();
+  if (!/^[^/\s]+\/[^/\s]+$/.test(fn)) {
+    const e = new Error('fullName must be owner/repo');
+    e.statusCode = 400;
+    throw e;
+  }
+  const coll = assertSafeCollectionName(collection || DEFAULT_CLONE_COLLECTION);
+  const projectDir = projectDirFromFullName(fn);
+  const targetRepoDir = repoDirInCollection(coll, projectDir);
+  const targetProjectRoot = projectRootInCollection(coll, projectDir);
+
+  const existing = findInstalledProject(fn);
+  let moved = false;
+  if (existing && path.resolve(existing.repoDir) !== path.resolve(targetRepoDir)) {
+    if (fs.existsSync(targetProjectRoot)) {
+      const e = new Error(`Project folder already exists: ${targetProjectRoot}`);
+      e.statusCode = 409;
+      throw e;
+    }
+    fs.mkdirSync(path.dirname(targetProjectRoot), { recursive: true });
+    fs.renameSync(existing.projectRoot, targetProjectRoot);
+    moved = true;
+  } else {
+    fs.mkdirSync(targetRepoDir, { recursive: true });
+  }
+
+  if (opts.useAiInstaller && !repoIsInstalledAt(targetRepoDir)) {
+    await runGithubInstaller(
+      fn,
+      {
+        searchProjectSlug: opts.searchProjectSlug,
+        projectName: opts.projectName,
+        collection: coll,
+        projectDir,
+      },
+      { sync: true },
+    );
+    if (!repoIsInstalledAt(targetRepoDir)) {
+      const e = new Error(
+        `github-installer completed but ${fn} is not at ${targetRepoDir}. Check logs under ${AI_CLONE_LOG_DIR}`,
+      );
+      e.statusCode = 500;
+      throw e;
+    }
+  } else if (!repoIsInstalledAt(targetRepoDir)) {
+    await ensureCloneAt(targetRepoDir, fn, opts.branch || null);
+  } else {
+    await ensureCloneAt(targetRepoDir, fn, opts.branch || null);
+  }
+
+  upsertGithubProjectsIndexEntry({
+    collection: coll,
+    progect_name: projectDir,
+    github: githubUrlFromFullName(fn),
+  });
+
+  ensureDefaultNotesFile(coll, projectDir, fn);
+
+  return {
+    ok: true,
+    fullName: fn,
+    collection: coll,
+    projectDir,
+    path: targetRepoDir,
+    moved,
+    fromCollection: moved ? existing.collection : null,
+    cloned: repoIsInstalledAt(targetRepoDir),
+  };
+}
+
+function repoDocsDir(collection, projectDir) {
+  return path.join(projectRootInCollection(collection, projectDir), 'docs');
+}
+
+/** Not shown as UI tabs — structured sidecars only. */
+const INTERNAL_DOC_FILES = new Set(['session.json', 'notes.json', 'notes-log.md']);
+
+function sanitizeDocFileName(name) {
+  const base = path.basename(String(name || '').trim());
+  if (!base || base.includes('..') || !/^[\w.-]+\.md$/i.test(base)) return null;
+  return base;
+}
+
+function listRepoDocTabFiles(collection, projectDir) {
+  const dir = repoDocsDir(collection, projectDir);
+  if (!fs.existsSync(dir)) return [];
+  return fs
+    .readdirSync(dir)
+    .filter((f) => f.endsWith('.md') && !INTERNAL_DOC_FILES.has(f))
+    .map((name) => {
+      const p = path.join(dir, name);
+      const st = fs.statSync(p);
+      return { name, mtime: st.mtimeMs, size: st.size };
+    })
+    .sort((a, b) => a.mtime - b.mtime);
+}
+
+function allocateNewRepoDocFile(collection, projectDir) {
+  const docsDir = repoDocsDir(collection, projectDir);
+  fs.mkdirSync(docsDir, { recursive: true });
+  const ts = new Date().toISOString().replace(/[:.]/g, '').replace('T', '-').slice(0, 19);
+  let name = `qa-${ts}.md`;
+  let n = 1;
+  while (fs.existsSync(path.join(docsDir, name))) {
+    name = `qa-${ts}-${n}.md`;
+    n += 1;
+  }
+  return name;
+}
+
+function readRepoDocFileContent(collection, projectDir, docFile) {
+  const safe = sanitizeDocFileName(docFile);
+  if (!safe) return null;
+  const p = path.join(repoDocsDir(collection, projectDir), safe);
+  if (!fs.existsSync(p)) return { name: safe, content: '' };
+  return { name: safe, content: fs.readFileSync(p, 'utf8') };
+}
+
+function appendRepoDocAiTurn(fullName, docFile, turn, opts = {}) {
+  const { fullName: fn, collection, projectDir } = resolveRepoDocsPlacement(fullName, opts);
+  const docsDir = repoDocsDir(collection, projectDir);
+  fs.mkdirSync(docsDir, { recursive: true });
+  let safe = sanitizeDocFileName(docFile);
+  if (!safe) safe = allocateNewRepoDocFile(collection, projectDir);
+  const filePath = path.join(docsDir, safe);
+  if (!fs.existsSync(filePath)) {
+    fs.writeFileSync(filePath, `# ${fn}\n\n`, 'utf8');
+  }
+  const entry = { ...turn, ts: turn.ts || new Date().toISOString() };
+  fs.appendFileSync(filePath, formatRepoAiTurnMarkdown(entry), 'utf8');
+  return {
+    docFile: safe,
+    content: fs.readFileSync(filePath, 'utf8'),
+    collection,
+    projectDir,
+    docsPath: docsDir,
+    fullName: fn,
+  };
+}
+
+function repoAiSessionPath(collection, projectDir) {
+  return path.join(repoDocsDir(collection, projectDir), 'session.json');
+}
+
+function repoAiLogMdPath(collection, projectDir) {
+  return path.join(repoDocsDir(collection, projectDir), 'qa-log.md');
+}
+
+function loadRepoAiSessionFromPlacement({ collection, projectDir, fullName }) {
+  const sessionPath = repoAiSessionPath(collection, projectDir);
+  if (!fs.existsSync(sessionPath)) {
+    return {
+      fullName: fullName || '',
+      collection,
+      projectDir,
+      turns: [],
+    };
+  }
+  try {
+    const raw = JSON.parse(fs.readFileSync(sessionPath, 'utf8'));
+    const turns = Array.isArray(raw.turns) ? raw.turns : [];
+    return {
+      fullName: raw.fullName || fullName || '',
+      collection: raw.collection || collection,
+      projectDir: raw.projectDir || projectDir,
+      turns,
+    };
+  } catch {
+    return { fullName: fullName || '', collection, projectDir, turns: [] };
+  }
+}
+
+function loadRepoAiSession(fullName) {
+  const installed = findInstalledProject(fullName);
+  if (!installed) return null;
+  return loadRepoAiSessionFromPlacement({
+    collection: installed.collection,
+    projectDir: installed.projectDir,
+    fullName,
+  });
+}
+
+function formatRepoAiTurnMarkdown(turn) {
+  const ts = turn.ts || new Date().toISOString();
+  const model = turn.userModel || turn.provider || '—';
+  return `\n\n## ${ts}\n\n**Model:** ${model}\n\n**Q:** ${turn.prompt || ''}\n\n**A:**\n\n${turn.content || ''}\n\n---\n`;
+}
+
+function resolveRepoDocsPlacement(fullName, opts = {}) {
+  const fn = String(fullName || '').trim();
+  let collection = String(opts.collection || '').trim();
+  let projectDir = String(opts.projectDir || '').trim();
+  const installed = findInstalledProject(fn);
+  if (installed) {
+    collection = installed.collection;
+    projectDir = installed.projectDir;
+  } else {
+    if (!collection) collection = DEFAULT_CLONE_COLLECTION;
+    if (!projectDir) {
+      try {
+        projectDir = projectDirFromFullName(fn);
+      } catch {
+        projectDir = fn.replace(/[^a-zA-Z0-9._-]+/g, '_').slice(0, 80) || 'project';
+      }
+    }
+  }
+  return { fullName: fn, collection, projectDir };
+}
+
+function appendRepoAiTurn(fullName, turn, opts = {}) {
+  const { fullName: fn, collection, projectDir } = resolveRepoDocsPlacement(fullName, opts);
+  const docsDir = repoDocsDir(collection, projectDir);
+  fs.mkdirSync(docsDir, { recursive: true });
+  const session = loadRepoAiSessionFromPlacement({ collection, projectDir, fullName: fn });
+  const entry = {
+    ...turn,
+    ts: turn.ts || new Date().toISOString(),
+  };
+  session.turns.push(entry);
+  session.fullName = fn;
+  session.collection = collection;
+  session.projectDir = projectDir;
+  fs.writeFileSync(repoAiSessionPath(collection, projectDir), JSON.stringify(session, null, 2), 'utf8');
+  fs.appendFileSync(repoAiLogMdPath(collection, projectDir), formatRepoAiTurnMarkdown(entry), 'utf8');
+  return { session, collection, projectDir, docsPath: docsDir };
+}
+
+function defaultNotesMdContent(fullName) {
+  const fn = String(fullName || '').trim();
+  const ts = new Date().toISOString();
+  return `# Notes — ${fn}\n\n<!-- Created ${ts} — edit freely -->\n\n`;
+}
+
+/** Create docs/notes.md for every cloned project (idempotent). */
+function ensureDefaultNotesFile(collection, projectDir, fullName) {
+  const docsDir = repoDocsDir(collection, projectDir);
+  fs.mkdirSync(docsDir, { recursive: true });
+  const notesMdPath = path.join(docsDir, 'notes.md');
+  if (!fs.existsSync(notesMdPath)) {
+    fs.writeFileSync(notesMdPath, defaultNotesMdContent(fullName), 'utf8');
+    return true;
+  }
+  return false;
+}
+
+function ensureDefaultNotesForInstalledRepo(fullName) {
+  const installed = findInstalledProject(fullName);
+  if (!installed || !repoIsInstalledAt(installed.repoDir)) return false;
+  return ensureDefaultNotesFile(installed.collection, installed.projectDir, fullName);
+}
+
+function repoNotesPath(collection, projectDir) {
+  return path.join(repoDocsDir(collection, projectDir), 'notes.json');
+}
+
+function repoNotesLogPath(collection, projectDir) {
+  return path.join(repoDocsDir(collection, projectDir), 'notes-log.md');
+}
+
+function loadRepoNotesFromPlacement({ collection, projectDir, fullName }) {
+  const notesPath = repoNotesPath(collection, projectDir);
+  if (!fs.existsSync(notesPath)) {
+    return { fullName: fullName || '', collection, projectDir, notes: [] };
+  }
+  try {
+    const raw = JSON.parse(fs.readFileSync(notesPath, 'utf8'));
+    const notes = Array.isArray(raw.notes) ? raw.notes : [];
+    return {
+      fullName: raw.fullName || fullName || '',
+      collection: raw.collection || collection,
+      projectDir: raw.projectDir || projectDir,
+      notes,
+    };
+  } catch {
+    return { fullName: fullName || '', collection, projectDir, notes: [] };
+  }
+}
+
+function loadRepoNotes(fullName) {
+  const installed = findInstalledProject(fullName);
+  if (installed) {
+    return loadRepoNotesFromPlacement({
+      collection: installed.collection,
+      projectDir: installed.projectDir,
+      fullName,
+    });
+  }
+  try {
+    const { collection, projectDir } = resolveRepoDocsPlacement(fullName, {});
+    if (fs.existsSync(repoNotesPath(collection, projectDir))) {
+      return loadRepoNotesFromPlacement({ collection, projectDir, fullName });
+    }
+  } catch { /* no placement */ }
+  return null;
+}
+
+function formatRepoNoteMarkdown(note) {
+  const ts = note.ts || new Date().toISOString();
+  return `\n\n## ${ts}\n\n${note.text || ''}\n\n---\n`;
+}
+
+function appendRepoNote(fullName, text, opts = {}) {
+  const body = String(text || '').trim();
+  if (!body) {
+    const e = new Error('Note text is required');
+    e.statusCode = 400;
+    throw e;
+  }
+  const { fullName: fn, collection, projectDir } = resolveRepoDocsPlacement(fullName, opts);
+  const docsDir = repoDocsDir(collection, projectDir);
+  fs.mkdirSync(docsDir, { recursive: true });
+  const store = loadRepoNotesFromPlacement({ collection, projectDir, fullName: fn });
+  const note = {
+    id: `n_${Date.now().toString(36)}`,
+    text: body,
+    ts: new Date().toISOString(),
+  };
+  store.notes.push(note);
+  store.fullName = fn;
+  store.collection = collection;
+  store.projectDir = projectDir;
+  fs.writeFileSync(repoNotesPath(collection, projectDir), JSON.stringify(store, null, 2), 'utf8');
+  fs.appendFileSync(repoNotesLogPath(collection, projectDir), formatRepoNoteMarkdown(note), 'utf8');
+  ensureDefaultNotesFile(collection, projectDir, fn);
+  const notesMdPath = path.join(docsDir, 'notes.md');
+  fs.appendFileSync(notesMdPath, formatRepoNoteMarkdown(note), 'utf8');
+  return {
+    note,
+    collection,
+    projectDir,
+    docsPath: docsDir,
+    notes: store.notes,
+    docFile: 'notes.md',
+  };
+}
+
+function cloneStatusForRepo(fullName) {
+  const installed = findInstalledProject(fullName);
+  if (!installed || !repoIsInstalledAt(installed.repoDir)) {
+    return {
+      installed: false,
+      collection: '',
+      projectDir: '',
+      aiTurnCount: 0,
+      docFileCount: 0,
+    };
+  }
+  ensureDefaultNotesFile(installed.collection, installed.projectDir, fullName);
+  const session = loadRepoAiSessionFromPlacement({
+    collection: installed.collection,
+    projectDir: installed.projectDir,
+    fullName,
+  });
+  const docFiles = listRepoDocTabFiles(installed.collection, installed.projectDir);
+  return {
+    installed: true,
+    collection: installed.collection,
+    projectDir: installed.projectDir,
+    aiTurnCount: session.turns.length,
+    docFileCount: docFiles.length,
+  };
 }
 
 const HEURISTIC_PRIORITY_BASE = new Set(
@@ -453,18 +1136,70 @@ function buildFileContextBundle(repoRoot, relPaths) {
   return parts.join('\n\n');
 }
 
-function loadSession(fullName, topicId) {
-  const dir = userDataDir(fullName);
-  const fp = path.join(dir, topicId, 'session.json');
-  if (!fs.existsSync(fp)) return null;
-  return JSON.parse(fs.readFileSync(fp, 'utf8'));
+async function openRouterChat(model, messages) {
+  const res = await fetch(`${OR_API}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${OR_KEY}`,
+      'HTTP-Referer': 'https://oss-intelligence.local',
+      'X-Title': 'OSS Intelligence',
+    },
+    body: JSON.stringify({ model, messages }),
+  });
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error(`OpenRouter ${res.status}: ${t.slice(0, 500)}`);
+  }
+  const data = await res.json();
+  return data.choices?.[0]?.message?.content ?? '';
 }
 
-function saveSession(fullName, session) {
-  const dir = path.join(userDataDir(fullName), session.topicId);
-  fs.mkdirSync(dir, { recursive: true });
-  session.updatedAt = new Date().toISOString();
-  fs.writeFileSync(path.join(dir, 'session.json'), JSON.stringify(session, null, 2), 'utf8');
+function extractJsonObject(text) {
+  const s = String(text).trim();
+  const fence = s.match(/```(?:json)?\s*([\s\S]*?)```/);
+  const raw = fence ? fence[1].trim() : s;
+  const start = raw.indexOf('{');
+  const end = raw.lastIndexOf('}');
+  if (start === -1 || end === -1) throw new Error('No JSON object in model response');
+  return JSON.parse(raw.slice(start, end + 1));
+}
+
+function looksBinary(buf) {
+  const n = Math.min(buf.length, 8000);
+  for (let i = 0; i < n; i++) if (buf[i] === 0) return true;
+  return false;
+}
+
+function readRepoFile(repoRoot, relPath) {
+  const abs = path.join(repoRoot, relPath);
+  const norm = path.normalize(abs);
+  if (!norm.startsWith(path.normalize(repoRoot + path.sep))) {
+    throw new Error('Path escapes repo');
+  }
+  if (!fs.existsSync(norm) || !fs.statSync(norm).isFile()) {
+    return { relPath, content: null, skipped: 'missing' };
+  }
+  const buf = fs.readFileSync(norm);
+  if (looksBinary(buf)) {
+    return { relPath, content: null, skipped: 'binary' };
+  }
+  let text = buf.toString('utf8');
+  let truncated = false;
+  if (text.length > MAX_BYTES_PER_FILE) {
+    text = text.slice(0, MAX_BYTES_PER_FILE);
+    truncated = true;
+  }
+  return { relPath, content: text + (truncated ? '\n\n[truncated]' : ''), skipped: null };
+}
+
+async function gitLsFiles(repoRoot) {
+  const git = simpleGit(repoRoot);
+  const out = await git.raw(['ls-files']);
+  return out
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean);
 }
 
 const app = Fastify({ logger: true, bodyLimit: 55 * 1024 * 1024 });
@@ -484,6 +1219,174 @@ await app.register(cors, {
 });
 
 app.get('/health', async () => ({ ok: true }));
+
+app.get('/api/collections', async () => {
+  const names = listGithubProjectCollections();
+  const collections = names.map((name) => describeCollection(name));
+  return { collections, defaultCollection: DEFAULT_CLONE_COLLECTION };
+});
+
+app.get('/api/collections/:name', async (req, reply) => {
+  try {
+    return describeCollection(req.params.name);
+  } catch (e) {
+    reply.code(e.statusCode || 400);
+    return { error: e.message || 'Invalid collection' };
+  }
+});
+
+app.post('/api/collections', async (req, reply) => {
+  const name = String((req.body || {}).name || '').trim();
+  try {
+    const coll = assertSafeCollectionName(name);
+    const dir = path.join(GITHUB_PROJECTS_ROOT, coll);
+    if (fs.existsSync(dir)) {
+      reply.code(409);
+      return { error: `Collection "${coll}" already exists` };
+    }
+    fs.mkdirSync(dir, { recursive: true });
+    return { ok: true, name: coll, path: dir };
+  } catch (e) {
+    reply.code(e.statusCode || 400);
+    return { error: e.message || 'Invalid collection name' };
+  }
+});
+
+app.get('/api/repos/ai-session', async (req, reply) => {
+  const fullName = String(req.query?.fullName || '').trim();
+  if (!fullName || !/^[^/\s]+\/[^/\s]+$/.test(fullName)) {
+    reply.code(400);
+    return { error: 'fullName query param required (owner/repo)' };
+  }
+  const session = loadRepoAiSession(fullName);
+  if (!session) {
+    return {
+      fullName,
+      collection: '',
+      projectDir: '',
+      turns: [],
+      docsPath: null,
+    };
+  }
+  return {
+    ...session,
+    docsPath: repoDocsDir(session.collection, session.projectDir),
+  };
+});
+
+app.get('/api/repos/docs', async (req, reply) => {
+  const fullName = String(req.query?.fullName || '').trim();
+  if (!fullName || !/^[^/\s]+\/[^/\s]+$/.test(fullName)) {
+    reply.code(400);
+    return { error: 'fullName query param required (owner/repo)' };
+  }
+  try {
+    const { collection, projectDir } = resolveRepoDocsPlacement(fullName, {
+      collection: req.query?.collection,
+      projectDir: req.query?.projectDir,
+    });
+    const files = listRepoDocTabFiles(collection, projectDir);
+    return {
+      fullName,
+      collection,
+      projectDir,
+      files,
+      docsPath: repoDocsDir(collection, projectDir),
+    };
+  } catch (e) {
+    reply.code(400);
+    return { error: e.message || 'Invalid placement' };
+  }
+});
+
+app.get('/api/repos/docs/file', async (req, reply) => {
+  const fullName = String(req.query?.fullName || '').trim();
+  const docFile = String(req.query?.file || '').trim();
+  if (!fullName || !docFile) {
+    reply.code(400);
+    return { error: 'fullName and file query params required' };
+  }
+  try {
+    const { collection, projectDir } = resolveRepoDocsPlacement(fullName, {
+      collection: req.query?.collection,
+      projectDir: req.query?.projectDir,
+    });
+    const read = readRepoDocFileContent(collection, projectDir, docFile);
+    if (!read) {
+      reply.code(400);
+      return { error: 'Invalid doc file name' };
+    }
+    return {
+      fullName,
+      collection,
+      projectDir,
+      file: read.name,
+      content: read.content,
+      docsPath: repoDocsDir(collection, projectDir),
+    };
+  } catch (e) {
+    reply.code(400);
+    return { error: e.message || 'Failed to read doc file' };
+  }
+});
+
+app.get('/api/repos/notes', async (req, reply) => {
+  const fullName = String(req.query?.fullName || '').trim();
+  if (!fullName) {
+    reply.code(400);
+    return { error: 'fullName query param required' };
+  }
+  const notes = loadRepoNotes(fullName);
+  if (!notes) {
+    try {
+      const { collection, projectDir } = resolveRepoDocsPlacement(fullName, {
+        collection: req.query?.collection,
+        projectDir: req.query?.projectDir,
+      });
+      return {
+        fullName,
+        collection,
+        projectDir,
+        notes: [],
+        docsPath: repoDocsDir(collection, projectDir),
+      };
+    } catch (e) {
+      return { fullName, collection: '', projectDir: '', notes: [], docsPath: null };
+    }
+  }
+  return {
+    ...notes,
+    docsPath: repoDocsDir(notes.collection, notes.projectDir),
+  };
+});
+
+app.post('/api/repos/notes', async (req, reply) => {
+  const body = req.body || {};
+  const fullName = String(body.fullName || '').trim();
+  const text = String(body.text || '').trim();
+  if (!fullName) {
+    reply.code(400);
+    return { error: 'fullName is required' };
+  }
+  try {
+    const saved = appendRepoNote(fullName, text, {
+      collection: body.collection,
+      projectDir: body.projectDir,
+    });
+    return {
+      ok: true,
+      fullName,
+      collection: saved.collection,
+      projectDir: saved.projectDir,
+      note: saved.note,
+      notes: saved.notes,
+      docsPath: saved.docsPath,
+    };
+  } catch (e) {
+    reply.code(e.statusCode || 500);
+    return { error: e.message || 'Failed to save note' };
+  }
+});
 
 app.get('/api/projects', async () => {
   fs.mkdirSync(PROJECTS_DIR, { recursive: true });
@@ -557,21 +1460,95 @@ app.get('/api/models', async (req, reply) => {
   return res.json();
 });
 
+app.post('/api/repos/clone-status', async (req, reply) => {
+  const body = req.body || {};
+  const raw = Array.isArray(body.fullNames) ? body.fullNames : [];
+  const fullNames = raw
+    .map((n) => String(n || '').trim())
+    .filter((n) => /^[^/\s]+\/[^/\s]+$/.test(n));
+  if (fullNames.length > 500) {
+    reply.code(400);
+    return { error: 'At most 500 fullNames per request' };
+  }
+  const statuses = {};
+  for (const fullName of fullNames) {
+    statuses[fullName] = cloneStatusForRepo(fullName);
+  }
+  return { statuses };
+});
+
 app.post('/api/repos/ensure', async (req) => {
-  const { fullName, branch } = req.body || {};
+  const body = req.body || {};
+  const { fullName, branch } = body;
   if (!fullName || typeof fullName !== 'string') {
     const e = new Error('fullName required');
     e.statusCode = 400;
     throw e;
   }
-  const dir = await ensureClone(fullName.trim(), branch || null);
-  return { ok: true, path: dir, fullName: fullName.trim() };
+  const fn = fullName.trim();
+  const collection = String(body.collection || DEFAULT_CLONE_COLLECTION).trim();
+  const result = await installRepoToCollection(fn, collection, {
+    branch: branch || null,
+    useAiInstaller: body.useAiInstaller !== false,
+    searchProjectSlug: body.searchProjectSlug,
+    projectName: body.projectName,
+  });
+  return { ...result, path: result.path, cloned: result.cloned };
 });
 
-app.get('/api/repos/:owner/:name/sessions', async (req) => {
-  const fullName = `${req.params.owner}/${req.params.name}`;
-  const session = loadSession(fullName, THREAD_TOPIC_ID);
-  return { fullName, session };
+app.post('/api/repos/install-to-collection', async (req, reply) => {
+  const body = req.body || {};
+  const fullName = String(body.fullName || '').trim();
+  const collection = String(body.collection || DEFAULT_CLONE_COLLECTION).trim();
+  if (!fullName || !/^[^/\s]+\/[^/\s]+$/.test(fullName)) {
+    reply.code(400);
+    return { error: 'fullName must be owner/repo' };
+  }
+  try {
+    return await installRepoToCollection(fullName, collection, {
+      branch: body.branch || null,
+      useAiInstaller: !!body.useAiInstaller,
+      searchProjectSlug: body.searchProjectSlug,
+      projectName: body.projectName,
+    });
+  } catch (e) {
+    reply.code(e.statusCode || 500);
+    return { error: e.message || 'Install to collection failed' };
+  }
+});
+
+app.post('/api/repos/ai-clone', async (req, reply) => {
+  const body = req.body || {};
+  const fullName = String(body.fullName || '').trim();
+  const collection = String(body.collection || DEFAULT_CLONE_COLLECTION).trim();
+  if (!fullName || !/^[^/\s]+\/[^/\s]+$/.test(fullName)) {
+    reply.code(400);
+    return { error: 'fullName must be owner/repo' };
+  }
+  const projectDir = projectDirFromFullName(fullName);
+  const installerOpts = {
+    searchProjectSlug: body.searchProjectSlug,
+    projectName: body.projectName,
+    collection,
+    projectDir,
+  };
+  try {
+    if (body.prepareTarget !== false && !repoIsInstalled(fullName)) {
+      fs.mkdirSync(repoDirInCollection(collection, projectDir), { recursive: true });
+    }
+    const launched = await runGithubInstaller(fullName, installerOpts, { sync: false });
+    return {
+      ok: true,
+      fullName,
+      collection,
+      projectDir,
+      cloned: repoIsInstalled(fullName),
+      ...launched,
+    };
+  } catch (e) {
+    reply.code(e.statusCode || 500);
+    return { error: e.message || 'AI clone failed' };
+  }
 });
 
 app.get('/api/global-context/:projectSlug', async (req, reply) => {
@@ -602,32 +1579,21 @@ app.get('/api/global-context/:projectSlug/topic/:topicKey/download', async (req,
   const hasJson = fs.existsSync(jsonPath);
 
   if (which === 'md') {
-    if (!hasMd) {
-      reply.code(404);
-      return { error: 'Not found' };
-    }
+    if (!hasMd) { reply.code(404); return { error: 'Not found' }; }
     reply.header('Content-Type', 'text/markdown; charset=utf-8');
     reply.header('Content-Disposition', `attachment; filename="${topicKey}.md"`);
     return reply.send(fs.createReadStream(mdPath));
   }
   if (which === 'json') {
-    if (!hasJson) {
-      reply.code(404);
-      return { error: 'Not found' };
-    }
+    if (!hasJson) { reply.code(404); return { error: 'Not found' }; }
     reply.header('Content-Type', 'application/json; charset=utf-8');
     reply.header('Content-Disposition', `attachment; filename="${topicKey}.json"`);
     return reply.send(fs.createReadStream(jsonPath));
   }
   if (which === 'zip') {
-    if (!hasMd && !hasJson) {
-      reply.code(404);
-      return { error: 'Not found' };
-    }
+    if (!hasMd && !hasJson) { reply.code(404); return { error: 'Not found' }; }
     const archive = archiver('zip', { zlib: { level: 9 } });
-    archive.on('error', (err) => {
-      req.log.error(err);
-    });
+    archive.on('error', (err) => { req.log.error(err); });
     if (hasMd) archive.file(mdPath, { name: `${topicKey}.md` });
     if (hasJson) archive.file(jsonPath, { name: `${topicKey}.json` });
     reply.header('Content-Type', 'application/zip');
@@ -644,7 +1610,6 @@ async function handleGlobalAsk(body) {
   const githubTopic = String(body.githubTopic || '').trim();
   const userPrompt = String(body.prompt || '').trim();
   const model = String(body.userModel || '').trim();
-  const fullName = String(body.fullName || '').trim();
   const topicContextBlock = body.topicContextBlock != null ? String(body.topicContextBlock) : '';
 
   if (!searchProjectSlug || !githubTopic || !userPrompt || !model) {
@@ -655,137 +1620,98 @@ async function handleGlobalAsk(body) {
 
   const projectSlug = assertSafeProjectSlug(searchProjectSlug);
   const topicKey = safeTopicKey(githubTopic);
-
   const priorMd = readGlobalMdCapped(projectSlug, topicKey);
-  let session = loadGlobalTopicSession(projectSlug, topicKey);
-  const now0 = new Date().toISOString();
-  if (!session) {
-    session = {
-      topicId: `global:${topicKey}`,
-      fullName: projectSlug,
-      createdAt: now0,
-      updatedAt: now0,
-      turns: [],
-    };
-  }
-
-  let priorBlock = '';
-  if (priorMd) {
-    priorBlock += `\n\n## Prior global notes (from saved notes, may be truncated)\n${priorMd}\n`;
-  }
-  if (session.turns.length) {
-    const last = session.turns[session.turns.length - 1];
-    const ans = String(last.content || '').slice(-FOLLOWUP_CONTEXT_CHARS);
-    priorBlock += `\n\n## Previous turn (context)\n**Q:** ${last.prompt}\n\n**A (excerpt):**\n${ans}\n`;
-  }
 
   const userContent = [
     `# Search project: ${projectSlug}`,
     `\n## GitHub topic: ${githubTopic}\n`,
     topicContextBlock ? `\n## Context from this project (repos / topic)\n${topicContextBlock}\n` : '',
-    priorBlock,
+    priorMd ? `\n\n## Prior global notes\n${priorMd}\n` : '',
     '\n## Question\n',
     userPrompt,
   ].join('');
 
   const system =
-    'You are a senior software engineer. Answer using the prior global notes, repository/topic summary from the user, and conversation context when present. Be concise and accurate.';
+    'You are a senior software engineer. Answer using the prior global notes, repository/topic summary from the user, and context when present. Be concise and accurate.';
 
   const content = await openRouterChat(model, [
     { role: 'system', content: system },
     { role: 'user', content: userContent },
   ]);
 
-  const now = new Date().toISOString();
-  session.turns.push({
-    prompt: userPrompt,
-    content,
-    userModel: model,
-    filterModel: null,
-    filteredPaths: [],
-    ts: now,
-    contextMode: 'global',
-    githubTopic,
-    sourceRepo: fullName || undefined,
-  });
-
+  const ts = new Date().toISOString();
   appendGlobalMarkdown(projectSlug, topicKey, githubTopic, userPrompt, model, content);
-  saveGlobalTopicBundle(projectSlug, topicKey, githubTopic, session);
+  saveGlobalTopicMeta(projectSlug, topicKey, githubTopic);
 
   return {
-    session,
-    lastTurn: session.turns[session.turns.length - 1],
+    lastTurn: { prompt: userPrompt, content, userModel: model, ts, contextMode: 'global', githubTopic },
     contextMode: 'global',
   };
 }
 
-function handleGlobalCursorPack(body) {
+function buildGlobalRagentPrompt(body) {
   const searchProjectSlug = String(body.searchProjectSlug || '').trim();
   const githubTopic = String(body.githubTopic || '').trim();
   const userPrompt = String(body.prompt || '').trim();
-  const cursorModel = String(body.cursorModel || '').trim();
-  const fullName = String(body.fullName || '').trim();
   const topicContextBlock = body.topicContextBlock != null ? String(body.topicContextBlock) : '';
 
-  if (!searchProjectSlug || !githubTopic || !userPrompt || !cursorModel) {
-    const e = new Error('searchProjectSlug, githubTopic, prompt, and cursorModel are required for Cursor (global)');
+  if (!searchProjectSlug || !githubTopic || !userPrompt) {
+    const e = new Error('searchProjectSlug, githubTopic, and prompt are required for global mode');
     e.statusCode = 400;
     throw e;
   }
 
   const projectSlug = assertSafeProjectSlug(searchProjectSlug);
   const topicKey = safeTopicKey(githubTopic);
-
   const priorMd = readGlobalMdCapped(projectSlug, topicKey);
-  let session = loadGlobalTopicSession(projectSlug, topicKey);
-  const now0 = new Date().toISOString();
-  if (!session) {
-    session = {
-      topicId: `global:${topicKey}`,
-      fullName: projectSlug,
-      createdAt: now0,
-      updatedAt: now0,
-      turns: [],
-    };
-  }
-
-  let priorBlock = '';
-  if (priorMd) {
-    priorBlock += `\n\n## Prior global notes (from saved notes, may be truncated)\n${priorMd}\n`;
-  }
-  if (session.turns.length) {
-    const last = session.turns[session.turns.length - 1];
-    const ans = String(last.content || '').slice(-FOLLOWUP_CONTEXT_CHARS);
-    priorBlock += `\n\n## Previous turn (context)\n**Q:** ${last.prompt}\n\n**A (excerpt):**\n${ans}\n`;
-  }
-
-  const userContent = [
-    `# Search project: ${projectSlug}`,
-    `\n## GitHub topic: ${githubTopic}\n`,
-    topicContextBlock ? `\n## Context from this project (repos / topic)\n${topicContextBlock}\n` : '',
-    priorBlock,
-    '\n## Question\n',
-    userPrompt,
-  ].join('');
-
-  const system =
-    'You are a senior software engineer. Answer using the prior global notes, repository/topic summary from the user, and conversation context when present. Be concise and accurate.';
 
   return {
+    projectSlug,
+    topicKey,
+    githubTopic,
+    prompt: [
+      `# Search project: ${projectSlug}`,
+      `\n## GitHub topic: ${githubTopic}\n`,
+      topicContextBlock ? `\n## Context from this project (repos / topic)\n${topicContextBlock}\n` : '',
+      priorMd ? `\n\n## Prior global notes\n${priorMd}\n` : '',
+      '\n## Question\n',
+      userPrompt,
+    ].join(''),
+  };
+}
+
+function handleGlobalRagentAsk(body, which) {
+  const agentModel = String(
+    which === 'cursor' ? body.cursorModel : body.claudeModel || '',
+  ).trim();
+  if (!agentModel) {
+    const e = new Error(
+      which === 'cursor' ? 'cursorModel is required for Cursor' : 'claudeModel is required for Claude',
+    );
+    e.statusCode = 400;
+    throw e;
+  }
+  const { projectSlug, githubTopic, prompt } = buildGlobalRagentPrompt(body);
+  const launched = launchRagentAsk(which, {
+    workspaceDir: REPO_ROOT,
+    prompt,
+    fullName: `${projectSlug}#${githubTopic}`,
+    label: `global-${which}-ask`,
+    agentModel,
+  });
+  return {
     contextMode: 'global',
-    provider: 'cursor',
-    cursorPack: {
-      system,
-      user: userContent,
-      cursorModel,
+    provider: which,
+    ragentLaunch: {
+      ...launched,
       githubTopic,
       searchProjectSlug: projectSlug,
-      sourceRepo: fullName || undefined,
+      prompt,
     },
   };
 }
 
-app.get('/api/cursor-models', async () => {
+function listAgentModels(builtin, extra) {
   const seen = new Set();
   const models = [];
   function add(label) {
@@ -794,10 +1720,18 @@ app.get('/api/cursor-models', async () => {
     seen.add(k);
     models.push({ id: label, label });
   }
-  for (const d of CURSOR_BUILTIN_MODEL_LABELS) add(d);
-  for (const e of CURSOR_MODELS_EXTRA) add(e);
-  return { models };
-});
+  for (const d of builtin) add(d);
+  for (const e of extra) add(e);
+  return models;
+}
+
+app.get('/api/cursor-models', async () => ({
+  models: listAgentModels(CURSOR_BUILTIN_MODEL_LABELS, CURSOR_MODELS_EXTRA),
+}));
+
+app.get('/api/claude-models', async () => ({
+  models: listAgentModels(CLAUDE_BUILTIN_MODEL_LABELS, CLAUDE_MODELS_EXTRA),
+}));
 
 app.post('/api/ai/keywords', async (req, reply) => {
   if (!OR_KEY) {
@@ -845,15 +1779,11 @@ app.post('/api/ai/keywords', async (req, reply) => {
 app.post('/api/ai/ask', async (req, reply) => {
   const body = req.body || {};
   const contextMode = body.contextMode === 'global' ? 'global' : 'repo';
-  const aiProvider = String(body.aiProvider || 'openrouter').toLowerCase().replace(/_/g, '-');
+  const aiProvider = normalizeAiProvider(body.aiProvider);
 
-  if (aiProvider === 'claude-code' || aiProvider === 'codex') {
-    reply.code(501);
-    return { error: 'This provider is not available yet. Choose OpenRouter or Cursor.' };
-  }
-  if (aiProvider !== 'openrouter' && aiProvider !== 'cursor') {
+  if (!AI_PROVIDERS.has(aiProvider)) {
     reply.code(400);
-    return { error: 'Invalid aiProvider' };
+    return { error: 'Invalid aiProvider (use openrouter, claude, or cursor)' };
   }
 
   if (aiProvider === 'openrouter' && !OR_KEY) {
@@ -862,25 +1792,25 @@ app.post('/api/ai/ask', async (req, reply) => {
   }
 
   if (contextMode === 'global') {
-    if (aiProvider === 'cursor') {
+    if (aiProvider === 'openrouter') {
       try {
-        return handleGlobalCursorPack(body);
+        return await handleGlobalAsk(body);
       } catch (e) {
         const code = e.statusCode && e.statusCode >= 400 && e.statusCode < 600 ? e.statusCode : 500;
         reply.code(code);
-        return { error: e.message || 'Global Cursor pack failed' };
+        return { error: e.message || 'Global ask failed' };
       }
     }
     try {
-      return await handleGlobalAsk(body);
+      return handleGlobalRagentAsk(body, aiProvider);
     } catch (e) {
       const code = e.statusCode && e.statusCode >= 400 && e.statusCode < 600 ? e.statusCode : 500;
       reply.code(code);
-      return { error: e.message || 'Global ask failed' };
+      return { error: e.message || 'Global ragent ask failed' };
     }
   }
 
-  const { fullName, prompt, userModel, cursorModel } = body;
+  const { fullName, prompt, userModel, cursorModel, claudeModel } = body;
   if (!fullName || !prompt) {
     reply.code(400);
     return { error: 'fullName and prompt are required' };
@@ -888,95 +1818,156 @@ app.post('/api/ai/ask', async (req, reply) => {
 
   const fn = String(fullName).trim();
   const userPrompt = String(prompt).trim();
+  const preferredCollection = String(body.collection || DEFAULT_CLONE_COLLECTION).trim();
+  const installOpts = {
+    searchProjectSlug: body.searchProjectSlug,
+    projectName: body.projectName,
+    collection: preferredCollection,
+  };
+  const cursorModelStr = String(cursorModel || '').trim();
+  const claudeModelStr = String(claudeModel || '').trim();
 
-  if (aiProvider === 'openrouter') {
-    if (!userModel || !String(userModel).trim()) {
-      reply.code(400);
-      return { error: 'userModel is required for OpenRouter' };
-    }
-  } else if (!cursorModel || !String(cursorModel).trim()) {
+  if (aiProvider === 'openrouter' && (!userModel || !String(userModel).trim())) {
+    reply.code(400);
+    return { error: 'userModel is required for OpenRouter' };
+  }
+  if (aiProvider === 'cursor' && !cursorModelStr) {
     reply.code(400);
     return { error: 'cursorModel is required for Cursor' };
   }
-
-  const model = String(userModel || '').trim();
-  const cursorModelStr = String(cursorModel || '').trim();
-
-  await ensureClone(fn);
-
-  const dir = repoPath(fn);
-  let paths = await gitLsFiles(dir);
-  paths = paths.filter((p) => !p.startsWith('USER_AI_DATA/'));
-
-  const filteredPaths = await resolveFilteredPaths(userPrompt, paths);
-  const fileBlock = buildFileContextBundle(dir, filteredPaths);
-
-  let priorBlock = '';
-  let session = loadSession(fn, THREAD_TOPIC_ID);
-  if (session?.turns?.length) {
-    const last = session.turns[session.turns.length - 1];
-    const ans = String(last.content || '').slice(-FOLLOWUP_CONTEXT_CHARS);
-    priorBlock = `\n\n## Previous turn (context)\n**Q:** ${last.prompt}\n\n**A (excerpt):**\n${ans}\n`;
+  if (aiProvider === 'claude' && !claudeModelStr) {
+    reply.code(400);
+    return { error: 'claudeModel is required for Claude' };
   }
 
-  const userContent = [
-    `# Repository: ${fn}`,
-    priorBlock,
-    '\n## Question\n',
-    userPrompt,
-    '\n\n## Selected files\n',
-    fileBlock,
-  ].join('');
-
-  const system =
-    'You are a senior software engineer. Answer using the repository file excerpts and prior context when present. Be concise and accurate.';
-
-  if (aiProvider === 'cursor') {
+  if (aiProvider === 'claude' || aiProvider === 'cursor') {
+    let installResult;
+    try {
+      installResult = await installRepoToCollection(fn, preferredCollection, {
+        useAiInstaller: true,
+        searchProjectSlug: body.searchProjectSlug,
+        projectName: body.projectName,
+      });
+    } catch (e) {
+      const code = e.statusCode && e.statusCode >= 400 && e.statusCode < 600 ? e.statusCode : 500;
+      reply.code(code);
+      return { error: e.message || 'Repository install failed' };
+    }
+    const dir = repoPath(fn);
+    const agentModel = aiProvider === 'cursor' ? cursorModelStr : claudeModelStr;
+    const launched = launchRagentAsk(aiProvider, {
+      workspaceDir: dir,
+      prompt: userPrompt,
+      fullName: fn,
+      label: `${aiProvider}-ask`,
+      agentModel,
+    });
+    const turn = {
+      prompt: userPrompt,
+      content: `Launched ${aiProvider} agent in terminal.\n\n\`${launched.command || ''}\``,
+      provider: aiProvider,
+      userModel: agentModel,
+    };
+    let docFile = sanitizeDocFileName(body.docFile);
+    const tabContext = String(body.tabContext || '').slice(0, 120000);
+    const tabLabel = String(body.tabLabel || '').trim();
+    if (tabContext && tabLabel) {
+      turn.tabContext = tabLabel;
+    }
+    const saved = appendRepoDocAiTurn(fn, docFile, turn, {
+      collection: installResult.collection,
+      projectDir: installResult.projectDir,
+    });
     return {
       contextMode: 'repo',
-      provider: 'cursor',
-      cursorPack: {
-        system,
-        user: userContent,
-        cursorModel: cursorModelStr,
+      provider: aiProvider,
+      collection: saved.collection,
+      projectDir: saved.projectDir,
+      docFile: saved.docFile,
+      docContent: saved.content,
+      lastTurn: turn,
+      ragentLaunch: {
+        ...launched,
         fullName: fn,
-        filteredPaths,
+        repoDir: dir,
+        prompt: userPrompt,
       },
     };
   }
+
+  const model = String(userModel || '').trim();
+
+  let installResult;
+  try {
+    installResult = await installRepoToCollection(fn, preferredCollection, {
+      useAiInstaller: true,
+      searchProjectSlug: body.searchProjectSlug,
+      projectName: body.projectName,
+    });
+  } catch (e) {
+    const code = e.statusCode && e.statusCode >= 400 && e.statusCode < 600 ? e.statusCode : 500;
+    reply.code(code);
+    return { error: e.message || 'Repository install failed' };
+  }
+
+  const dir = repoPath(fn);
+  const paths = await gitLsFiles(dir);
+  const filteredPaths = await resolveFilteredPaths(userPrompt, paths);
+  const fileBlock = buildFileContextBundle(dir, filteredPaths);
+
+  let docFile = sanitizeDocFileName(body.docFile);
+  const tabContext = String(body.tabContext || '').slice(0, 120000);
+  const tabLabel = String(body.tabLabel || '').trim();
+  let priorDoc = '';
+  if (docFile) {
+    const read = readRepoDocFileContent(
+      installResult.collection,
+      installResult.projectDir,
+      docFile,
+    );
+    if (read) priorDoc = read.content;
+  }
+
+  const userParts = [`# Repository: ${fn}`];
+  if (tabContext && tabLabel) {
+    userParts.push(`\n## Tab context (${tabLabel})\n\n`, tabContext);
+  }
+  if (priorDoc && docFile) {
+    userParts.push(`\n\n## Prior content in docs/${docFile}\n\n`, priorDoc);
+  }
+  userParts.push('\n\n## Question\n', userPrompt, '\n\n## Selected files\n', fileBlock);
+  const userContent = userParts.join('');
+
+  const system = docFile
+    ? 'You are a senior software engineer. Answer using the tab context, prior doc content, and repository file excerpts. Be concise and accurate. Your answer will be appended to the doc file.'
+    : 'You are a senior software engineer. Answer using the repository file excerpts. Be concise and accurate.';
 
   const content = await openRouterChat(model, [
     { role: 'system', content: system },
     { role: 'user', content: userContent },
   ]);
 
-  const now = new Date().toISOString();
-
-  if (!session) {
-    session = {
-      topicId: THREAD_TOPIC_ID,
-      fullName: fn,
-      createdAt: now,
-      updatedAt: now,
-      turns: [],
-    };
-  }
-
-  session.turns.push({
+  const lastTurn = {
     prompt: userPrompt,
     content,
     userModel: model,
+    provider: 'openrouter',
     filterModel: FILTER_MODEL,
     filteredPaths,
-    ts: now,
+    ts: new Date().toISOString(),
+  };
+  const saved = appendRepoDocAiTurn(fn, docFile, lastTurn, {
+    collection: installResult.collection,
+    projectDir: installResult.projectDir,
   });
-  session.topicId = THREAD_TOPIC_ID;
-
-  saveSession(fn, session);
 
   return {
-    session,
-    lastTurn: session.turns[session.turns.length - 1],
+    provider: 'openrouter',
+    collection: saved.collection,
+    projectDir: saved.projectDir,
+    docFile: saved.docFile,
+    docContent: saved.content,
+    lastTurn,
     contextMode: 'repo',
   };
 });
@@ -1000,7 +1991,6 @@ await app.register(fastifyStatic, {
   allowedPath: (pathName) => isStaticPathAllowed(pathName),
 });
 
-fs.mkdirSync(REPOS_ROOT, { recursive: true });
 fs.mkdirSync(GLOBAL_CONTEXT_ROOT, { recursive: true });
 fs.mkdirSync(PROJECTS_DIR, { recursive: true });
 

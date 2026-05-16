@@ -224,6 +224,12 @@ a { color:var(--accent-text); text-decoration:none; }
 .search-scope-grid input[type=checkbox],
 .search-scope-grid input[type=radio] { accent-color:var(--accent); }
 .search-scope-grid fieldset { border:none; padding:0; margin:0; min-width:0; }
+.search-file-scope-panel {
+  display:none; flex-direction:column; gap:var(--sp2); margin-top:var(--sp2);
+  padding:var(--sp3); border:1px solid var(--border); border-radius:var(--rad-md);
+  background:var(--surface-2);
+}
+.search-file-scope-panel.open { display:flex; }
 .keyword-row-actions { margin-top:var(--sp2); display:flex; flex-wrap:wrap; gap:var(--sp2); align-items:center; }
 .lang-add-row .form-input { margin:0; }
 textarea.form-input { min-height:120px; resize:vertical; }
@@ -432,7 +438,15 @@ textarea.form-input { min-height:120px; resize:vertical; }
           <label><input type="radio" name="searchDiscoveryScope" id="searchScopeMeta" value="meta" checked/> Repository name, description, and topics (GitHub index)</label>
           <label><input type="radio" name="searchDiscoveryScope" id="searchScopeReadme" value="readme"/> README — verify phrase in fetched README body</label>
           <label><input type="radio" name="searchDiscoveryScope" id="searchScopeCode" value="code"/> Files / code <span style="color:var(--text-faint);font-weight:400">(slower; strict rate limits)</span></label>
+          <label><input type="radio" name="searchDiscoveryScope" id="searchScopeFile" value="file"/> Search in file <span style="color:var(--text-faint);font-weight:400">(filename + body phrase)</span></label>
         </fieldset>
+        <div id="searchFileScopePanel" class="search-file-scope-panel">
+          <label class="form-label" for="searchFileName">File name or path</label>
+          <input class="form-input" id="searchFileName" type="text" placeholder="e.g. package.json or docs/README.md" autocomplete="off"/>
+          <label class="form-label" for="searchFileContains">File must contain</label>
+          <input class="form-input" id="searchFileContains" type="text" placeholder="Phrase to find inside that file" autocomplete="off"/>
+          <span class="form-hint">Uses GitHub code search with a filename or path qualifier. You can also add keywords above; each keyword is searched in the same file.</span>
+        </div>
       </div>
       <div class="form-group">
         <label style="display:flex;align-items:center;gap:var(--sp2);font-size:var(--text-xs);color:var(--text-muted);cursor:pointer">
@@ -442,6 +456,7 @@ textarea.form-input { min-height:120px; resize:vertical; }
       <div class="form-group">
         <label class="form-label">How many repos to fetch?</label>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+          <button class="result-preset" data-val="10">10 — super fast</button>
           <button class="result-preset active" data-val="100">100 — fast</button>
           <button class="result-preset" data-val="300">300 — normal</button>
           <button class="result-preset" data-val="500">500 — thorough</button>
@@ -491,9 +506,7 @@ textarea.form-input { min-height:120px; resize:vertical; }
 <script>
 /* ═══════════════════════════════════════════════════════════
    OSS Intelligence — Home Page
-   Project list + edits: browser (VFS). Full repo lists: data/projects/{name}.json
-   when the app is served via the local server (POST /api/projects/save).
-   Seeded project: trading meta in VFS; repos from data/projects/1_trading-oss.json.
+   Projects load from data/projects/*.json via GET /api/projects (local server).
 ═══════════════════════════════════════════════════════════ */
 
 function resolveGhToken() {
@@ -533,75 +546,6 @@ let selectedLangs = new Set();
 let extraLangs    = [];
 let searching   = false;
 
-/* ═══════════════════════════════════════════════
-   VIRTUAL FILE SYSTEM (backed by window.name + persistent store)
-   Each project is stored as a "file" with a name
-   like "1_trading-oss", "2_react_crypto".
-   Structure: { files: { "1_trading-oss": { meta... } } }
-   New searches: meta in VFS; full JSON (repos) in data/projects/*.json via server.
-   Seeded trading: repos from data/projects/1_trading-oss.json on project page.
-═══════════════════════════════════════════════ */
-
-// Storage key for persistent data (uses window.name as primary, persistent store as secondary)
-const VFS_STORE_KEY = 'oss-vfs';
-function _getStore() {
-  try { return window['local'+'Storage']; } catch(e) { return null; }
-}
-function vfsRead() {
-  try {
-    const store = _getStore();
-    const raw = (store && store.getItem(VFS_STORE_KEY)) || window.name || '{}';
-    return JSON.parse(raw);
-  } catch(e) { return {}; }
-}
-function vfsWrite(data) {
-  const s = JSON.stringify(data);
-  try { window.name = s; } catch(e) {}
-  try {
-    const store = _getStore();
-    if (store) store.setItem(VFS_STORE_KEY, s);
-  } catch(e) {}
-}
-
-/** Get all project file metas (sorted by file number) */
-function vfsGetAll() {
-  const data = vfsRead();
-  const files = data.files || {};
-  return Object.entries(files)
-    .map(([fname, meta]) => ({ ...meta, _fname: fname }))
-    .sort((a,b) => (a._num||0) - (b._num||0));
-}
-
-/** Get one project by file name */
-function vfsGet(fname) {
-  const data = vfsRead();
-  const meta = (data.files || {})[fname];
-  return meta ? { ...meta, _fname: fname } : null;
-}
-
-/** Save a project. Auto-assigns next number if new. */
-function vfsPut(meta) {
-  const data = vfsRead();
-  if (!data.files) data.files = {};
-  const existing = data.files[meta._fname];
-  if (!existing) {
-    // Assign next file number
-    const nums = Object.values(data.files).map(m => m._num || 0);
-    meta._num = nums.length ? Math.max(...nums) + 1 : 1;
-  } else {
-    meta._num = existing._num;
-  }
-  data.files[meta._fname] = meta;
-  vfsWrite(data);
-}
-
-/** Delete a project file */
-function vfsDel(fname) {
-  const data = vfsRead();
-  if (data.files) delete data.files[fname];
-  vfsWrite(data);
-}
-
 /** Build a canonical file name from keywords */
 function buildFileName(num, keywords) {
   const slug = keywords.slice(0,3).map(k => k.replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')).join('_');
@@ -616,23 +560,6 @@ function previewFileName(keywords) {
   return `${nextNum}_${slug}`;
 }
 
-/* ── Seed: Trading card when not using server / no JSON on disk yet (VFS fallback only) ── */
-function seedTradingProjectVfs() {
-  if (vfsGet('1_trading-oss')) return;
-  vfsPut({
-    _fname:    '1_trading-oss',
-    _num:      1,
-    schemaVersion: 1,
-    name:      'Trading OSS',
-    keywords:  ['algorithmic-trading','crypto','trading-bot','backtest','quantitative'],
-    languages: [],
-    repoCount: 1662,
-    topLangs:  ['Python','Jupyter Notebook','TypeScript','JavaScript','Rust'],
-    createdAt: '2026-03-17T00:00:00.000Z',
-    seeded:    true,
-  });
-}
-
 function maxNumFromProjects(list) {
   let m = 0;
   for (const p of list) {
@@ -642,13 +569,6 @@ function maxNumFromProjects(list) {
     if (mm) m = Math.max(m, parseInt(mm[1], 10));
   }
   return m;
-}
-
-function mergedProjectListForNum(apiList, vfsList) {
-  const by = new Map();
-  for (const p of vfsList) by.set(p._fname, p);
-  if (apiList) for (const p of apiList) by.set(p._fname, p);
-  return [...by.values()];
 }
 
 let cachedMaxProjectNum = 0;
@@ -666,8 +586,7 @@ async function fetchProjectListFromDisk() {
 
 async function refreshProjectNumCache() {
   const api = await fetchProjectListFromDisk();
-  const merged = mergedProjectListForNum(api, vfsGetAll());
-  cachedMaxProjectNum = maxNumFromProjects(merged);
+  cachedMaxProjectNum = maxNumFromProjects(api || []);
 }
 
 async function nextAvailableProjectNum() {
@@ -801,7 +720,6 @@ async function deleteProject(meta) {
       console.warn('Delete project API:', res.status, t);
     }
   } catch { /* no server */ }
-  vfsDel(fname);
   await loadProjects();
 }
 
@@ -813,9 +731,27 @@ function discoveryScopeRadioName(pfx) {
 function scopeFromSaved(o) {
   if (!o) return 'meta';
   const anyIn = !!(o.inName || o.inDescription || o.inTopics || o.inReadme);
+  if (o.includeFileSearch && !anyIn) return 'file';
   if (o.includeCodeSearch && !anyIn) return 'code';
   if (o.inReadme && !o.inName && !o.inDescription && !o.inTopics) return 'readme';
   return 'meta';
+}
+
+function updateFileScopePanelVisibility(pfx) {
+  const rname = discoveryScopeRadioName(pfx);
+  const el = document.querySelector(`input[name="${rname}"]:checked`);
+  const isFile = el && el.value === 'file';
+  const panel = document.getElementById(pfx + 'FileScopePanel');
+  if (panel) panel.classList.toggle('open', !!isFile);
+}
+
+function bindDiscoveryScopeRadios(pfx) {
+  const rname = discoveryScopeRadioName(pfx);
+  document.querySelectorAll(`input[name="${rname}"]`).forEach((r) => {
+    if (r.dataset.fileScopeBound === pfx) return;
+    r.dataset.fileScopeBound = pfx;
+    r.addEventListener('change', () => updateFileScopePanelVisibility(pfx));
+  });
 }
 
 function applyDiscoveryForm(pfx, o) {
@@ -825,11 +761,17 @@ function applyDiscoveryForm(pfx, o) {
   document.getElementById(pfx + 'ExcludeForks').checked = !!d.excludeForks;
   const ex = document.getElementById(pfx + 'ExtractPackages');
   if (ex) ex.checked = !!d.extractPackagesOnSearch;
+  const fnEl = document.getElementById(pfx + 'FileName');
+  const fcEl = document.getElementById(pfx + 'FileContains');
+  if (fnEl) fnEl.value = d.fileName || '';
+  if (fcEl) fcEl.value = d.fileContains || '';
   const scope = scopeFromSaved(o);
   const rname = discoveryScopeRadioName(pfx);
   document.querySelectorAll(`input[name="${rname}"]`).forEach((r) => {
     r.checked = r.value === scope;
   });
+  bindDiscoveryScopeRadios(pfx);
+  updateFileScopePanelVisibility(pfx);
 }
 
 function readDiscoveryOptions(pfx) {
@@ -840,6 +782,16 @@ function readDiscoveryOptions(pfx) {
     minStars: Math.max(0, parseInt(document.getElementById(pfx + 'MinStars').value, 10) || 0),
     excludeForks: document.getElementById(pfx + 'ExcludeForks').checked,
   };
+  const emptyRepoFields = {
+    inName: false,
+    inDescription: false,
+    inTopics: false,
+    inReadme: false,
+    includeCodeSearch: false,
+    includeFileSearch: false,
+    fileName: '',
+    fileContains: '',
+  };
   if (scope === 'meta') {
     return {
       ...base,
@@ -848,26 +800,58 @@ function readDiscoveryOptions(pfx) {
       inTopics: true,
       inReadme: false,
       includeCodeSearch: false,
+      includeFileSearch: false,
+      fileName: '',
+      fileContains: '',
     };
   }
   if (scope === 'readme') {
     return {
       ...base,
-      inName: false,
-      inDescription: false,
-      inTopics: false,
+      ...emptyRepoFields,
       inReadme: true,
-      includeCodeSearch: false,
+    };
+  }
+  if (scope === 'file') {
+    const fnEl = document.getElementById(pfx + 'FileName');
+    const fcEl = document.getElementById(pfx + 'FileContains');
+    return {
+      ...base,
+      ...emptyRepoFields,
+      includeFileSearch: true,
+      fileName: fnEl ? fnEl.value.trim() : '',
+      fileContains: fcEl ? fcEl.value.trim() : '',
     };
   }
   return {
     ...base,
-    inName: false,
-    inDescription: false,
-    inTopics: false,
-    inReadme: false,
+    ...emptyRepoFields,
     includeCodeSearch: true,
   };
+}
+
+function validateDiscoveryBeforeSearch(pfx, keywords) {
+  const opt = readDiscoveryOptions(pfx);
+  if (opt.includeFileSearch) {
+    if (!opt.fileName) {
+      alert('Enter a file name or path to search in.');
+      const fnEl = document.getElementById(pfx + 'FileName');
+      if (fnEl) fnEl.focus();
+      return false;
+    }
+    if (!opt.fileContains && !(keywords && keywords.length)) {
+      alert('Enter what the file must contain, or add at least one keyword.');
+      const fcEl = document.getElementById(pfx + 'FileContains');
+      if (fcEl) fcEl.focus();
+      return false;
+    }
+    return true;
+  }
+  if (!keywords || !keywords.length) {
+    alert('Add at least one keyword.');
+    return false;
+  }
+  return true;
 }
 
 function readExtractPackages(pfx) {
@@ -1017,7 +1001,7 @@ async function startSearch() {
 
   const name = document.getElementById('projectName').value.trim();
   if (!name) { document.getElementById('projectName').focus(); return; }
-  if (!keywords.length) { alert('Add at least one keyword.'); return; }
+  if (!validateDiscoveryBeforeSearch('search', keywords)) return;
 
   const maxResults = Math.min(parseInt(document.getElementById('maxResults').value)||200, 1000);
   searching = true;
@@ -1049,10 +1033,16 @@ async function startSearch() {
       90,
       `Enriching ${repos.length} repos…`,
       progressCtx(
-        `Commit counts per repo${extractPkgs ? '; scanning trees for package manifests' : ''}`
+        `Commit counts per repo${
+          discoveryOpt.includeFileSearch ? '; downloading matched files' : ''
+        }${extractPkgs ? '; scanning trees for package manifests' : ''}`
       )
     );
-    const enriched = await enrichRepos(repos, discoveryProgress, { extractPackagesOnSearch: extractPkgs });
+    const enriched = await enrichRepos(repos, discoveryProgress, {
+      extractPackagesOnSearch: extractPkgs,
+      fetchSearchFile: !!discoveryOpt.includeFileSearch,
+      searchFileName: discoveryOpt.fileName || '',
+    });
     setProgress(100, `Done! Found ${enriched.length} repositories.`, progressCtx('Search finished'));
 
     const langMap = {};
@@ -1075,18 +1065,6 @@ async function startSearch() {
       topLangs,
       createdAt,
       repos: enriched,
-      searchOptions,
-    });
-
-    vfsPut({
-      _fname: fname,
-      schemaVersion: 1,
-      name,
-      keywords: [...keywords],
-      languages: [...selectedLangs],
-      repoCount: enriched.length,
-      topLangs,
-      createdAt,
       searchOptions,
     });
 
@@ -1244,8 +1222,27 @@ async function fillRepoPackagesForRecord(r) {
   return [];
 }
 
+async function ghFetchFile(slug, path) {
+  try {
+    const res = await fetch(`https://api.github.com/repos/${slug}/contents/${path}`, {
+      headers: { Authorization: `Bearer ${GH_TOKEN}`, Accept: 'application/vnd.github+json' },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data.content) return null;
+    const bytes = atob(data.content.replace(/\n/g, ''));
+    return decodeURIComponent(escape(bytes));
+  } catch {
+    return null;
+  }
+}
+
 async function enrichRepos(rawRepos, onProgress, enrichOpts) {
   const extract = !!(enrichOpts && enrichOpts.extractPackagesOnSearch);
+  const fetchFile = !!(enrichOpts && enrichOpts.fetchSearchFile);
+  const fallbackFilePath = (enrichOpts && enrichOpts.searchFileName)
+    ? String(enrichOpts.searchFileName).trim()
+    : '';
   const enriched = [];
   const total    = rawRepos.length;
 
@@ -1253,13 +1250,14 @@ async function enrichRepos(rawRepos, onProgress, enrichOpts) {
     const r = rawRepos[i];
     if (i % 5 === 0) {
       const pct = 60 + Math.round(i / total * 30);
-      onProgress(
-        pct,
-        `Enriching ${i+1}/${total}: ${r.name}`,
-        extract ? 'Per repo: commit count + dependency tree scan' : 'Per repo: commit count'
-      );
+      const bits = ['commit count'];
+      if (fetchFile) bits.push('matched file download');
+      if (extract) bits.push('dependency tree scan');
+      onProgress(pct, `Enriching ${i+1}/${total}: ${r.name}`, `Per repo: ${bits.join(' + ')}`);
     }
 
+    const filePath = String(r.search_file_path || fallbackFilePath || '').trim();
+    const existingFileText = typeof r.search_file_text === 'string' ? r.search_file_text : '';
     const base = {
       id:          r.id,
       name:        r.name,
@@ -1283,6 +1281,12 @@ async function enrichRepos(rawRepos, onProgress, enrichOpts) {
         !!r.readme_fetched || (typeof r.readme === 'string' && r.readme.length > 0),
       stack_fetched: false,
       packages:    [],
+      search_file_path: filePath,
+      search_file_text: existingFileText,
+      search_file_fetched:
+        !!r.search_file_fetched || existingFileText.length > 0,
+      cloned: false,
+      cloned_at: '',
     };
 
     // Commit count via Link header
@@ -1296,6 +1300,14 @@ async function enrichRepos(rawRepos, onProgress, enrichOpts) {
       base.commit_count = m ? parseInt(m[1]) : null;
     } catch {}
 
+    if (fetchFile && filePath && !base.search_file_fetched) {
+      try {
+        const text = await ghFetchFile(r.full_name, filePath);
+        base.search_file_text = text || '';
+        base.search_file_fetched = true;
+      } catch { /* keep empty */ }
+    }
+
     if (extract) {
       try {
         base.packages = await fillRepoPackagesForRecord(r);
@@ -1304,7 +1316,7 @@ async function enrichRepos(rawRepos, onProgress, enrichOpts) {
     }
 
     enriched.push(base);
-    await sleep(extract ? 100 : 80);
+    await sleep(extract || fetchFile ? 100 : 80);
   }
 
   return enriched;
@@ -1366,25 +1378,20 @@ async function runSearchAiKeywordsGenerate() {
   }
 }
 
-/* ── Load & render projects (prefer data/projects/*.json via server) ─── */
+/* ── Load & render projects from data/projects/*.json via server ─── */
 async function loadProjects() {
   const api = await fetchProjectListFromDisk();
-  if (api !== null) {
-    if (api.length > 0) {
-      renderCards(api);
-      cachedMaxProjectNum = maxNumFromProjects(mergedProjectListForNum(api, vfsGetAll()));
-      return;
-    }
-    seedTradingProjectVfs();
-    const vfs = vfsGetAll();
-    renderCards(vfs.length ? vfs : api);
-    cachedMaxProjectNum = maxNumFromProjects(mergedProjectListForNum(api, vfs));
+  if (api === null) {
+    const empty = document.getElementById('emptyState');
+    empty.style.display = '';
+    empty.textContent =
+      'Could not load projects. Start the server (npm start) and open http://127.0.0.1:3847/';
+    document.getElementById('projectCount').textContent = '0 projects';
+    cachedMaxProjectNum = 0;
     return;
   }
-  seedTradingProjectVfs();
-  const vfs = vfsGetAll();
-  renderCards(vfs);
-  cachedMaxProjectNum = maxNumFromProjects(vfs);
+  renderCards(api);
+  cachedMaxProjectNum = maxNumFromProjects(api);
 }
 
 /* ── Theme toggle ───────────────────────────── */
