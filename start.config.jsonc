@@ -13,6 +13,18 @@
       "start": "bun index.mjs"
     },
     {
+      "name": "github-oss",
+      "description": "GitHub OSS discovery and project intelligence UI (static + API on one port)",
+      "type": "app",
+      "developmentEnabled": true,
+      "productionEnabled": false,
+      "port": 3847,
+      "envFiles": [],
+      "path": "apps/github-oss",
+      "init": "npm install && npm --prefix server install && test -f server/.env || cp server/.env.example server/.env",
+      "start": "bash ./run.sh"
+    },
+    {
       "name": "open-screen",
       "description": "OpenScreen content factory UI",
       "type": "github-project",

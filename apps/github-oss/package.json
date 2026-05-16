@@ -1,0 +1,10 @@
+{
+  "name": "github-oss",
+  "private": true,
+  "scripts": {
+    "start": "npm --prefix server start",
+    "dev": "npm --prefix server run dev",
+    "populate-packages": "node scripts/populate-repo-packages.mjs",
+    "test:readme-search": "node scripts/test-readme-search.mjs"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "oss-intelligence-api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "dependencies": {
+    "@fastify/cors": "^10.0.2",
+    "@fastify/static": "^8.3.0",
+    "archiver": "^7.0.1",
+    "dotenv": "^16.4.7",
+    "fastify": "^5.2.1",
+    "simple-git": "^3.27.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

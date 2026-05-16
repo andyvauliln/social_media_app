@@ -1,0 +1,3182 @@
+<!--
+   ______                            __
+  / ____/___  ____ ___  ____  __  __/ /____  _____
+ / /   / __ \/ __ `__ \/ __ \/ / / / __/ _ \/ ___/
+/ /___/ /_/ / / / / / / /_/ / /_/ / /_/  __/ /
+\____/\____/_/ /_/ /_/ .___/\__,_/\__/\___/_/
+                    /_/
+        Created with Perplexity Computer
+        https://www.perplexity.ai/computer
+-->
+<!-- Perplexity Computer Attribution — SEO Meta Tags -->
+<meta name="generator" content="Perplexity Computer">
+<meta name="author" content="Perplexity Computer">
+<meta property="og:see_also" content="https://www.perplexity.ai/computer">
+<link rel="author" href="https://www.perplexity.ai/computer">
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>OSS Intelligence</title>
+<meta name="description" content="Explore open source repositories with rich metadata, stack analysis, and AI-powered questions."/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
+<style>
+/* ═══════════════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════════════ */
+:root {
+  --text-xs:   clamp(0.75rem,  0.7rem  + 0.25vw, 0.875rem);
+  --text-sm:   clamp(0.8rem,   0.75rem + 0.3vw,  0.9375rem);
+  --text-base: clamp(0.9rem,   0.85rem + 0.25vw, 1rem);
+  --text-lg:   clamp(1rem,     0.9rem  + 0.5vw,  1.25rem);
+  --text-xl:   clamp(1.25rem,  1rem    + 1vw,    1.75rem);
+  --sp1:.25rem; --sp2:.5rem; --sp3:.75rem; --sp4:1rem;
+  --sp5:1.25rem; --sp6:1.5rem; --sp8:2rem; --sp10:2.5rem;
+  --rad-sm:.25rem; --rad-md:.375rem; --rad-lg:.5rem;
+  --rad-xl:.75rem; --rad-full:9999px;
+  --trans:150ms cubic-bezier(.16,1,.3,1);
+  --font-mono:'JetBrains Mono',monospace;
+  --font-body:'Inter',system-ui,sans-serif;
+}
+[data-theme="light"] {
+  --bg:#f0f2f5; --surface:#fff; --surface-2:#f8f9fb; --surface-3:#f0f2f5;
+  --border:#e2e6eb; --border-2:#d0d6de;
+  --text:#111827; --text-muted:#4b5563; --text-faint:#9ca3af;
+  --accent:#0f766e; --accent-dim:#ccfbf1; --accent-text:#0f766e;
+  --blue:#1d4ed8; --blue-dim:#dbeafe; --blue-text:#1d4ed8;
+  --orange:#c2410c; --orange-dim:#ffedd5;
+  --red:#dc2626; --red-dim:#fee2e2;
+  --purple:#7c3aed; --purple-dim:#ede9fe;
+  --gold:#92400e; --gold-dim:#fef3c7;
+  --teal:#0891b2; --teal-dim:#cffafe;
+  --green:#166534; --green-dim:#dcfce7;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.08);
+  --shadow-md:0 4px 16px rgba(0,0,0,.10);
+  --shadow-lg:0 12px 40px rgba(0,0,0,.15);
+}
+[data-theme="dark"] {
+  --bg:#0d0e10; --surface:#13151a; --surface-2:#181b21; --surface-3:#1e2229;
+  --border:#272b35; --border-2:#323844;
+  --text:#e2e4ea; --text-muted:#7c8494; --text-faint:#444c5c;
+  --accent:#2dd4bf; --accent-dim:#134e4a; --accent-text:#2dd4bf;
+  --blue:#60a5fa; --blue-dim:#1e3a5f; --blue-text:#60a5fa;
+  --orange:#fb923c; --orange-dim:#431407;
+  --red:#f87171; --red-dim:#450a0a;
+  --purple:#c084fc; --purple-dim:#3b0764;
+  --gold:#fbbf24; --gold-dim:#451a03;
+  --teal:#22d3ee; --teal-dim:#083344;
+  --green:#4ade80; --green-dim:#052e16;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.4);
+  --shadow-md:0 4px 16px rgba(0,0,0,.5);
+  --shadow-lg:0 12px 40px rgba(0,0,0,.6);
+}
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+html { -webkit-font-smoothing:antialiased; scroll-behavior:smooth; }
+body { font-family:var(--font-body); font-size:var(--text-sm); color:var(--text); background:var(--bg); min-height:100dvh; line-height:1.6; }
+button { cursor:pointer; background:none; border:none; color:inherit; font:inherit; }
+a { color:var(--accent-text); text-decoration:none; }
+a:hover { text-decoration:underline; }
+
+/* ── Header ─────────────────────────────────── */
+.header {
+  position:sticky; top:0; z-index:100;
+  background:var(--surface); border-bottom:1px solid var(--border);
+  box-shadow:var(--shadow-sm);
+}
+.header-inner {
+  display:flex; align-items:center; gap:var(--sp4);
+  padding:var(--sp3) var(--sp6); max-width:1600px; margin:0 auto;
+}
+.back-btn {
+  display:flex; align-items:center; gap:var(--sp2);
+  font-family:var(--font-mono); font-size:var(--text-xs); font-weight:600;
+  color:var(--text-muted); padding:var(--sp1) var(--sp3);
+  border-radius:var(--rad-md); background:var(--surface-3); border:1px solid var(--border);
+  transition:all var(--trans); white-space:nowrap; text-decoration:none;
+}
+.back-btn:hover { color:var(--text); background:var(--surface-2); text-decoration:none; }
+.logo { display:flex; align-items:center; gap:var(--sp3); }
+.logo-icon { color:var(--accent); }
+.logo-name { font-family:var(--font-mono); font-size:var(--text-sm); font-weight:700; letter-spacing:.03em; }
+.logo-sub  { font-size:var(--text-xs); color:var(--text-muted); font-family:var(--font-mono); }
+.header-stats { display:flex; gap:var(--sp3); margin-left:auto; font-size:var(--text-xs); font-family:var(--font-mono); flex-shrink:0; }
+.stat-pill { display:flex; align-items:center; gap:var(--sp2); background:var(--surface-3); border:1px solid var(--border); border-radius:var(--rad-full); padding:2px var(--sp3); }
+.stat-pill strong { color:var(--accent-text); }
+.icon-btn { padding:var(--sp2); border-radius:var(--rad-md); background:var(--surface-3); border:1px solid var(--border); color:var(--text-muted); display:flex; align-items:center; transition:all var(--trans); }
+.icon-btn:hover { color:var(--text); background:var(--surface-2); }
+
+/* ── Controls ───────────────────────────────── */
+.controls { background:var(--surface); border-bottom:1px solid var(--border); }
+.controls-inner { padding:var(--sp3) var(--sp6); display:flex; flex-direction:column; gap:var(--sp3); max-width:1600px; margin:0 auto; }
+.search-row { display:flex; gap:var(--sp3); align-items:center; }
+.search-wrap { position:relative; flex:1; }
+.search-icon { position:absolute; left:var(--sp3); top:50%; transform:translateY(-50%); color:var(--text-muted); pointer-events:none; }
+.search-input {
+  width:100%; height:40px; padding:8px 12px 8px 36px;
+  -webkit-appearance:none; appearance:none;
+  background:var(--surface); border:1px solid var(--border-2);
+  border-radius:var(--rad-md); color:var(--text);
+  font-size:var(--text-sm); font-family:var(--font-body);
+  outline:none; transition:border-color var(--trans), box-shadow var(--trans);
+}
+.search-input:focus { border-color:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent); }
+.search-input::placeholder { color:var(--text-faint); }
+.sort-select {
+  padding:var(--sp2) var(--sp3); background:var(--surface);
+  border:1px solid var(--border-2); border-radius:var(--rad-md);
+  color:var(--text); font-size:var(--text-xs); font-family:var(--font-mono);
+  outline:none; cursor:pointer; min-width:210px; transition:border-color var(--trans);
+}
+.sort-select:focus { border-color:var(--accent); }
+.clear-btn {
+  padding:var(--sp2) var(--sp4); border-radius:var(--rad-md);
+  font-size:var(--text-xs); font-family:var(--font-mono);
+  border:1px solid var(--border-2); color:var(--text-muted);
+  background:var(--surface); white-space:nowrap; transition:all var(--trans);
+}
+.clear-btn:hover { border-color:var(--red); color:var(--red); }
+
+/* Collapsible filter section */
+.filter-section { border:1px solid var(--border); border-radius:var(--rad-lg); background:var(--surface); overflow:hidden; }
+.filter-header { display:flex; align-items:center; justify-content:space-between; padding:var(--sp2) var(--sp4); cursor:pointer; user-select:none; transition:background var(--trans); }
+.filter-header:hover { background:var(--surface-2); }
+.filter-title { font-size:var(--text-xs); font-family:var(--font-mono); text-transform:uppercase; letter-spacing:.08em; color:var(--text-muted); display:flex; align-items:center; gap:var(--sp2); }
+.filter-badge { background:var(--accent-dim); color:var(--accent-text); border-radius:var(--rad-full); padding:1px 7px; font-size:10px; font-weight:700; }
+.filter-chevron { color:var(--text-faint); transition:transform var(--trans); }
+.filter-section.open .filter-chevron { transform:rotate(180deg); }
+.filter-body { display:none; padding:var(--sp3) var(--sp4) var(--sp4); border-top:1px solid var(--border); flex-wrap:wrap; gap:var(--sp2); }
+.filter-section.open .filter-body { display:flex; }
+.lang-btn {
+  display:inline-flex; align-items:center; gap:5px;
+  padding:3px var(--sp3); border-radius:var(--rad-full);
+  font-size:11px; font-family:var(--font-mono); font-weight:600;
+  border:1.5px solid var(--border-2); background:var(--surface-3);
+  color:var(--text-muted); cursor:pointer; transition:all var(--trans);
+  user-select:none; white-space:nowrap;
+}
+.lang-btn .tag-count { font-weight:400; opacity:.65; font-size:10px; }
+.lang-btn:not(.active) { opacity:.7; }
+.lang-btn.active, .lang-btn:hover { opacity:1; border-color:var(--accent); color:var(--accent-text); background:var(--accent-dim); }
+
+/* ── Main Table ─────────────────────────────── */
+.main { flex:1; padding:var(--sp4) var(--sp6) var(--sp10); max-width:1600px; margin:0 auto; width:100%; }
+.results-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp3); font-size:var(--text-xs); font-family:var(--font-mono); color:var(--text-muted); }
+
+.list-tabs-bar { display:flex; align-items:center; gap:var(--sp3); flex-wrap:wrap; margin-bottom:var(--sp3); }
+.list-tabs { display:flex; align-items:center; gap:var(--sp2); flex-wrap:wrap; flex:1; min-width:0; }
+.list-tabs .tab-add-btn { align-self:center; }
+.list-tab {
+  padding:var(--sp2) var(--sp4); border-radius:var(--rad-md);
+  font-family:var(--font-mono); font-size:var(--text-xs); font-weight:600;
+  border:1px solid var(--border-2); background:var(--surface);
+  color:var(--text-muted); transition:all var(--trans);
+}
+.list-tab:hover { border-color:var(--accent); color:var(--accent-text); }
+.list-tab.active { border-color:var(--accent); background:var(--accent-dim); color:var(--accent-text); }
+.tab-add-btn {
+  padding:var(--sp2) var(--sp4); border-radius:var(--rad-md);
+  border:1px dashed var(--border-2); color:var(--text-muted);
+  font-family:var(--font-mono); font-size:var(--text-xs); font-weight:700;
+  flex-shrink:0; white-space:nowrap;
+}
+.tab-add-btn:hover { border-color:var(--accent); color:var(--accent-text); background:var(--accent-dim); }
+.repo-list-actions {
+  display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp2);
+  margin-top:var(--sp2); padding-top:var(--sp2); border-top:1px dashed var(--border);
+}
+.repo-list-btn {
+  padding:3px 8px; border-radius:var(--rad-sm); font-size:10px;
+  font-family:var(--font-mono); font-weight:600; border:1px solid var(--border-2);
+  background:var(--surface-3); color:var(--text-muted); transition:all var(--trans);
+}
+.repo-list-btn:hover { border-color:var(--accent); color:var(--accent-text); background:var(--accent-dim); }
+.repo-list-btn.danger:hover { border-color:var(--red); color:var(--red); background:var(--red-dim); }
+.results-count strong { color:var(--accent-text); }
+.active-filter-info { color:var(--text-faint); font-size:11px; }
+
+.table-header,
+.repo-summary { display:grid; grid-template-columns:28px 1fr 110px 80px 70px 90px 110px 52px; gap:var(--sp3); padding:var(--sp2) var(--sp4); align-items:start; }
+.table-header { background:var(--surface-3); border:1px solid var(--border); border-radius:var(--rad-md) var(--rad-md) 0 0; font-size:11px; font-family:var(--font-mono); color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em; user-select:none; }
+.th { display:flex; align-items:center; gap:4px; }
+.th.sortable { cursor:pointer; transition:color var(--trans); }
+.th.sortable:hover { color:var(--text); }
+.th.active-sort { color:var(--accent-text); }
+.sort-arrow { font-size:10px; color:var(--accent-text); }
+.repo-list {
+  border:1px solid var(--border); border-top:none; border-radius:0 0 var(--rad-md) var(--rad-md);
+  background:var(--surface);
+  max-height:min(70vh, calc(100dvh - 260px));
+  overflow-x:hidden;
+  overflow-y:auto;
+}
+.repo-list-sentinel { height:1px; margin:0; padding:0; pointer-events:none; flex-shrink:0; }
+
+/* ── Accordion row ──────────────────────────── */
+.repo-row { border-bottom:1px solid var(--border); background:var(--surface); transition:background var(--trans); }
+.repo-row:last-child { border-bottom:none; }
+.repo-row.archived { opacity:.55; }
+.repo-summary { cursor:pointer; transition:background var(--trans); }
+.repo-summary:hover { background:var(--surface-2); }
+.repo-row.open > .repo-summary { background:var(--surface-2); }
+.col-toggle { display:flex; align-items:center; padding-top:3px; color:var(--text-faint); transition:color var(--trans), transform var(--trans); flex-shrink:0; }
+.repo-row.open > .repo-summary .col-toggle { color:var(--accent-text); transform:rotate(90deg); }
+.col-main { min-width:0; }
+.repo-name-row { display:flex; align-items:center; gap:var(--sp2); flex-wrap:wrap; line-height:1.3; }
+.repo-owner { font-family:var(--font-mono); font-size:11px; color:var(--text-muted); }
+.repo-name  { font-family:var(--font-mono); font-size:var(--text-sm); font-weight:700; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:280px; }
+.archived-badge { font-size:10px; font-family:var(--font-mono); background:var(--orange-dim); color:var(--orange); border:1px solid color-mix(in srgb, var(--orange) 40%, transparent); border-radius:var(--rad-full); padding:1px 6px; }
+.repo-desc { font-size:var(--text-xs); color:var(--text-muted); margin-top:3px; line-height:1.45; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.repo-row-meta { display:none; flex-wrap:wrap; align-items:center; gap:var(--sp3); margin-top:var(--sp2); font-size:11px; font-family:var(--font-mono); color:var(--text-faint); }
+.repo-row.open .repo-row-meta { display:flex; }
+.row-meta-item { display:flex; align-items:center; gap:4px; }
+.row-meta-item a { color:var(--accent-text); font-weight:600; }
+.row-meta-item a:hover { text-decoration:underline; }
+.row-meta-sep { color:var(--border-2); }
+.repo-topics { display:flex; flex-wrap:wrap; gap:4px; margin-top:var(--sp2); }
+.topic-chip { font-size:10px; font-family:var(--font-mono); background:var(--surface-3); color:var(--text-muted); border:1px solid var(--border-2); border-radius:var(--rad-full); padding:1px 7px; }
+.col-lang { font-family:var(--font-mono); font-size:var(--text-xs); display:flex; align-items:flex-start; gap:5px; padding-top:3px; color:var(--text-muted); }
+.lang-dot  { width:9px; height:9px; border-radius:50%; flex-shrink:0; margin-top:3px; }
+.col-num   { font-family:var(--font-mono); font-size:var(--text-xs); color:var(--text-muted); padding-top:3px; }
+.col-num strong { color:var(--text); font-weight:600; }
+.date-fresh { color:var(--accent-text); font-weight:500; }
+.date-old   { color:var(--text-faint); }
+.ai-btn-cell { padding-top:2px; display:flex; align-items:flex-start; }
+.ai-btn { display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:var(--rad-full); font-size:10px; font-family:var(--font-mono); font-weight:600; background:var(--purple-dim); color:var(--purple); border:1px solid color-mix(in srgb, var(--purple) 40%, transparent); transition:all var(--trans); white-space:nowrap; }
+.ai-btn:hover { background:var(--purple); color:var(--surface); }
+
+/* ── Accordion detail ───────────────────────── */
+.repo-detail { display:none; border-top:1px solid var(--border); background:var(--surface-2); }
+.repo-row.open > .repo-detail { display:block; }
+.detail-inner { padding:var(--sp4) var(--sp6); }
+.tabs { border-bottom:1px solid var(--border); margin-bottom:var(--sp4); }
+.tab-list { display:flex; overflow-x:auto; }
+.tab-btn { padding:var(--sp2) var(--sp5); font-size:11px; font-family:var(--font-mono); font-weight:600; color:var(--text-muted); border-bottom:2px solid transparent; transition:all var(--trans); letter-spacing:.04em; text-transform:uppercase; margin-bottom:-1px; white-space:nowrap; flex-shrink:0; }
+.tab-btn:hover { color:var(--text); }
+.tab-btn.active { color:var(--accent-text); border-bottom-color:var(--accent); }
+.tab-pane { display:none; }
+.tab-pane.active { display:block; }
+
+/* Stack tab */
+.pkg-list { display:flex; flex-direction:column; gap:var(--sp2); }
+.pkg-item { display:flex; align-items:flex-start; gap:var(--sp3); padding:var(--sp3); background:var(--surface); border:1px solid var(--border); border-radius:var(--rad-md); }
+.pkg-header { display:flex; align-items:center; gap:var(--sp2); flex-shrink:0; min-width:160px; }
+.pkg-name { font-family:var(--font-mono); font-size:var(--text-xs); font-weight:700; color:var(--text); }
+.pkg-version { font-family:var(--font-mono); font-size:10px; color:var(--text-faint); }
+.pkg-registry { font-size:10px; font-family:var(--font-mono); padding:1px 6px; border-radius:var(--rad-full); border:1px solid; }
+.pkg-registry.npm  { background:var(--red-dim); color:var(--red); border-color:color-mix(in srgb, var(--red) 30%, transparent); }
+.pkg-registry.pypi { background:var(--blue-dim); color:var(--blue-text); border-color:color-mix(in srgb, var(--blue) 30%, transparent); }
+.pkg-desc { font-size:var(--text-xs); color:var(--text-muted); line-height:1.5; }
+.topics-section { margin-top:var(--sp5); }
+/* Stack accordion */
+.stack-section { border:1px solid var(--border); border-radius:var(--rad-md); overflow:hidden; margin-bottom:var(--sp4); }
+.stack-section:last-child { margin-bottom:0; }
+.stack-section-header { display:flex; align-items:center; justify-content:space-between; padding:var(--sp3) var(--sp4); background:var(--surface-2); cursor:pointer; user-select:none; font-size:var(--text-xs); font-family:var(--font-mono); font-weight:700; letter-spacing:.04em; color:var(--text); }
+.stack-section-header:hover { background:var(--surface-3); }
+.stack-section-badge { font-size:10px; font-family:var(--font-mono); padding:1px 7px; border-radius:var(--rad-full); border:1px solid; font-weight:600; }
+.stack-section-badge.npm  { background:var(--red-dim); color:var(--red); border-color:color-mix(in srgb,var(--red) 30%,transparent); }
+.stack-section-badge.pypi { background:var(--blue-dim); color:var(--blue-text); border-color:color-mix(in srgb,var(--blue) 30%,transparent); }
+.stack-section-chevron { transition:transform .2s; color:var(--text-faint); }
+.stack-section.open .stack-section-chevron { transform:rotate(90deg); }
+.stack-section-body { display:none; padding:var(--sp3); background:var(--bg); }
+.stack-section.open .stack-section-body { display:flex; flex-direction:column; gap:var(--sp2); }
+.stack-dep { display:flex; align-items:flex-start; gap:var(--sp3); padding:var(--sp2) var(--sp3); border-radius:var(--rad-md); transition:background .15s; }
+.stack-dep:hover { background:var(--surface); }
+.stack-dep-name { font-family:var(--font-mono); font-size:var(--text-xs); font-weight:700; color:var(--text); min-width:140px; flex-shrink:0; }
+.stack-dep-ver  { font-family:var(--font-mono); font-size:10px; color:var(--text-faint); margin-left:auto; flex-shrink:0; padding-left:var(--sp3); }
+.stack-dep-desc { font-size:var(--text-xs); color:var(--text-muted); line-height:1.5; }
+.stack-dep-group-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); padding:var(--sp2) var(--sp3) 0; margin-top:var(--sp2); }
+.stack-dep-group-label:first-child { margin-top:0; padding-top:0; }
+.stack-lazy { padding:var(--sp4); }
+.topics-label { font-size:10px; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:.08em; color:var(--text-faint); margin-bottom:var(--sp3); }
+.topics-chips { display:flex; flex-wrap:wrap; gap:var(--sp2); align-items:center; }
+.context-mode-row { display:flex; gap:var(--sp2); flex-wrap:wrap; }
+.context-mode-opt { display:flex; align-items:center; gap:6px; font-size:var(--text-xs); color:var(--text-muted); cursor:pointer; font-family:var(--font-mono); }
+.context-mode-opt input { accent-color:var(--purple); }
+.header-gc-btn { margin-right:var(--sp2); padding:var(--sp2) var(--sp4); font-size:10px; font-family:var(--font-mono); font-weight:600; border-radius:var(--rad-md); border:1px solid var(--border-2); background:var(--surface-3); color:var(--text-muted); cursor:pointer; transition:all var(--trans); white-space:nowrap; }
+.header-gc-btn:hover { border-color:var(--purple); color:var(--purple); background:var(--purple-dim); }
+.header-add-search-btn {
+  margin-right:var(--sp2); padding:var(--sp2) var(--sp4); font-size:10px; font-family:var(--font-mono); font-weight:700;
+  border-radius:var(--rad-md); border:none; background:var(--accent); color:white; cursor:pointer;
+  transition:all var(--trans); white-space:nowrap; display:inline-flex; align-items:center; gap:var(--sp2);
+}
+.header-add-search-btn:hover { background:color-mix(in srgb, var(--accent) 85%, black); }
+.header-add-search-btn:disabled { opacity:.45; cursor:not-allowed; }
+/* Extend search modal (mirrors index.html search modal pieces) */
+.form-hint { font-size:11px; color:var(--text-faint); font-family:var(--font-mono); }
+.keyword-row { display:flex; gap:var(--sp2); align-items:stretch; }
+.keyword-row .tag-input-wrap { flex:1; }
+.add-kw-btn {
+  padding:var(--sp2) var(--sp4); border-radius:var(--rad-md);
+  background:var(--surface-3); border:1.5px solid var(--border-2);
+  color:var(--text-muted); font-family:var(--font-mono);
+  font-size:var(--text-xs); font-weight:700; cursor:pointer;
+  transition:all var(--trans); white-space:nowrap;
+  display:flex; align-items:center; gap:5px;
+}
+.add-kw-btn:hover { border-color:var(--accent); color:var(--accent-text); background:var(--accent-dim); }
+.tag-input-wrap { display:flex; flex-wrap:wrap; gap:var(--sp2); padding:var(--sp2); background:var(--surface-3); border:1.5px solid var(--border-2); border-radius:var(--rad-md); cursor:text; transition:border-color var(--trans); }
+.tag-input-wrap:focus-within { border-color:var(--accent); }
+.tag-chip { display:inline-flex; align-items:center; gap:4px; background:var(--accent-dim); color:var(--accent-text); border-radius:var(--rad-full); padding:2px 8px; font-size:11px; font-family:var(--font-mono); font-weight:600; white-space:nowrap; }
+.tag-chip-remove { font-size:14px; line-height:1; cursor:pointer; opacity:.6; }
+.tag-chip-remove:hover { opacity:1; }
+.tag-input { border:none; outline:none; background:transparent; font-family:var(--font-body); font-size:var(--text-sm); color:var(--text); min-width:100px; flex:1; padding:2px 4px; }
+.tag-input::placeholder { color:var(--text-faint); }
+.lang-chips { display:flex; flex-wrap:wrap; gap:var(--sp2); }
+.lang-toggle {
+  display:inline-flex; align-items:center; gap:5px;
+  padding:3px var(--sp3); border-radius:var(--rad-full);
+  font-size:11px; font-family:var(--font-mono); font-weight:600;
+  border:1.5px solid var(--border-2); background:var(--surface-3);
+  color:var(--text-muted); cursor:pointer;
+  transition:all var(--trans); user-select:none;
+}
+.lang-toggle.active { border-color:var(--accent); color:var(--accent-text); background:var(--accent-dim); }
+.extend-result-preset {
+  font-size:11px; font-family:var(--font-mono); padding:4px 10px; border-radius:var(--rad-sm);
+  border:1px solid var(--border-2); background:var(--surface); color:var(--text-muted);
+  cursor:pointer; transition:all var(--trans);
+}
+.extend-result-preset:hover { border-color:var(--accent); color:var(--accent-text); }
+.extend-result-preset.active { border-color:var(--accent); color:var(--accent-text); background:var(--accent-dim); font-weight:600; }
+.extend-modal-status { font-size:var(--text-xs); font-family:var(--font-mono); color:var(--text-muted); min-height:20px; }
+.extend-modal-status-detail {
+  font-size:11px; font-family:var(--font-mono); color:var(--text-muted); opacity:.92;
+  white-space:pre-line; line-height:1.35; margin-top:4px; min-height:0;
+}
+.extend-progress-row { display:flex; flex-direction:column; gap:var(--sp2); }
+.extend-progress-bar { height:6px; background:var(--surface-3); border-radius:var(--rad-full); overflow:hidden; }
+.extend-progress-fill { height:100%; background:var(--accent); border-radius:var(--rad-full); transition:width .4s ease; }
+#extendSearchModal .btn-extend-search {
+  padding:var(--sp2) var(--sp6); background:var(--accent); color:white;
+  border-radius:var(--rad-md); font-size:var(--text-sm); font-family:var(--font-mono);
+  font-weight:600; border:none; cursor:pointer; transition:all var(--trans);
+  display:inline-flex; align-items:center; gap:var(--sp2);
+}
+#extendSearchModal .btn-extend-search:hover { background:color-mix(in srgb, var(--accent) 85%, black); }
+#extendSearchModal .btn-extend-search:disabled { opacity:.5; cursor:not-allowed; }
+.gc-dl-row { display:flex; flex-wrap:wrap; gap:var(--sp2); margin-top:var(--sp4); padding-top:var(--sp3); border-top:1px solid var(--border); }
+.gc-dl-row a { font-size:10px; font-family:var(--font-mono); text-decoration:none; }
+.gc-acc.stack-section .stack-section-body { max-height:320px; overflow-y:auto; }
+.empty-state { padding:var(--sp6); text-align:center; color:var(--text-faint); font-family:var(--font-mono); font-size:var(--text-xs); }
+
+/* README tab */
+.readme-wrap { background:var(--surface); border:1px solid var(--border); border-radius:var(--rad-md); padding:var(--sp5) var(--sp6); max-height:600px; overflow-y:auto; }
+.readme-wrap.readme-preview { cursor:pointer; transition:border-color var(--trans), box-shadow var(--trans); }
+.readme-wrap.readme-preview:hover { border-color:var(--accent); box-shadow:0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent); }
+.readme-wrap.readme-preview:focus { outline:2px solid var(--accent); outline-offset:2px; }
+.readme-fs-backdrop {
+  position:fixed; inset:0; background:rgba(0,0,0,.78); z-index:2000;
+  display:flex; align-items:center; justify-content:center; padding:var(--sp6);
+  opacity:0; pointer-events:none; transition:opacity var(--trans);
+}
+.readme-fs-backdrop.open { opacity:1; pointer-events:all; }
+.readme-fs-panel {
+  background:var(--surface); border:1px solid var(--border-2); border-radius:var(--rad-xl);
+  width:100%; max-width:900px; max-height:90vh; display:flex; flex-direction:column;
+  box-shadow:0 24px 80px rgba(0,0,0,.45);
+}
+.readme-fs-header {
+  flex-shrink:0; padding:var(--sp4) var(--sp6); border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between; gap:var(--sp4);
+}
+.readme-fs-title { font-size:var(--text-sm); font-weight:700; font-family:var(--font-mono); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; min-width:0; }
+.readme-fs-body { padding:var(--sp5) var(--sp6); overflow-y:auto; flex:1; min-height:0; }
+
+/* Markdown */
+.md-body { color:var(--text); font-size:var(--text-sm); line-height:1.75; }
+.md-body h1 { font-size:1.4em; font-weight:700; margin:1.2em 0 .6em; padding-bottom:.3em; border-bottom:2px solid var(--border); }
+.md-body h2 { font-size:1.2em; font-weight:700; margin:1.1em 0 .5em; padding-bottom:.2em; border-bottom:1px solid var(--border); }
+.md-body h3 { font-size:1.05em; font-weight:600; margin:1em 0 .4em; }
+.md-body h4, .md-body h5, .md-body h6 { font-size:1em; font-weight:600; margin:.8em 0 .3em; color:var(--text-muted); }
+.md-body p  { margin-bottom:.75em; color:var(--text-muted); }
+.md-body ul, .md-body ol { margin:.5em 0 .75em 1.5em; color:var(--text-muted); }
+.md-body li { margin-bottom:.25em; }
+.md-body code { font-family:var(--font-mono); font-size:.85em; background:var(--surface-3); padding:1px 5px; border-radius:3px; color:var(--accent-text); border:1px solid var(--border); }
+.md-body pre  { background:var(--surface-3); border:1px solid var(--border); border-radius:var(--rad-md); padding:var(--sp4); overflow-x:auto; margin:.75em 0; }
+.md-body pre code { background:none; border:none; padding:0; color:var(--text); font-size:.8em; line-height:1.6; }
+.md-body a { color:var(--accent-text); }
+.md-body a:hover { text-decoration:underline; }
+.md-body blockquote { border-left:3px solid var(--accent); padding:.5em 1em; margin:.5em 0; color:var(--text-muted); background:var(--surface-3); border-radius:0 var(--rad-md) var(--rad-md) 0; }
+.md-body table { width:100%; border-collapse:collapse; margin:.75em 0; font-size:.85em; }
+.md-body th { background:var(--surface-3); padding:var(--sp2) var(--sp3); border:1px solid var(--border); font-weight:600; text-align:left; }
+.md-body td { padding:var(--sp2) var(--sp3); border:1px solid var(--border); color:var(--text-muted); }
+.md-body tr:nth-child(even) td { background:var(--surface-2); }
+.md-body img { max-width:100%; border-radius:var(--rad-md); display:none; }
+.md-body hr { border:none; border-top:1px solid var(--border); margin:1em 0; }
+.md-body strong { color:var(--text); font-weight:600; }
+.md-body em { color:var(--text-muted); }
+
+/* AI Modal */
+.modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:1000; display:flex; align-items:center; justify-content:center; padding:var(--sp6); opacity:0; pointer-events:none; transition:opacity var(--trans); }
+.modal-backdrop.open { opacity:1; pointer-events:all; }
+.modal { background:var(--surface); border:1px solid var(--border-2); border-radius:var(--rad-xl); width:100%; max-width:760px; max-height:90vh; display:flex; flex-direction:column; box-shadow:var(--shadow-lg); transform:translateY(20px); transition:transform var(--trans); }
+.modal-backdrop.open .modal { transform:translateY(0); }
+.modal-header { padding:var(--sp4) var(--sp6); border-bottom:1px solid var(--border); display:flex; align-items:flex-start; justify-content:space-between; flex-shrink:0; }
+.modal-title { font-size:var(--text-base); font-weight:700; font-family:var(--font-mono); }
+.modal-subtitle { font-size:var(--text-xs); color:var(--text-muted); margin-top:2px; }
+.modal-close { padding:var(--sp2); border-radius:var(--rad-md); color:var(--text-muted); transition:all var(--trans); font-size:18px; line-height:1; }
+.modal-close:hover { color:var(--text); background:var(--surface-3); }
+.modal-body { padding:var(--sp5) var(--sp6); overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:var(--sp4); }
+.modal-footer { padding:var(--sp4) var(--sp6); border-top:1px solid var(--border); display:flex; gap:var(--sp3); justify-content:flex-end; flex-shrink:0; }
+.form-group { display:flex; flex-direction:column; gap:var(--sp2); }
+.search-filters-row { display:flex; flex-wrap:wrap; gap:var(--sp4); align-items:center; }
+.search-min-stars {
+  width:4rem; padding:var(--sp2); border-radius:var(--rad-md); border:1px solid var(--border);
+  background:var(--surface-2); color:var(--text); font-family:var(--font-mono); font-size:var(--text-xs);
+}
+.search-scope-grid { display:flex; flex-direction:column; gap:var(--sp1); margin-top:var(--sp2); }
+.search-scope-grid label {
+  display:flex; align-items:center; gap:var(--sp2); font-size:var(--text-xs); color:var(--text-muted); cursor:pointer;
+}
+.search-scope-grid input[type=checkbox],
+.search-scope-grid input[type=radio] { accent-color:var(--accent); }
+.search-scope-grid fieldset { border:none; padding:0; margin:0; min-width:0; }
+.keyword-row-actions { margin-top:var(--sp2); display:flex; flex-wrap:wrap; gap:var(--sp2); align-items:center; }
+.lang-add-row .form-input { margin:0; }
+.form-label { font-size:11px; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:.08em; color:var(--text-muted); font-weight:600; }
+.form-select { width:100%; padding:var(--sp3); background:var(--surface-3); border:1.5px solid var(--border-2); border-radius:var(--rad-md); color:var(--text); font-size:var(--text-sm); font-family:var(--font-body); outline:none; cursor:pointer; transition:border-color var(--trans); }
+.form-select:focus { border-color:var(--accent); }
+.form-textarea { width:100%; padding:var(--sp3); background:var(--surface-3); border:1.5px solid var(--border-2); border-radius:var(--rad-md); color:var(--text); font-size:var(--text-sm); font-family:var(--font-body); outline:none; resize:vertical; min-height:120px; line-height:1.6; transition:border-color var(--trans); }
+.form-textarea:focus { border-color:var(--accent); }
+.form-textarea::placeholder { color:var(--text-faint); }
+.model-meta-row { display:flex; gap:var(--sp4); flex-wrap:wrap; margin-top:var(--sp2); }
+.model-meta-pill { font-size:10px; font-family:var(--font-mono); background:var(--surface-3); border:1px solid var(--border); border-radius:var(--rad-full); padding:2px 8px; color:var(--text-muted); }
+.model-meta-pill strong { color:var(--text); }
+.btn-primary { padding:var(--sp2) var(--sp6); background:var(--purple); color:white; border-radius:var(--rad-md); font-size:var(--text-sm); font-family:var(--font-mono); font-weight:600; border:none; cursor:pointer; transition:all var(--trans); display:inline-flex; align-items:center; gap:var(--sp2); }
+.btn-primary:hover { background:color-mix(in srgb, var(--purple) 85%, black); }
+.btn-primary:disabled { opacity:.5; cursor:not-allowed; }
+.btn-secondary { padding:var(--sp2) var(--sp5); background:var(--surface-3); color:var(--text-muted); border-radius:var(--rad-md); font-size:var(--text-sm); font-family:var(--font-mono); font-weight:600; border:1px solid var(--border-2); cursor:pointer; transition:all var(--trans); }
+.btn-secondary:hover { color:var(--text); }
+.ai-result-wrap { background:var(--surface); border:1px solid var(--border); border-radius:var(--rad-md); padding:var(--sp5) var(--sp6); max-height:600px; overflow-y:auto; }
+.ai-result-wrap.expanded { max-height:none; }
+.ai-meta { display:flex; gap:var(--sp3); flex-wrap:wrap; margin-bottom:var(--sp4); padding-bottom:var(--sp3); border-bottom:1px solid var(--border); }
+.ai-meta-item { font-size:10px; font-family:var(--font-mono); color:var(--text-muted); }
+.ai-meta-item strong { color:var(--text); }
+.ai-subtabs { display:flex; flex-wrap:wrap; gap:var(--sp2); align-items:center; margin-bottom:var(--sp4); padding-bottom:var(--sp3); border-bottom:1px solid var(--border); }
+.ai-subtab { padding:var(--sp2) var(--sp4); font-size:10px; font-family:var(--font-mono); font-weight:600; color:var(--text-muted); border:1px solid var(--border); border-radius:var(--rad-md); background:var(--surface-2); cursor:pointer; transition:all var(--trans); max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ai-subtab:hover { border-color:var(--purple); color:var(--purple); }
+.ai-subtab.active { border-color:var(--purple); background:var(--purple-dim); color:var(--purple); }
+.ai-subtab-new { border-style:dashed; color:var(--accent-text); }
+.ai-topic-pane { display:none; }
+.ai-topic-pane.active { display:block; }
+.ai-turn { margin-bottom:var(--sp3); }
+.ai-turn .stack-section-body { gap:var(--sp4); }
+.ai-turn-q, .ai-turn-a { font-size:var(--text-xs); }
+.ai-turn-q strong, .ai-turn-a strong { display:block; font-size:10px; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:.06em; color:var(--text-faint); margin-bottom:var(--sp2); }
+.ai-turn-meta { font-size:10px; color:var(--text-faint); margin-top:var(--sp2); padding-top:var(--sp2); border-top:1px solid var(--border); }
+.ai-api-hint { font-size:10px; font-family:var(--font-mono); color:var(--orange); margin-bottom:var(--sp3); }
+.spinner { width:16px; height:16px; border:2px solid var(--border-2); border-top-color:var(--purple); border-radius:50%; animation:spin .6s linear infinite; flex-shrink:0; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.ai-error { color:var(--red); font-family:var(--font-mono); font-size:var(--text-xs); padding:var(--sp4); background:var(--red-dim); border-radius:var(--rad-md); border:1px solid color-mix(in srgb, var(--red) 30%, transparent); }
+.ai-modal-result { display:none; margin-top:var(--sp4); padding-top:var(--sp4); border-top:1px solid var(--border); max-height:min(50vh,420px); overflow-y:auto; font-size:var(--text-xs); }
+.ai-modal-result.visible { display:block; }
+.ai-modal-result .ai-modal-result-meta { font-size:10px; font-family:var(--font-mono); color:var(--text-faint); margin-bottom:var(--sp3); }
+.ai-cursor-pre { white-space:pre-wrap; word-break:break-word; font-family:var(--font-mono); font-size:11px; line-height:1.45; max-height:200px; overflow:auto; margin:var(--sp2) 0 0; padding:var(--sp3); background:var(--surface-3); border:1px solid var(--border); border-radius:var(--rad-md); color:var(--text-muted); }
+
+/* Loading state */
+.loading-screen { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:60vh; gap:var(--sp4); font-family:var(--font-mono); color:var(--text-muted); }
+.loading-ring { width:40px; height:40px; border:3px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin .8s linear infinite; }
+.no-results { padding:var(--sp10); text-align:center; color:var(--text-faint); font-family:var(--font-mono); font-size:var(--text-sm); }
+
+/* Footer */
+.footer { border-top:1px solid var(--border); padding:var(--sp4) var(--sp6); text-align:center; font-size:var(--text-xs); color:var(--text-faint); font-family:var(--font-mono); }
+.footer a { color:var(--text-muted); }
+.footer a:hover { color:var(--accent-text); }
+
+/* Responsive */
+@media (max-width:1100px) {
+  .table-header, .repo-summary { grid-template-columns:28px 1fr 90px 75px 70px 100px 44px; }
+  .col-num:nth-child(6) { display:none; }
+}
+@media (max-width:768px) {
+  .table-header, .repo-summary { grid-template-columns:28px 1fr 70px 65px 44px; }
+  .col-lang, .col-num:nth-child(5), .col-num:nth-child(6) { display:none; }
+  .header-stats { display:none; }
+  .detail-inner { padding:var(--sp3); }
+  .main, .controls-inner { padding-left:var(--sp3); padding-right:var(--sp3); }
+}
+</style>
+</head>
+<body>
+
+<!-- ── Header ─────────────────────────────────── -->
+<header class="header">
+  <div class="header-inner">
+    <a class="back-btn" href="index.html">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+      Projects
+    </a>
+    <div class="logo">
+      <svg class="logo-icon" width="22" height="22" viewBox="0 0 32 32" fill="none" aria-label="OSS Intelligence">
+        <rect x="2"  y="22" width="4" height="8"  rx="1" fill="currentColor" opacity=".4"/>
+        <rect x="8"  y="16" width="4" height="14" rx="1" fill="currentColor" opacity=".6"/>
+        <rect x="14" y="10" width="4" height="20" rx="1" fill="currentColor" opacity=".8"/>
+        <rect x="20" y="4"  width="4" height="26" rx="1" fill="currentColor"/>
+      </svg>
+      <div>
+        <div class="logo-name" id="projectTitle">Loading…</div>
+        <div class="logo-sub" id="projectKw"></div>
+      </div>
+    </div>
+    <div class="header-stats" id="headerStats">
+      <div class="stat-pill"><strong id="statTotal">0</strong>&nbsp;total</div>
+      <div class="stat-pill"><strong id="statShown">0</strong>&nbsp;loaded</div>
+      <div class="stat-pill"><strong id="statAI">0</strong>&nbsp;AI</div>
+    </div>
+    <button type="button" class="header-add-search-btn" id="extendSearchHeaderBtn" title="Search GitHub and add repos to this project">Add search</button>
+    <button type="button" class="header-gc-btn" id="globalContextHeaderBtn" title="Browse saved global context files">Global context</button>
+    <button class="icon-btn" id="themeBtn" title="Toggle theme">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </div>
+</header>
+
+<!-- ── Controls ───────────────────────────────── -->
+<div class="controls">
+  <div class="controls-inner">
+    <div class="search-row">
+      <div class="search-wrap">
+        <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input class="search-input" type="search" id="searchInput" placeholder="Search all, or @name: @package: @description: @topic:" autocomplete="off"/>
+      </div>
+      <select class="sort-select" id="sortSelect">
+        <option value="composite">Sort: Activity Score (date + commits + stars)</option>
+        <option value="last_commit">Sort: Last Commit Date</option>
+        <option value="commits">Sort: Total Commits ↓</option>
+        <option value="stars">Sort: Stars ↓</option>
+        <option value="forks">Sort: Forks ↓</option>
+        <option value="name">Sort: Name A–Z</option>
+      </select>
+      <button class="clear-btn" id="clearBtn">✕ Clear all</button>
+    </div>
+    <div class="filter-section" id="fs-lang">
+      <div class="filter-header" onclick="toggleFilter('lang')">
+        <span class="filter-title">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          Filter by Language
+          <span class="filter-badge" id="fb-lang" style="display:none">0</span>
+        </span>
+        <svg class="filter-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+      </div>
+      <div class="filter-body" id="fbody-lang"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Main ───────────────────────────────────── -->
+<main class="main" id="mainArea">
+  <div class="loading-screen" id="loadingScreen">
+    <div class="loading-ring"></div>
+    <span>Loading project data…</span>
+  </div>
+</main>
+
+<!-- ── Footer ─────────────────────────────────── -->
+<footer class="footer">
+  <a href="https://www.perplexity.ai/computer" target="_blank" rel="noopener noreferrer">Created with Perplexity Computer</a>
+  &nbsp;·&nbsp; <span id="footerDate"></span>
+</footer>
+
+<!-- ── AI Modal ───────────────────────────────── -->
+<div class="modal-backdrop" id="aiModal" onclick="handleModalBackdropClick(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modalTitle">🤖 Ask AI</div>
+        <div class="modal-subtitle" id="modalSubtitle"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group" id="aiContextModeRow">
+        <label class="form-label">Context</label>
+        <div class="context-mode-row">
+          <label class="context-mode-opt"><input type="radio" name="aiContextMode" value="repo" checked/> This repository (project)</label>
+          <label class="context-mode-opt"><input type="radio" name="aiContextMode" value="global"/> Search project (global context)</label>
+        </div>
+      </div>
+      <div class="form-group" id="aiGlobalTopicRow" style="display:none">
+        <label class="form-label">GitHub topic (global)</label>
+        <input type="text" class="form-select" id="aiGithubTopic" placeholder="e.g. ethereum, python" autocomplete="off" style="cursor:text"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">AI provider</label>
+        <div class="context-mode-row" id="aiProviderRow">
+          <label class="context-mode-opt"><input type="radio" name="aiProvider" value="openrouter" checked/> OpenRouter</label>
+          <label class="context-mode-opt"><input type="radio" name="aiProvider" value="cursor"/> Cursor agent</label>
+          <label class="context-mode-opt" style="opacity:0.45;cursor:not-allowed" title="Coming soon"><input type="radio" name="aiProvider" value="claude-code" disabled/> Claude Code</label>
+          <label class="context-mode-opt" style="opacity:0.45;cursor:not-allowed" title="Coming soon"><input type="radio" name="aiProvider" value="codex" disabled/> Codex</label>
+        </div>
+      </div>
+      <div class="form-group" id="openrouterModelRow">
+        <label class="form-label">OpenRouter model</label>
+        <select class="form-select" id="modelSelect">
+          <option value="anthropic/claude-sonnet-4-5" data-ctx="?" data-inp="?" data-out="?">Loading models…</option>
+        </select>
+        <div class="model-meta-row" id="modelMetaRow">
+          <span class="model-meta-pill">Context: <strong id="mdCtx">—</strong></span>
+          <span class="model-meta-pill">Input: <strong id="mdInp">—</strong></span>
+          <span class="model-meta-pill">Output: <strong id="mdOut">—</strong></span>
+        </div>
+      </div>
+      <div class="form-group" id="cursorModelRow" style="display:none">
+        <label class="form-label">Cursor model</label>
+        <select class="form-select" id="cursorModelSelect">
+          <option value="Composer 2 Fast">Composer 2 Fast</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Your Question / Prompt</label>
+        <textarea class="form-textarea" id="aiPrompt" placeholder="e.g. What are the main modules and architecture of this project?"></textarea>
+      </div>
+      <div id="aiModalResult" class="ai-modal-result" aria-live="polite"></div>
+      <div id="modalStatus" style="font-size:var(--text-xs);font-family:var(--font-mono);color:var(--text-muted)"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" id="askBtn" onclick="submitAiQuery()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m22 2-7 20-4-9-9-4 20-7z"/></svg>
+        <span id="askBtnLabel">Ask AI</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="globalContextModal" onclick="handleGlobalContextBackdrop(event)">
+  <div class="modal" style="max-width:720px">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Global context</div>
+        <div class="modal-subtitle" id="globalContextSubtitle">Saved notes per topic under data/global_context/</div>
+      </div>
+      <button type="button" class="modal-close" onclick="closeGlobalContextModal()">✕</button>
+    </div>
+    <div class="modal-body" id="globalContextBody">
+      <div class="empty-state" id="globalContextAccordion">Open to load…</div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-secondary" onclick="closeGlobalContextModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="extendSearchModal" onclick="handleExtendSearchBackdrop(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Add repositories</div>
+        <div class="modal-subtitle" id="extendSearchSubtitle">Adding repos to this project</div>
+      </div>
+      <button type="button" class="modal-close" onclick="closeExtendSearchModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Keywords</label>
+        <div class="keyword-row">
+          <div class="tag-input-wrap" id="extendKeywordWrap" onclick="document.getElementById('extendKeywordInput').focus()">
+            <input class="tag-input" id="extendKeywordInput" placeholder="Type a keyword…" autocomplete="off"/>
+          </div>
+          <button class="add-kw-btn" id="extendAddKwBtn" type="button">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            Add
+          </button>
+        </div>
+        <div class="keyword-row-actions">
+          <button type="button" class="btn-secondary" id="extendAiKeywordsBtn">Generate keywords with AI</button>
+        </div>
+        <span class="form-hint">Press Enter, comma, or click Add. Each keyword is searched separately, then new repos are merged and deduplicated with your list.</span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Languages (optional)</label>
+        <div class="lang-add-row" style="display:flex;gap:var(--sp2);flex-wrap:wrap;align-items:center;margin-bottom:var(--sp2)">
+          <input class="search-min-stars" id="extendExtraLangInput" placeholder="Add language not in the list…" style="flex:1;min-width:140px;max-width:260px;width:auto;min-height:36px"/>
+          <button type="button" class="add-kw-btn" id="extendAddLangBtn">Add language</button>
+        </div>
+        <div class="lang-chips" id="extendLangChips"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Filters</label>
+        <div class="search-filters-row">
+          <label style="display:flex;align-items:center;gap:var(--sp2);font-size:var(--text-xs);color:var(--text-muted)">
+            Min stars <input class="search-min-stars" type="number" id="extendMinStars" min="0" max="999999" value="5"/>
+          </label>
+          <label style="display:flex;align-items:center;gap:var(--sp2);font-size:var(--text-xs);color:var(--text-muted)">
+            <input type="checkbox" id="extendExcludeForks" checked/> Exclude forks
+          </label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Search scope</label>
+        <fieldset class="search-scope-grid">
+          <label><input type="radio" name="extendDiscoveryScope" id="extendScopeMeta" value="meta" checked/> Repository name, description, and topics (GitHub index)</label>
+          <label><input type="radio" name="extendDiscoveryScope" id="extendScopeReadme" value="readme"/> README — verify phrase in fetched README body</label>
+          <label><input type="radio" name="extendDiscoveryScope" id="extendScopeCode" value="code"/> Files / code <span style="color:var(--text-faint);font-weight:400">(slower; strict rate limits)</span></label>
+        </fieldset>
+      </div>
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:var(--sp2);font-size:var(--text-xs);color:var(--text-muted);cursor:pointer">
+          <input type="checkbox" id="extendExtractPackages"/> Fetch dependencies during search (tree scan per repo)
+        </label>
+      </div>
+      <div class="form-group">
+        <label class="form-label">How many repos to fetch?</label>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+          <button type="button" class="extend-result-preset active" data-val="100">100 — fast</button>
+          <button type="button" class="extend-result-preset" data-val="300">300 — normal</button>
+          <button type="button" class="extend-result-preset" data-val="500">500 — thorough</button>
+          <button type="button" class="extend-result-preset" data-val="1000">1000 — maximum</button>
+        </div>
+        <input type="hidden" id="extendMaxResults" value="100"/>
+        <span class="form-hint">More repos = slower. Results are deduplicated against repos already in this project.</span>
+      </div>
+      <div id="extendProgressSection" style="display:none">
+        <div class="extend-progress-row">
+          <div class="extend-modal-status" id="extendModalStatus">Preparing…</div>
+          <div class="extend-modal-status-detail" id="extendModalStatusDetail" style="display:none"></div>
+          <div class="extend-progress-bar"><div class="extend-progress-fill" id="extendProgressFill" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-secondary" id="extendCancelBtn" onclick="closeExtendSearchModal()">Cancel</button>
+      <button type="button" class="btn-extend-search" id="extendRunBtn" onclick="runExtendSearchMerge()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        Search &amp; add to project
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="extendAiKeywordsModal" style="z-index:250" onclick="handleExtendAiKeywordsBackdrop(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title">Generate keywords</span>
+      <button type="button" class="modal-close" onclick="closeExtendAiKeywordsModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <label class="form-label">Describe what you want to find</label>
+      <textarea class="form-textarea" id="extendAiKeywordsInput" rows="5" placeholder="e.g. open source tools for algorithmic trading and backtesting"></textarea>
+      <div class="extend-modal-status" id="extendAiKeywordsStatus"></div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-secondary" onclick="closeExtendAiKeywordsModal()">Cancel</button>
+      <button type="button" class="btn-primary" id="extendAiKeywordsRunBtn">Generate</button>
+    </div>
+  </div>
+</div>
+
+<div class="readme-fs-backdrop" id="readmeFullscreenModal" onclick="if(event.target===this)closeReadmeFullscreenModal()">
+  <div class="readme-fs-panel" onclick="event.stopPropagation()">
+    <div class="readme-fs-header">
+      <div class="readme-fs-title" id="readmeFsTitle">README</div>
+      <button type="button" class="modal-close" onclick="closeReadmeFullscreenModal()" aria-label="Close">✕</button>
+    </div>
+    <div class="readme-fs-body md-body" id="readmeFsBody"></div>
+  </div>
+</div>
+
+<!-- Seed data for Trading OSS project -->
+<script src="github-discovery.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   OSS Intelligence — Project Detail Page
+   Loads project JSON from data/projects/{fname}.json (then data/, then root for legacy),
+   merges VFS edits; normalizes every repo to the same shape for any project source.
+═══════════════════════════════════════════════════════════════ */
+
+function resolveApiBase() {
+  if (typeof window === 'undefined') return '';
+  if (Object.prototype.hasOwnProperty.call(window, 'OSS_API_BASE')) return String(window.OSS_API_BASE);
+  return window.location.protocol === 'file:' ? 'http://127.0.0.1:3847' : '';
+}
+const API_BASE = resolveApiBase();
+function resolveGhToken() {
+  if (typeof window === 'undefined') return '';
+  if (Object.prototype.hasOwnProperty.call(window, 'GITHUB_TOKEN')) return String(window.GITHUB_TOKEN);
+  try {
+    return localStorage.getItem('GITHUB_TOKEN') || '';
+  } catch {
+    return '';
+  }
+}
+const GH_TOKEN = resolveGhToken();
+const GH_API  = 'https://api.github.com';
+/** Cap dependency rows per repo (name + version); avoids huge manifests in JSON/UI. */
+const MAX_PACKAGE_DEPS = 500;
+/** Max package.json / requirements.txt files to fetch after tree discovery. */
+const MAX_MANIFEST_FILES = 25;
+
+const EXTEND_LANG_OPTIONS = [
+  'Python','JavaScript','TypeScript','Go','Rust','Java','C++','C#',
+  'Kotlin','Swift','Ruby','PHP','Scala','R','Julia',
+  'Shell','C','Dart','Elixir','Haskell','Lua','Perl',
+  'Solidity','HTML','CSS','Vue','Zig','CUDA',
+];
+
+let extendKeywords = [];
+let extendSelectedLangs = new Set();
+let extendExtraLangs = [];
+let extendSearching = false;
+
+function discoveryScopeRadioName(pfx) {
+  return pfx === 'search' ? 'searchDiscoveryScope' : 'extendDiscoveryScope';
+}
+
+function scopeFromSaved(o) {
+  if (!o) return 'meta';
+  const anyIn = !!(o.inName || o.inDescription || o.inTopics || o.inReadme);
+  if (o.includeCodeSearch && !anyIn) return 'code';
+  if (o.inReadme && !o.inName && !o.inDescription && !o.inTopics) return 'readme';
+  return 'meta';
+}
+
+function applyDiscoveryForm(pfx, o) {
+  const defs = { minStars: 5, excludeForks: true, extractPackagesOnSearch: false };
+  const d = { ...defs, ...(o || {}) };
+  document.getElementById(pfx + 'MinStars').value = String(d.minStars ?? 5);
+  document.getElementById(pfx + 'ExcludeForks').checked = !!d.excludeForks;
+  const ex = document.getElementById(pfx + 'ExtractPackages');
+  if (ex) ex.checked = !!d.extractPackagesOnSearch;
+  const scope = scopeFromSaved(o);
+  const rname = discoveryScopeRadioName(pfx);
+  document.querySelectorAll(`input[name="${rname}"]`).forEach((r) => {
+    r.checked = r.value === scope;
+  });
+}
+
+function readDiscoveryOptions(pfx) {
+  const rname = discoveryScopeRadioName(pfx);
+  const el = document.querySelector(`input[name="${rname}"]:checked`);
+  const scope = el ? el.value : 'meta';
+  const base = {
+    minStars: Math.max(0, parseInt(document.getElementById(pfx + 'MinStars').value, 10) || 0),
+    excludeForks: document.getElementById(pfx + 'ExcludeForks').checked,
+  };
+  if (scope === 'meta') {
+    return {
+      ...base,
+      inName: true,
+      inDescription: true,
+      inTopics: true,
+      inReadme: false,
+      includeCodeSearch: false,
+    };
+  }
+  if (scope === 'readme') {
+    return {
+      ...base,
+      inName: false,
+      inDescription: false,
+      inTopics: false,
+      inReadme: true,
+      includeCodeSearch: false,
+    };
+  }
+  return {
+    ...base,
+    inName: false,
+    inDescription: false,
+    inTopics: false,
+    inReadme: false,
+    includeCodeSearch: true,
+  };
+}
+
+function readExtractPackages(pfx) {
+  const el = document.getElementById(pfx + 'ExtractPackages');
+  return el ? el.checked : false;
+}
+
+async function ghFetch(url) {
+  const res = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${GH_TOKEN}`,
+      'Accept': 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+    }
+  });
+  if (!res.ok) throw new Error(`GitHub API ${res.status}: ${await res.text()}`);
+  return res.json();
+}
+
+function ghRestHeaders() {
+  return {
+    'Authorization': `Bearer ${GH_TOKEN}`,
+    'Accept': 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+  };
+}
+
+/** Blob paths via recursive git tree (no hardcoded manifest locations). */
+async function fetchRepoBlobPaths(full_name, branch) {
+  try {
+    const cr = await fetch(
+      `https://api.github.com/repos/${full_name}/commits/${encodeURIComponent(branch)}`,
+      { headers: ghRestHeaders() }
+    );
+    if (!cr.ok) return [];
+    const c = await cr.json();
+    const treeSha = c?.commit?.tree?.sha;
+    if (!treeSha) return [];
+    const tr = await fetch(
+      `https://api.github.com/repos/${full_name}/git/trees/${treeSha}?recursive=1`,
+      { headers: ghRestHeaders() }
+    );
+    if (!tr.ok) return [];
+    const t = await tr.json();
+    return (t.tree || []).filter((x) => x.type === 'blob' && x.path).map((x) => x.path);
+  } catch {
+    return [];
+  }
+}
+
+function manifestPathsForBasename(paths, baseName) {
+  return paths
+    .filter((p) => p === baseName || p.endsWith('/' + baseName))
+    .sort((a, b) => {
+      const da = a.split('/').length;
+      const db = b.split('/').length;
+      if (da !== db) return da - db;
+      return a.localeCompare(b);
+    });
+}
+
+async function packagesFromTreeNpm(full_name, branch) {
+  const paths = await fetchRepoBlobPaths(full_name, branch);
+  const rels = manifestPathsForBasename(paths, 'package.json').slice(0, MAX_MANIFEST_FILES);
+  const rawHdr = { headers: { 'Authorization': `Bearer ${GH_TOKEN}` } };
+  const byName = new Map();
+  for (const rel of rels) {
+    try {
+      const pkgRes = await fetch(
+        `https://raw.githubusercontent.com/${full_name}/${branch}/${rel}`,
+        rawHdr
+      );
+      if (!pkgRes.ok) continue;
+      const pkg = await pkgRes.json();
+      for (const [name, ver] of Object.entries(pkg.dependencies || {})) {
+        byName.set(name, { ver, dev: false });
+      }
+      for (const [name, ver] of Object.entries(pkg.devDependencies || {})) {
+        byName.set(name, { ver, dev: true });
+      }
+    } catch { /* skip invalid json */ }
+  }
+  return Array.from(byName.entries()).slice(0, MAX_PACKAGE_DEPS).map(([name, { ver, dev }]) => ({
+    name,
+    version: String(ver ?? '').replace(/[\^~>=<]/g, ''),
+    registry: 'npm',
+    description: '',
+    devDependency: dev,
+  }));
+}
+
+async function packagesFromTreePypi(full_name, branch) {
+  const paths = await fetchRepoBlobPaths(full_name, branch);
+  const rels = manifestPathsForBasename(paths, 'requirements.txt').slice(0, MAX_MANIFEST_FILES);
+  const rawHdr = { headers: { 'Authorization': `Bearer ${GH_TOKEN}` } };
+  const seen = new Set();
+  const out = [];
+  for (const rel of rels) {
+    try {
+      const reqRes = await fetch(
+        `https://raw.githubusercontent.com/${full_name}/${branch}/${rel}`,
+        rawHdr
+      );
+      if (!reqRes.ok) continue;
+      const text = await reqRes.text();
+      for (const line of text.split('\n')) {
+        const name = line.trim().split(/[>=<!\[]/)[0].trim();
+        if (!name || name.startsWith('#') || name.length >= 60) continue;
+        const k = name.toLowerCase();
+        if (seen.has(k)) continue;
+        seen.add(k);
+        out.push({ name, version:'', registry:'pypi', description:'' });
+        if (out.length >= MAX_PACKAGE_DEPS) return out;
+      }
+    } catch { /* next file */ }
+  }
+  return out;
+}
+
+async function fillRepoPackagesForRecord(r) {
+  const branch = r.default_branch || 'main';
+  const lang = (r.language || '').toLowerCase();
+  if (lang === 'javascript' || lang === 'typescript') {
+    return packagesFromTreeNpm(r.full_name, branch);
+  }
+  if (lang === 'python' || lang === 'jupyter notebook') {
+    return packagesFromTreePypi(r.full_name, branch);
+  }
+  return [];
+}
+
+async function enrichRepos(rawRepos, onProgress, enrichOpts) {
+  const extract = !!(enrichOpts && enrichOpts.extractPackagesOnSearch);
+  const enriched = [];
+  const total    = rawRepos.length;
+  for (let i = 0; i < total; i++) {
+    const r = rawRepos[i];
+    if (i % 5 === 0 && total > 0) {
+      const pct = 60 + Math.round(i / total * 30);
+      onProgress(
+        pct,
+        `Enriching ${i+1}/${total}: ${r.name}`,
+        extract ? 'Per repo: commit count + dependency tree scan' : 'Per repo: commit count'
+      );
+    }
+    const base = {
+      id:          r.id,
+      name:        r.name,
+      full_name:   r.full_name,
+      description: r.description || '',
+      html_url:    r.html_url,
+      homepage:    r.homepage || '',
+      language:    r.language || '',
+      stars:       r.stargazers_count,
+      forks:       r.forks_count,
+      open_issues: r.open_issues_count,
+      created_at:  r.created_at,
+      pushed_at:   r.pushed_at,
+      topics:      r.topics || [],
+      license:     r.license?.spdx_id || r.license?.name || '',
+      archived:    r.archived || false,
+      default_branch: r.default_branch || 'main',
+      commit_count: null,
+      readme:      typeof r.readme === 'string' ? r.readme : '',
+      readme_fetched:
+        !!r.readme_fetched || (typeof r.readme === 'string' && r.readme.length > 0),
+      stack_fetched: false,
+      packages:    [],
+    };
+    try {
+      const res = await fetch(
+        `https://api.github.com/repos/${r.full_name}/commits?per_page=1`,
+        { headers: { 'Authorization': `Bearer ${GH_TOKEN}`, 'Accept': 'application/vnd.github+json' } }
+      );
+      const link = res.headers.get('link') || '';
+      const m = link.match(/page=(\d+)>; rel="last"/);
+      base.commit_count = m ? parseInt(m[1]) : null;
+    } catch {}
+    if (extract) {
+      try {
+        base.packages = await fillRepoPackagesForRecord(r);
+        if (Array.isArray(base.packages) && base.packages.length) base.stack_fetched = true;
+      } catch { /* keep [] */ }
+    }
+    enriched.push(base);
+    await sleep(extract ? 100 : 80);
+  }
+  return enriched;
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+/* ── Lazy content fetch helpers ─────────────── */
+
+// Fetch a raw file from GitHub. Returns text or null.
+async function ghFetchFile(slug, path) {
+  try {
+    const res = await fetch(`${GH_API}/repos/${slug}/contents/${path}`, {
+      headers: { 'Authorization': `Bearer ${GH_TOKEN}`, 'Accept': 'application/vnd.github+json' }
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data.content) return null;
+    const bytes = atob(data.content.replace(/\n/g, ''));
+    return decodeURIComponent(escape(bytes));
+  } catch(e) { return null; }
+}
+
+// Fetch README markdown. Returns string or null.
+async function fetchReadme(slug) {
+  try {
+    const res = await fetch(`${GH_API}/repos/${slug}/readme`, {
+      headers: { 'Authorization': `Bearer ${GH_TOKEN}`, 'Accept': 'application/vnd.github+json' }
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data.content) return null;
+    const bytes = atob(data.content.replace(/\n/g, ''));
+    return decodeURIComponent(escape(bytes));
+  } catch(e) { return null; }
+}
+
+// Fetch npm package description. Returns string or null.
+async function npmDesc(pkg) {
+  try {
+    const res = await fetch(`https://registry.npmjs.org/${pkg}/latest`);
+    if (!res.ok) return null;
+    const d = await res.json();
+    return d.description || null;
+  } catch(e) { return null; }
+}
+
+// Fetch PyPI package description. Returns string or null.
+async function pypiDesc(pkg) {
+  try {
+    const res = await fetch(`https://pypi.org/pypi/${pkg}/json`);
+    if (!res.ok) return null;
+    const d = await res.json();
+    return (d.info && d.info.summary) || null;
+  } catch(e) { return null; }
+}
+
+// Parse package.json deps. Returns [{name, ver, dev}] (dev = devDependencies)
+function parsePackageJson(text) {
+  try {
+    const j = JSON.parse(text);
+    const prod = Object.entries(j.dependencies || {}).map(([name, ver]) => ({ name, ver, dev: false }));
+    const dev = Object.entries(j.devDependencies || {}).map(([name, ver]) => ({ name, ver, dev: true }));
+    return prod.concat(dev);
+  } catch(e) { return []; }
+}
+
+// Parse requirements.txt. Returns [{name, ver}]
+function parseRequirementsTxt(text) {
+  return text.split('\n')
+    .map(l => l.trim().replace(/#.*$/, '').trim())
+    .filter(l => l && !l.startsWith('-') && !l.startsWith('.'))
+    .map(l => {
+      const m = l.match(/^([A-Za-z0-9_.-]+)([>=<!].+)?$/);
+      return m ? { name: m[1], ver: (m[2]||'').trim() } : null;
+    })
+    .filter(Boolean)
+    .slice(0, 40); // cap at 40 deps
+}
+
+// Parse pyproject.toml deps (PEP 621 + Poetry). Returns [{name, ver}]
+function parsePyproject(text) {
+  const results = [];
+  const seen = new Set();
+  function add(name, ver) {
+    const n = (name || '').trim();
+    if (!n || n.toLowerCase() === 'python') return;
+    if (seen.has(n.toLowerCase())) return;
+    seen.add(n.toLowerCase());
+    results.push({ name: n, ver: ver || '' });
+  }
+  // [project] dependencies = [ "pkg>=1", ... ]
+  const projBlock = text.match(/\[project\][\s\S]*?dependencies\s*=\s*\[/);
+  if (projBlock) {
+    const start = projBlock.index + projBlock[0].length;
+    let depth = 1, i = start;
+    while (i < text.length && depth > 0) {
+      const c = text[i];
+      if (c === '[') depth++;
+      else if (c === ']') depth--;
+      i++;
+    }
+    const inner = text.slice(start, i - 1);
+    const strs = inner.match(/"([^"\\]|\\.)*"|'([^'\\]|\\.)*'/g) || [];
+    strs.forEach(s => {
+      const raw = s.slice(1, -1).replace(/\\"/g, '"');
+      const m = raw.match(/^([A-Za-z0-9_.-]+)(.*)$/);
+      if (m) add(m[1], m[2].trim());
+    });
+  }
+  // [tool.poetry.dependencies] name = "ver" or name = { version = "^1" }
+  const poetryHdr = text.match(/^\[tool\.poetry\.dependencies\]\s*$/m);
+  if (poetryHdr) {
+    const start = poetryHdr.index + poetryHdr[0].length;
+    const tail = text.slice(start);
+    const nextSec = tail.search(/^\[[^\]]+\]\s*$/m);
+    const block = (nextSec >= 0 ? tail.slice(0, nextSec) : tail).split('\n');
+    block.forEach(line => {
+      const m = line.match(/^\s*([A-Za-z0-9_.-]+)\s*=\s*(.+)$/);
+      if (!m) return;
+      const rhs = m[2].trim();
+      if (rhs.startsWith('{')) {
+        const verM = rhs.match(/version\s*=\s*["']([^"']+)["']/);
+        add(m[1], verM ? verM[1] : '');
+      } else {
+        const verM = rhs.match(/^["']([^"']*)["']/);
+        add(m[1], verM ? verM[1] : rhs);
+      }
+    });
+  }
+  return results.slice(0, 40);
+}
+/* ── Virtual File System (mirrors index.html's VFS) ───── */
+const VFS_STORE_KEY = 'oss-vfs';
+function _getStore() {
+  try { return window['local'+'Storage']; } catch(e) { return null; }
+}
+function vfsRead() {
+  try {
+    const store = _getStore();
+    const raw = (store && store.getItem(VFS_STORE_KEY)) || window.name || '{}';
+    return JSON.parse(raw);
+  } catch(e) { return {}; }
+}
+function vfsWrite(data) {
+  const s = JSON.stringify(data);
+  try { window.name = s; } catch(e) {}
+  try {
+    const store = _getStore();
+    if (store) store.setItem(VFS_STORE_KEY, s);
+  } catch(e) {}
+}
+function vfsGet(fname) {
+  const data = vfsRead();
+  const meta = (data.files || {})[fname];
+  return meta ? { ...meta, _fname: fname } : null;
+}
+function vfsPut(meta) {
+  const data = vfsRead();
+  if (!data.files) data.files = {};
+  const existing = data.files[meta._fname];
+  if (!existing) {
+    const nums = Object.values(data.files).map(m => m._num || 0);
+    meta._num = nums.length ? Math.max(...nums) + 1 : 1;
+  } else {
+    meta._num = existing._num;
+  }
+  data.files[meta._fname] = meta;
+  vfsWrite(data);
+}
+
+function reposForPersistence(repos) {
+  return (repos || []).map(r => ({ ...r }));
+}
+
+function snapshotProjectForDisk() {
+  if (!S.projectFname || !S.projectLoaded) return null;
+  return {
+    ...S.projectLoaded,
+    _fname: S.projectFname,
+    repos: reposForPersistence(S.repos),
+    schemaVersion: Number(S.projectLoaded.schemaVersion) || 1,
+  };
+}
+
+async function persistProjectFileOnServer() {
+  const payload = snapshotProjectForDisk();
+  if (!payload) return;
+  try {
+    const res = await fetch('/api/projects/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) console.warn('data/projects save:', await res.text());
+  } catch (e) {
+    console.warn('data/projects save failed', e);
+  }
+}
+
+function setExtendProgress(pct, msg, detail) {
+  const fill = document.getElementById('extendProgressFill');
+  const st = document.getElementById('extendModalStatus');
+  if (fill) fill.style.width = pct + '%';
+  if (st) st.textContent = msg;
+  const detEl = document.getElementById('extendModalStatusDetail');
+  if (detEl) {
+    const d = detail == null ? '' : String(detail);
+    if (d) {
+      detEl.textContent = 'Project: ' + d;
+      detEl.style.display = '';
+    } else {
+      detEl.textContent = '';
+      detEl.style.display = 'none';
+    }
+  }
+}
+
+function renderExtendKeywordChips() {
+  const wrap = document.getElementById('extendKeywordWrap');
+  const input = document.getElementById('extendKeywordInput');
+  if (!wrap || !input) return;
+  wrap.querySelectorAll('.tag-chip').forEach(c => c.remove());
+  extendKeywords.forEach((kw, i) => {
+    const chip = document.createElement('span');
+    chip.className = 'tag-chip';
+    chip.innerHTML = `${esc(kw)}<span class="tag-chip-remove" title="Remove">×</span>`;
+    chip.querySelector('.tag-chip-remove').addEventListener('click', () => {
+      extendKeywords.splice(i, 1);
+      renderExtendKeywordChips();
+    });
+    wrap.insertBefore(chip, input);
+  });
+}
+
+function addExtendKeyword(raw) {
+  raw.split(',').map(s => s.trim().toLowerCase().replace(/\s+/g, ' ')).filter(Boolean).forEach(k => {
+    if (k.length > 0 && !extendKeywords.includes(k)) extendKeywords.push(k);
+  });
+  renderExtendKeywordChips();
+}
+
+function flushExtendKeywordInput() {
+  const input = document.getElementById('extendKeywordInput');
+  if (!input) return;
+  const val = input.value.trim();
+  if (val) { addExtendKeyword(val); input.value = ''; }
+}
+
+function allExtendLangLabels() {
+  const seen = new Set();
+  const out = [];
+  for (const l of EXTEND_LANG_OPTIONS) {
+    const k = l.toLowerCase();
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.push(l);
+  }
+  for (const l of extendExtraLangs) {
+    const t = String(l || '').trim();
+    if (!t) continue;
+    const k = t.toLowerCase();
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.push(t);
+  }
+  return out;
+}
+
+function renderExtendLangChips() {
+  const wrap = document.getElementById('extendLangChips');
+  if (!wrap) return;
+  wrap.innerHTML = allExtendLangLabels()
+    .map((l) => {
+      const dot = `<span class="lang-dot" style="background:${getLangColor(l)};width:7px;height:7px;display:inline-block;border-radius:50%"></span>`;
+      return `<button type="button" class="lang-toggle" data-extend-lang="${escAttr(l)}">${dot} ${esc(l)}</button>`;
+    })
+    .join('');
+  wrap.querySelectorAll('.lang-toggle').forEach((btn) => {
+    const lang = btn.getAttribute('data-extend-lang');
+    if (extendSelectedLangs.has(lang)) btn.classList.add('active');
+    btn.addEventListener('click', () => {
+      if (extendSelectedLangs.has(lang)) {
+        extendSelectedLangs.delete(lang);
+        btn.classList.remove('active');
+      } else {
+        extendSelectedLangs.add(lang);
+        btn.classList.add('active');
+      }
+    });
+  });
+}
+
+function wireExtendResultPresets() {
+  document.querySelectorAll('#extendSearchModal .extend-result-preset').forEach(btn => {
+    btn.replaceWith(btn.cloneNode(true));
+  });
+  document.querySelectorAll('#extendSearchModal .extend-result-preset').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#extendSearchModal .extend-result-preset').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const hid = document.getElementById('extendMaxResults');
+      if (hid) hid.value = btn.getAttribute('data-val') || '100';
+    });
+  });
+}
+
+function openExtendSearchModal() {
+  if (!S.projectFname) return;
+  extendKeywords = [];
+  extendSelectedLangs.clear();
+  extendExtraLangs = [];
+  const elx = document.getElementById('extendExtraLangInput');
+  if (elx) elx.value = '';
+  const input = document.getElementById('extendKeywordInput');
+  if (input) input.value = '';
+  document.getElementById('extendMaxResults').value = '100';
+  document.getElementById('extendProgressSection').style.display = 'none';
+  document.getElementById('extendRunBtn').disabled = false;
+  document.getElementById('extendCancelBtn').textContent = 'Cancel';
+  setExtendProgress(0, '');
+  applyDiscoveryForm('extend', (S.projectLoaded && S.projectLoaded.searchOptions) ? S.projectLoaded.searchOptions : null);
+  renderExtendKeywordChips();
+  renderExtendLangChips();
+  wireExtendResultPresets();
+  document.querySelectorAll('#extendSearchModal .extend-result-preset').forEach(b => {
+    b.classList.toggle('active', b.getAttribute('data-val') === '100');
+  });
+  const sub = document.getElementById('extendSearchSubtitle');
+  if (sub) sub.textContent = 'Adding repos to: ' + (S.projectLoaded && S.projectLoaded.name ? S.projectLoaded.name : S.projectFname);
+  document.getElementById('extendSearchModal').classList.add('open');
+  setTimeout(() => { if (input) input.focus(); }, 50);
+}
+
+function closeExtendSearchModal() {
+  if (extendSearching) return;
+  document.getElementById('extendSearchModal').classList.remove('open');
+}
+
+function handleExtendSearchBackdrop(e) {
+  if (e.target === document.getElementById('extendSearchModal')) closeExtendSearchModal();
+}
+
+function openExtendAiKeywordsModal() {
+  const st = document.getElementById('extendAiKeywordsStatus');
+  if (st) st.textContent = '';
+  document.getElementById('extendAiKeywordsModal').classList.add('open');
+}
+
+function closeExtendAiKeywordsModal() {
+  document.getElementById('extendAiKeywordsModal').classList.remove('open');
+}
+
+function handleExtendAiKeywordsBackdrop(e) {
+  if (e.target === document.getElementById('extendAiKeywordsModal')) closeExtendAiKeywordsModal();
+}
+
+async function runExtendAiKeywordsGenerate() {
+  const ta = document.getElementById('extendAiKeywordsInput');
+  const st = document.getElementById('extendAiKeywordsStatus');
+  const btn = document.getElementById('extendAiKeywordsRunBtn');
+  const text = ta ? ta.value.trim() : '';
+  if (!text) {
+    if (st) st.textContent = 'Enter a description first.';
+    return;
+  }
+  btn.disabled = true;
+  st.textContent = 'Generating…';
+  const apiPrefix = typeof API_BASE === 'string' ? API_BASE : '';
+  try {
+    const res = await fetch(`${apiPrefix}/api/ai/keywords`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      st.textContent = data.error || `Error ${res.status}`;
+      return;
+    }
+    const kws = Array.isArray(data.keywords) ? data.keywords : [];
+    if (!kws.length) {
+      st.textContent = 'No keywords returned.';
+      return;
+    }
+    kws.forEach((k) => addExtendKeyword(k));
+    closeExtendAiKeywordsModal();
+  } catch (err) {
+    st.textContent = err.message || 'Request failed';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function persistMergedProjectMeta() {
+  if (!S.projectFname || !S.projectLoaded) return;
+  const base = vfsGet(S.projectFname) || S.projectLoaded || {};
+  const langMap = {};
+  S.repos.forEach(r => { if (r.language) langMap[r.language]=(langMap[r.language]||0)+1; });
+  const topLangs = Object.entries(langMap).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([l])=>l);
+  S.projectLoaded.keywords = S.projectLoaded.keywords || [];
+  S.projectLoaded.languages = S.projectLoaded.languages || [];
+  S.projectLoaded.topLangs = topLangs;
+  S.projectLoaded.repoCount = S.repos.length;
+  S.projectLoaded.repos = [...S.repos];
+  vfsPut({
+    ...base,
+    _fname: S.projectFname,
+    repos: reposForPersistence(S.repos),
+    keywords: [...S.projectLoaded.keywords],
+    languages: [...S.projectLoaded.languages],
+    repoCount: S.repos.length,
+    topLangs,
+    searchOptions: S.projectLoaded.searchOptions || base.searchOptions,
+  });
+  void persistProjectFileOnServer();
+}
+
+async function runExtendSearchMerge() {
+  flushExtendKeywordInput();
+  if (!extendKeywords.length) {
+    alert('Add at least one keyword.');
+    document.getElementById('extendKeywordInput').focus();
+    return;
+  }
+  const maxResults = Math.min(parseInt(document.getElementById('extendMaxResults').value, 10) || 200, 1000);
+  extendSearching = true;
+  document.getElementById('extendRunBtn').disabled = true;
+  document.getElementById('extendCancelBtn').textContent = 'Running…';
+  document.getElementById('extendProgressSection').style.display = '';
+  try {
+    if (typeof runGitHubRepoDiscovery !== 'function') {
+      throw new Error('github-discovery.js not loaded');
+    }
+    const discoveryOpt = readDiscoveryOptions('extend');
+    const extractPkgs = readExtractPackages('extend');
+    const ctxName = (S.projectLoaded && S.projectLoaded.name) || S.projectFname || 'this project';
+    const progressCtx = (detail) => (detail ? `${ctxName}\n${detail}` : ctxName);
+    const extendDiscoveryProgress = (pct, msg, detail) =>
+      setExtendProgress(pct, msg, progressCtx(detail));
+    const reposRaw = await runGitHubRepoDiscovery({
+      keywords: extendKeywords,
+      langs: [...extendSelectedLangs],
+      maxResults,
+      options: discoveryOpt,
+      ghFetch,
+      sleep,
+      onProgress: extendDiscoveryProgress,
+    });
+    setExtendProgress(
+      90,
+      `Enriching ${reposRaw.length} repos…`,
+      progressCtx(
+        `Commit counts per repo${extractPkgs ? '; scanning trees for package manifests' : ''}`
+      )
+    );
+    const enriched = await enrichRepos(reposRaw, extendDiscoveryProgress, { extractPackagesOnSearch: extractPkgs });
+    setExtendProgress(
+      95,
+      'Merging into project…',
+      progressCtx('Skipping repos already in this project (by id or full name)')
+    );
+
+    const seenId = new Set(S.repos.map(r => r.id));
+    const seenSlug = new Set(
+      S.repos.map(r => (r.full_name || '').toLowerCase()).filter(Boolean)
+    );
+    const added = [];
+    for (const row of enriched) {
+      const slug = (row.full_name || '').toLowerCase();
+      if (seenId.has(row.id) || (slug && seenSlug.has(slug))) continue;
+      seenId.add(row.id);
+      if (slug) seenSlug.add(slug);
+      const norm = normalizeRepoRecord(row);
+      if (norm) added.push(norm);
+    }
+
+    const prevKw = S.projectLoaded.keywords || [];
+    const mergedKw = [...prevKw];
+    extendKeywords.forEach(k => { if (!mergedKw.includes(k)) mergedKw.push(k); });
+    S.projectLoaded.keywords = mergedKw;
+
+    const langUnion = new Set([...(S.projectLoaded.languages || []), ...extendSelectedLangs]);
+    S.projectLoaded.languages = [...langUnion];
+    S.projectLoaded.searchOptions = { ...discoveryOpt, extractPackagesOnSearch: extractPkgs };
+
+    S.repos = S.repos.concat(added);
+    persistMergedProjectMeta();
+
+    document.getElementById('projectKw').textContent =
+      `${S.projectFname}.json · ${mergedKw.slice(0, 3).join(', ')}`;
+
+    setExtendProgress(
+      100,
+      `Done. Added ${added.length} new repo${added.length === 1 ? '' : 's'} (${enriched.length} from search, ${enriched.length - added.length} already in project).`,
+      progressCtx('Search finished')
+    );
+    extendSearching = false;
+    document.getElementById('extendRunBtn').disabled = false;
+    document.getElementById('extendCancelBtn').textContent = 'Cancel';
+    renderLangFilter();
+    renderTable();
+    closeExtendSearchModal();
+  } catch (err) {
+    setExtendProgress(0, `Error: ${err.message}`);
+    document.getElementById('extendRunBtn').disabled = false;
+    document.getElementById('extendCancelBtn').textContent = 'Cancel';
+    extendSearching = false;
+  }
+}
+
+/* ── Canonical repo shape (matches enrichRepos on index.html) ─── */
+function normalizeRepoRecord(r) {
+  if (!r || r.id == null) return null;
+  const readme = typeof r.readme === 'string' ? r.readme : '';
+  const readme_fetched = !!r.readme_fetched || readme.length > 0;
+  const packages = Array.isArray(r.packages) ? r.packages : [];
+  const stack_fetched = !!r.stack_fetched || packages.length > 0;
+  return {
+    id: r.id,
+    name: r.name ?? '',
+    full_name: r.full_name ?? '',
+    description: r.description ?? '',
+    html_url: r.html_url ?? '',
+    homepage: r.homepage ?? '',
+    language: r.language ?? '',
+    stars: Number(r.stars) || 0,
+    forks: Number(r.forks) || 0,
+    open_issues: Number(r.open_issues) || 0,
+    created_at: r.created_at ?? '',
+    pushed_at: r.pushed_at ?? '',
+    topics: Array.isArray(r.topics) ? r.topics : [],
+    license: r.license ?? '',
+    archived: !!r.archived,
+    commit_count: r.commit_count == null ? null : Number(r.commit_count),
+    default_branch: r.default_branch ?? '',
+    readme,
+    readme_fetched,
+    stack_fetched,
+    packages,
+  };
+}
+
+function normalizeRepoList(arr) {
+  if (!Array.isArray(arr)) return [];
+  return arr.map(normalizeRepoRecord).filter(Boolean);
+}
+
+function normalizeProjectMeta(raw, fname) {
+  if (!raw || typeof raw !== 'object') return null;
+  const n = Number(raw.schemaVersion);
+  return {
+    ...raw,
+    _fname: raw._fname || fname,
+    schemaVersion: Number.isFinite(n) && n > 0 ? n : 1,
+    repos: normalizeRepoList(raw.repos),
+  };
+}
+
+/* ── Project JSON load (file is canonical for repos) ─── */
+async function fetchProjectJson(fname) {
+  const safe = encodeURIComponent(fname);
+  const urls = [
+    `data/projects/${safe}.json`,
+    `data/${safe}.json`,
+    `${safe}.json`,
+  ];
+  for (const url of urls) {
+    try {
+      const res = await fetch(url);
+      if (res.ok) {
+        const j = await res.json();
+        return normalizeProjectMeta(j, fname);
+      }
+    } catch (e) { /* next */ }
+  }
+  return null;
+}
+
+/** Use VFS repos only when the key exists (user saved edits); else JSON file repos. */
+function resolveProjectRepos(fetched, vfsP) {
+  const fromFile = fetched && Array.isArray(fetched.repos) ? fetched.repos : [];
+  if (vfsP && Object.prototype.hasOwnProperty.call(vfsP, 'repos')) {
+    return Array.isArray(vfsP.repos) ? vfsP.repos : [];
+  }
+  return fromFile;
+}
+
+/* ── Repo lists per project (IndexedDB; localStorage legacy + fallback) ─── */
+const OSS_REPO_LISTS_KEY = 'oss-repo-lists-v1';
+const OSS_IDB_NAME = 'oss-intelligence';
+const OSS_IDB_VER = 1;
+const OSS_IDB_LISTS = 'repoLists';
+/** Prefix for custom list tab ids (`custom:` is 7 chars — do not use slice(8)). */
+const REPO_LIST_CUSTOM_PREFIX = 'custom:';
+
+let _ossIdbPromise = null;
+function openOssIDB() {
+  if (!window.indexedDB) return Promise.reject(new Error('no idb'));
+  if (_ossIdbPromise) return _ossIdbPromise;
+  _ossIdbPromise = new Promise((resolve, reject) => {
+    const req = indexedDB.open(OSS_IDB_NAME, OSS_IDB_VER);
+    req.onerror = () => reject(req.error);
+    req.onsuccess = () => resolve(req.result);
+    req.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(OSS_IDB_LISTS)) db.createObjectStore(OSS_IDB_LISTS);
+    };
+  });
+  return _ossIdbPromise;
+}
+
+function repoListsReadAllLegacy() {
+  try {
+    const store = _getStore();
+    const raw = store && store.getItem(OSS_REPO_LISTS_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) { return {}; }
+}
+
+function repoListsWriteAllLegacy(obj) {
+  try {
+    const store = _getStore();
+    if (store) store.setItem(OSS_REPO_LISTS_KEY, JSON.stringify(obj));
+  } catch (e) {}
+}
+
+async function idbGetRepoListBucket(fname) {
+  const db = await openOssIDB();
+  return new Promise((resolve, reject) => {
+    const t = db.transaction(OSS_IDB_LISTS, 'readonly');
+    const r = t.objectStore(OSS_IDB_LISTS).get(fname);
+    r.onsuccess = () => resolve(r.result);
+    r.onerror = () => reject(r.error);
+  });
+}
+
+async function idbPutRepoListBucket(fname, bucket) {
+  const db = await openOssIDB();
+  return new Promise((resolve, reject) => {
+    const t = db.transaction(OSS_IDB_LISTS, 'readwrite');
+    t.oncomplete = () => resolve();
+    t.onerror = () => reject(t.error);
+    t.objectStore(OSS_IDB_LISTS).put(bucket, fname);
+  });
+}
+
+async function hydrateRepoListBucket(fname) {
+  S.repoListsUseLS = false;
+  S.repoListBucket = normalizeRepoListBucket(null);
+  if (!window.indexedDB) {
+    S.repoListsUseLS = true;
+    const all = repoListsReadAllLegacy();
+    S.repoListBucket = normalizeRepoListBucket(all[fname]);
+    return;
+  }
+  try {
+    await openOssIDB();
+    let raw = await idbGetRepoListBucket(fname);
+    if (raw == null) {
+      const all = repoListsReadAllLegacy();
+      if (all[fname] != null) {
+        raw = all[fname];
+        const norm = normalizeRepoListBucket(raw);
+        await idbPutRepoListBucket(fname, norm);
+      }
+    }
+    S.repoListBucket = normalizeRepoListBucket(raw);
+  } catch (e) {
+    S.repoListsUseLS = true;
+    const all = repoListsReadAllLegacy();
+    S.repoListBucket = normalizeRepoListBucket(all[fname]);
+  }
+}
+
+function escAttr(s) {
+  return String(s ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+function normalizeRepoListBucket(raw) {
+  if (!raw || typeof raw !== 'object') {
+    return { activeTab: 'all', favourites: [], customLists: [] };
+  }
+  const customLists = Array.isArray(raw.customLists)
+    ? raw.customLists
+        .filter(c => c && typeof c.id === 'string' && typeof c.name === 'string')
+        .map(c => ({
+          id: c.id,
+          name: c.name,
+          items: Array.isArray(c.items) ? [...new Set(c.items.filter(Boolean))] : []
+        }))
+    : [];
+  let activeTab = raw.activeTab;
+  if (activeTab !== 'all' && activeTab !== 'favourite') {
+    if (typeof activeTab === 'string' && activeTab.startsWith(REPO_LIST_CUSTOM_PREFIX)) {
+      const cid = activeTab.slice(REPO_LIST_CUSTOM_PREFIX.length);
+      if (!customLists.some(c => c.id === cid)) activeTab = 'all';
+    } else activeTab = 'all';
+  }
+  return {
+    activeTab,
+    favourites: Array.isArray(raw.favourites) ? [...new Set(raw.favourites.filter(Boolean))] : [],
+    customLists
+  };
+}
+
+function getRepoListBucket() {
+  if (!S.projectFname) return normalizeRepoListBucket(null);
+  if (!S.repoListBucket) S.repoListBucket = normalizeRepoListBucket(null);
+  return S.repoListBucket;
+}
+
+function saveRepoListBucket(state) {
+  if (!S.projectFname) return;
+  const norm = normalizeRepoListBucket(state);
+  S.repoListBucket = norm;
+  if (S.repoListsUseLS) {
+    const all = repoListsReadAllLegacy();
+    all[S.projectFname] = norm;
+    repoListsWriteAllLegacy(all);
+    return;
+  }
+  idbPutRepoListBucket(S.projectFname, norm).catch(() => {
+    S.repoListsUseLS = true;
+    const all = repoListsReadAllLegacy();
+    all[S.projectFname] = norm;
+    repoListsWriteAllLegacy(all);
+  });
+}
+
+function setActiveRepoListTab(tab) {
+  const b = getRepoListBucket();
+  b.activeTab = tab;
+  saveRepoListBucket(b);
+  renderTable();
+}
+
+function repoListAddButtonsHtml(slugAttr) {
+  const b = getRepoListBucket();
+  const tab = b.activeTab;
+  let h = '';
+  if (tab !== 'favourite') {
+    h += `<button type="button" class="repo-list-btn repo-add-to-list" data-slug="${slugAttr}" data-list-target="favourite" title="Add to Favourite">+ Favourite</button>`;
+  }
+  b.customLists.forEach(c => {
+    const target = REPO_LIST_CUSTOM_PREFIX + c.id;
+    if (tab === target) return;
+    h += `<button type="button" class="repo-list-btn repo-add-to-list" data-slug="${slugAttr}" data-list-target="${escAttr(target)}" title="Add to ${escAttr(c.name)}">+ ${esc(c.name)}</button>`;
+  });
+  return h;
+}
+
+function renderRepoListTabs() {
+  const wrap = document.getElementById('repoListTabs');
+  if (!wrap) return;
+  wrap.replaceChildren();
+  const b = getRepoListBucket();
+  const cur = b.activeTab;
+  function addTab(tabId, label) {
+    const el = document.createElement('button');
+    el.type = 'button';
+    el.className = 'list-tab' + (cur === tabId ? ' active' : '');
+    el.textContent = label;
+    el.dataset.repoListTab = tabId;
+    el.addEventListener('click', () => setActiveRepoListTab(tabId));
+    wrap.appendChild(el);
+  }
+  addTab('all', 'All');
+  addTab('favourite', 'Favourite');
+  const addListBtn = document.createElement('button');
+  addListBtn.type = 'button';
+  addListBtn.className = 'tab-add-btn';
+  addListBtn.textContent = 'Add list';
+  addListBtn.title = 'Create a new custom list';
+  addListBtn.addEventListener('click', () => promptAndAddCustomRepoList());
+  wrap.appendChild(addListBtn);
+  b.customLists.forEach(c => addTab(REPO_LIST_CUSTOM_PREFIX + c.id, c.name));
+}
+
+function filterReposByListTab(repos, tab, b) {
+  if (tab === 'all') return repos;
+  if (tab === 'favourite') {
+    const set = new Set(b.favourites);
+    return repos.filter(r => set.has(r.full_name));
+  }
+  if (tab.startsWith(REPO_LIST_CUSTOM_PREFIX)) {
+    const id = tab.slice(REPO_LIST_CUSTOM_PREFIX.length);
+    const list = b.customLists.find(c => c.id === id);
+    if (!list) return [];
+    const set = new Set(list.items);
+    return repos.filter(r => set.has(r.full_name));
+  }
+  return repos;
+}
+
+function addRepoToStoredList(targetValue, fullName) {
+  const b = getRepoListBucket();
+  if (targetValue === 'favourite') {
+    if (!b.favourites.includes(fullName)) b.favourites.push(fullName);
+  } else if (targetValue.startsWith(REPO_LIST_CUSTOM_PREFIX)) {
+    const id = targetValue.slice(REPO_LIST_CUSTOM_PREFIX.length);
+    const list = b.customLists.find(c => c.id === id);
+    if (list && !list.items.includes(fullName)) list.items.push(fullName);
+  }
+  saveRepoListBucket(b);
+  renderTable();
+}
+
+function removeRepoFromActiveListTab(fullName) {
+  const b = getRepoListBucket();
+  const tab = b.activeTab;
+  if (tab === 'all') return;
+  if (tab === 'favourite') {
+    b.favourites = b.favourites.filter(s => s !== fullName);
+  } else if (tab.startsWith(REPO_LIST_CUSTOM_PREFIX)) {
+    const id = tab.slice(REPO_LIST_CUSTOM_PREFIX.length);
+    const list = b.customLists.find(c => c.id === id);
+    if (list) list.items = list.items.filter(s => s !== fullName);
+  }
+  saveRepoListBucket(b);
+  renderTable();
+}
+
+function removeRepoSlugFromAllStoredLists(fullName) {
+  const b = getRepoListBucket();
+  b.favourites = b.favourites.filter(s => s !== fullName);
+  b.customLists.forEach(c => { c.items = c.items.filter(s => s !== fullName); });
+  saveRepoListBucket(b);
+}
+
+function promptAndAddCustomRepoList() {
+  const name = prompt('Name for the new list');
+  if (name == null) return;
+  const t = String(name).trim();
+  if (!t) return;
+  addCustomRepoList(t);
+}
+
+function addCustomRepoList(name) {
+  const trimmed = String(name || '').trim();
+  if (!trimmed) return;
+  const b = getRepoListBucket();
+  const id = 'cl_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+  b.customLists.push({ id, name: trimmed, items: [] });
+  saveRepoListBucket(b);
+  renderTable();
+}
+
+function persistProjectRepos() {
+  if (!S.projectFname) return;
+  const base = vfsGet(S.projectFname) || S.projectLoaded || {};
+  vfsPut({ ...base, _fname: S.projectFname, repos: reposForPersistence(S.repos) });
+  S.projectLoaded = { ...S.projectLoaded, repos: [...S.repos] };
+  void persistProjectFileOnServer();
+}
+
+function deleteRepoFromProject(fullName) {
+  if (!confirm(`Remove "${fullName}" from this project?`)) return;
+  const r = S.repos.find(x => x.full_name === fullName);
+  if (r) {
+    const rid = String(r.id);
+    S.openRows.delete(rid);
+    delete S.openTabs[rid];
+    delete S.aiSessions[rid];
+  }
+  S.repos = S.repos.filter(x => x.full_name !== fullName);
+  removeRepoSlugFromAllStoredLists(fullName);
+  persistProjectRepos();
+  renderLangFilter();
+  renderTable();
+}
+
+function handleRepoListClick(e) {
+  const readmePrev = e.target.closest('.readme-preview');
+  if (readmePrev) {
+    if (e.target.closest('a')) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const slug = readmePrev.dataset.readmeSlug;
+    const r = S.repos.find(x => x.full_name === slug);
+    if (r && r.readme) openReadmeFullscreenModal(slug, r.readme);
+    return;
+  }
+  const addBtn = e.target.closest('.repo-add-to-list');
+  if (addBtn) {
+    e.preventDefault();
+    e.stopPropagation();
+    const target = addBtn.dataset.listTarget;
+    const slug = addBtn.dataset.slug;
+    if (target && slug) addRepoToStoredList(target, slug);
+    return;
+  }
+  const remBtn = e.target.closest('.repo-remove-from-list');
+  if (remBtn) {
+    e.preventDefault();
+    e.stopPropagation();
+    removeRepoFromActiveListTab(remBtn.dataset.slug);
+    return;
+  }
+  const delBtn = e.target.closest('.repo-delete-from-project');
+  if (delBtn) {
+    e.preventDefault();
+    e.stopPropagation();
+    deleteRepoFromProject(delBtn.dataset.slug);
+  }
+}
+
+/* ── State ─────────────────────────────────── */
+const S = {
+  repos:      [],           // active project repos
+  projectFname: null,
+  projectLoaded: null,
+  searchProjectSlug: '',
+  repoListBucket: null,
+  repoListsUseLS: false,
+  search:     '',
+  sortKey:    'composite',
+  langFilter: new Set(),
+  openRows:   new Set(),
+  openTabs:   {},
+  aiSessions: {},
+  models:     [],
+  modelsLoaded: false,
+  cursorModels: [],
+  cursorModelsLoaded: false,
+  pendingCursorPack: null,
+  activeModal: null,
+  aiModalOpts: { contextMode: 'repo', githubTopic: '', topicContextBlock: '' },
+  repoListRenderedCount: 0,
+  repoListObserver: null,
+  repoListLoadBusy: false,
+};
+
+const REPO_LIST_PAGE_SIZE = 20;
+
+/* ── Lang colors ────────────────────────────── */
+const LANG_COLORS = {
+  Python:'#3572A5',JavaScript:'#f1e05a',TypeScript:'#3178c6',
+  'Jupyter Notebook':'#DA5B0B',Rust:'#dea584',Go:'#00ADD8',
+  'C++':'#f34b7d','C#':'#178600',Java:'#b07219',Ruby:'#701516',
+  PHP:'#4F5D95',Swift:'#F05138',Kotlin:'#A97BFF',R:'#198CE7',
+  Solidity:'#AA6746',Shell:'#89e051',HTML:'#e34c26',CSS:'#563d7c',
+  Elixir:'#6e4a7e',Scala:'#c22d40',Haskell:'#5e5086',Lua:'#000080',
+  MATLAB:'#e16737',Perl:'#0298c3','C':'#555555',
+};
+function getLangColor(lang) { return LANG_COLORS[lang] || '#6b7280'; }
+
+
+
+/* ── Escape HTML ────────────────────────────── */
+function esc(s) {
+  return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ── Sort ───────────────────────────────────── */
+function compositeScore(r) {
+  const d = r.pushed_at ? (Date.now()-new Date(r.pushed_at))/86400000 : 9999;
+  return Math.exp(-d/200)*1000 + Math.log1p(r.commit_count||0)*50 + Math.log1p(r.stars||0)*30;
+}
+const SORT_FNS = {
+  composite:   (a,b) => compositeScore(b)-compositeScore(a),
+  last_commit: (a,b) => (b.pushed_at||'').localeCompare(a.pushed_at||''),
+  commits:     (a,b) => (b.commit_count||0)-(a.commit_count||0),
+  stars:       (a,b) => (b.stars||0)-(a.stars||0),
+  forks:       (a,b) => (b.forks||0)-(a.forks||0),
+  name:        (a,b) => a.name.localeCompare(b.name),
+};
+
+/* ── Filters ────────────────────────────────── */
+const SEARCH_FIELD_PREFIX = /^@(name|package|description|topic):\s*(.*)$/i;
+
+function parseSearchQuery(raw) {
+  const q = String(raw ?? '').trim();
+  const m = q.match(SEARCH_FIELD_PREFIX);
+  if (m) return { scope: m[1].toLowerCase(), needle: m[2].trim() };
+  return { scope: 'all', needle: q };
+}
+
+function matchesSearch(r, q) {
+  const { scope, needle } = parseSearchQuery(q);
+  const ql = needle.toLowerCase();
+  if (scope === 'all') {
+    if (!needle) return true;
+    const hay = [r.name, r.full_name, r.description || '', (r.topics || []).join(' '),
+      (r.packages || []).map(p => p.name).join(' '), r.language || '']
+      .join(' ').toLowerCase();
+    return hay.includes(ql);
+  }
+  if (!needle) return true;
+  if (scope === 'name') {
+    return [r.name, r.full_name].join(' ').toLowerCase().includes(ql);
+  }
+  if (scope === 'package') {
+    return (r.packages || []).map(p => p.name).join(' ').toLowerCase().includes(ql);
+  }
+  if (scope === 'description') {
+    return (r.description || '').toLowerCase().includes(ql);
+  }
+  if (scope === 'topic') {
+    return (r.topics || []).join(' ').toLowerCase().includes(ql);
+  }
+  return true;
+}
+function filteredRepos() {
+  const q = S.search.trim();
+  const b = getRepoListBucket();
+  const listTab = b.activeTab;
+  const byList = filterReposByListTab([...S.repos], listTab, b);
+  return byList.sort(SORT_FNS[S.sortKey]||SORT_FNS.composite)
+    .filter(r => matchesSearch(r, q) && (S.langFilter.size===0 || S.langFilter.has(r.language)));
+}
+
+/* ── Format helpers ─────────────────────────── */
+function fmtN(n) { if(!n)return'0'; if(n>=1000)return(n/1000).toFixed(1)+'k'; return String(n); }
+function fmtDate(iso) {
+  if(!iso)return'—';
+  const d=new Date(iso), days=(Date.now()-d)/86400000;
+  if(days<2) return '<span class="date-fresh">Today/Recent</span>';
+  if(days<14)return `<span class="date-fresh">${Math.round(days)}d ago</span>`;
+  if(days>730)return `<span class="date-old">${d.toLocaleDateString('en-US',{year:'numeric',month:'short'})}</span>`;
+  return d.toLocaleDateString('en-US',{year:'numeric',month:'short'});
+}
+function fmtDateShort(iso) {
+  if(!iso)return'—';
+  return new Date(iso).toLocaleDateString('en-US',{year:'numeric',month:'short'});
+}
+
+/* ── Markdown ───────────────────────────────── */
+function parseMarkdown(src) {
+  if (typeof marked==='undefined') {
+    return `<pre style="white-space:pre-wrap;word-break:break-word;font-size:var(--text-xs);color:var(--text-muted)">${esc(src)}</pre>`;
+  }
+  return marked.parse(src).replace(/<a href="/g,'<a target="_blank" rel="noopener noreferrer" href="');
+}
+
+function openReadmeFullscreenModal(slug, md) {
+  if (!md) return;
+  const backdrop = document.getElementById('readmeFullscreenModal');
+  document.getElementById('readmeFsTitle').textContent = slug || 'README';
+  document.getElementById('readmeFsBody').innerHTML = parseMarkdown(md);
+  backdrop.classList.add('open');
+}
+
+function closeReadmeFullscreenModal() {
+  const backdrop = document.getElementById('readmeFullscreenModal');
+  if (!backdrop) return;
+  backdrop.classList.remove('open');
+  const body = document.getElementById('readmeFsBody');
+  if (body) body.innerHTML = '';
+}
+
+/* ── RENDER: Single row ─────────────────────── */
+function onAiRowButtonClick(repoId, modalOpts) {
+  openModal(repoId, modalOpts || {});
+}
+
+function renderRow(r) {
+  const id        = String(r.id);
+  const isOpen    = S.openRows.has(id);
+  let activeTab   = S.openTabs[id] || 'readme';
+  if (activeTab === 'ai') activeTab = 'readme';
+  const langColor = getLangColor(r.language);
+  const daysSince = r.pushed_at ? (Date.now()-new Date(r.pushed_at))/86400000 : 9999;
+  const topicsHtml = (r.topics||[]).slice(0,8)
+    .map(t=>`<span class="topic-chip">${esc(t)}</span>`).join('');
+
+  const listTab = getRepoListBucket().activeTab;
+  const showListRemove = listTab !== 'all';
+  const slugAttr = escAttr(r.full_name);
+  const listRow = `
+      <div class="repo-list-actions">
+        ${repoListAddButtonsHtml(slugAttr)}
+        ${showListRemove ? `<button type="button" class="repo-list-btn repo-remove-from-list" data-slug="${slugAttr}">Remove from list</button>` : ''}
+        <button type="button" class="repo-list-btn danger repo-delete-from-project" data-slug="${slugAttr}">Delete</button>
+      </div>`;
+
+  const metaParts = [
+    `<span class="row-meta-item"><a href="${esc(r.html_url)}" target="_blank" rel="noopener">⬡ GitHub</a></span>`,
+    r.homepage ? `<span class="row-meta-sep">·</span><span class="row-meta-item"><a href="${esc(r.homepage)}" target="_blank" rel="noopener">🌐 Website</a></span>` : '',
+    `<span class="row-meta-sep">·</span><span class="row-meta-item">📅 Created ${fmtDateShort(r.created_at)}</span>`,
+    r.license ? `<span class="row-meta-sep">·</span><span class="row-meta-item">📄 ${esc(r.license)}</span>` : '',
+    `<span class="row-meta-sep">·</span><span class="row-meta-item" style="color:${r.archived?'var(--orange)':daysSince<90?'var(--green)':daysSince>730?'var(--orange)':'var(--text-muted)'}">${r.archived?'Archived':daysSince<7?'Active now':daysSince<90?'Active':daysSince>730?'Stale':'Maintained'}</span>`,
+  ].filter(Boolean).join('');
+
+  const tabs = [
+    { key:'readme', label:'README' },
+    { key:'stack',  label:'Stack & Topics' },
+  ];
+
+  const tabBtns  = tabs.map(t=>`<button class="tab-btn${activeTab===t.key?' active':''}" data-tab="${t.key}">${t.label}</button>`).join('');
+  const tabPanes = [
+    `<div class="tab-pane${activeTab==='readme'?' active':''}" data-pane="readme">${buildReadmePane(r)}</div>`,
+    `<div class="tab-pane${activeTab==='stack'?' active':''}" data-pane="stack">${buildStackPane(r)}</div>`,
+  ].join('');
+
+  return `
+<div class="repo-row${r.archived?' archived':''}${isOpen?' open':''}" data-id="${id}">
+  <div class="repo-summary">
+    <div class="col-toggle"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M4 2l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="col-main">
+      <div class="repo-name-row">
+        <span class="repo-owner">${esc(r.full_name.split('/')[0])}/</span>
+        <span class="repo-name">${esc(r.name)}</span>
+        ${r.archived?'<span class="archived-badge">archived</span>':''}
+      </div>
+      <div class="repo-desc">${esc(r.description||'No description')}</div>
+      ${topicsHtml?`<div class="repo-topics">${topicsHtml}</div>`:''}
+      <div class="repo-row-meta">${metaParts}</div>
+      ${listRow}
+    </div>
+    <div class="col-lang"><span class="lang-dot" style="background:${langColor}"></span><span>${esc(r.language||'—')}</span></div>
+    <div class="col-num"><strong>⭐ ${fmtN(r.stars)}</strong></div>
+    <div class="col-num">${fmtN(r.forks)}</div>
+    <div class="col-num"><strong>${r.commit_count?fmtN(r.commit_count):'—'}</strong></div>
+    <div class="col-num">${fmtDate(r.pushed_at)}</div>
+    <div class="ai-btn-cell"><button type="button" class="ai-btn" onclick="onAiRowButtonClick(${id})" title="Ask AI about this project">🤖</button></div>
+  </div>
+  <div class="repo-detail">
+    <div class="detail-inner">
+      <div class="tabs"><div class="tab-list">${tabBtns}</div></div>
+      ${tabPanes}
+    </div>
+  </div>
+</div>`;
+}
+
+/* ── Build panes: README (lazy) ─────────────── */
+function buildReadmePane(r) {
+  const fetched = !!r.readme_fetched || (typeof r.readme === 'string' && r.readme.length > 0);
+  if (fetched) {
+    if (r.readme) {
+      return `<div class="readme-wrap readme-preview" tabindex="0" role="button" data-readme-slug="${escAttr(r.full_name)}" title="Click to open full README">
+      <div class="md-body">${parseMarkdown(r.readme)}</div>
+    </div>`;
+    }
+    return '<div class="empty-state">README not available for this repository.</div>';
+  }
+  return `<div class="readme-lazy" data-repo="${esc(r.full_name)}"></div>`;
+}
+
+function stackSectionsHtmlFromPackages(r) {
+  const npmList = (r.packages || []).filter(p => p.registry === 'npm');
+  const npmProd = npmList.filter(p => !p.devDependency).map(d => ({
+    name: d.name, ver: d.version || '', desc: d.description || '',
+  }));
+  const npmDev = npmList.filter(p => p.devDependency).map(d => ({
+    name: d.name, ver: d.version || '', desc: d.description || '',
+  }));
+  const pypiDeps = (r.packages || []).filter(p => p.registry === 'pypi').map(d => ({
+    name: d.name, ver: d.version || '', desc: d.description || '',
+  }));
+  if (!npmProd.length && !npmDev.length && !pypiDeps.length) return '';
+  return (
+    renderNpmStackSection(npmProd, npmDev) +
+    renderStackSection('pypi', pypiDeps, '🐍 PyPI (from tree / search)')
+  );
+}
+
+/* ── Build panes: Stack (lazy or cached) ────────────── */
+function buildStackPane(r) {
+  const topics = r.topics||[];
+  const topicsHtml = topics.length
+    ? `<div class="topics-section" style="margin-top:0">
+        <div class="topics-label">GitHub Topics</div>
+        <div class="topics-chips">${topics.map(t=>`<span class="topic-chip">${esc(t)}</span>`).join('')}</div>
+       </div>`
+    : '';
+  const stackReady = !!r.stack_fetched || (Array.isArray(r.packages) && r.packages.length > 0);
+  if (stackReady) {
+    const inner = stackSectionsHtmlFromPackages(r);
+    if (inner) {
+      return `<div class="stack-cached">${inner}</div>${topicsHtml}`;
+    }
+    return `<div class="empty-state">No dependencies found (tree scan and root manifests).</div>${topicsHtml}`;
+  }
+  return `<div class="stack-lazy" data-repo="${esc(r.full_name)}" data-lang="${esc(r.language||'')}"></div>${topicsHtml}`;
+}
+
+function stackDepRowsHtml(deps) {
+  return deps.map(d => `
+    <div class="stack-dep">
+      <span class="stack-dep-name">${esc(d.name)}</span>
+      <span class="stack-dep-desc">${esc(d.desc||'')}</span>
+      <span class="stack-dep-ver">${esc(d.ver||'')}</span>
+    </div>`).join('');
+}
+
+/* npm: two labeled groups (dependencies vs devDependencies) */
+function renderNpmStackSection(prodDeps, devDeps) {
+  const nProd = prodDeps.length;
+  const nDev = devDeps.length;
+  const total = nProd + nDev;
+  if (!total) return '';
+  const parts = [];
+  if (nProd) {
+    parts.push(`<div class="stack-dep-group-label">dependencies</div>${stackDepRowsHtml(prodDeps)}`);
+  }
+  if (nDev) {
+    parts.push(`<div class="stack-dep-group-label">devDependencies</div>${stackDepRowsHtml(devDeps)}`);
+  }
+  const cls = 'npm';
+  return `
+  <div class="stack-section open">
+    <div class="stack-section-header" onclick="this.closest('.stack-section').classList.toggle('open')">
+      <span>📦 package.json (npm) <span class="stack-section-badge ${cls}">${total} deps</span></span>
+      <svg class="stack-section-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none">
+        <path d="M4 2l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="stack-section-body">${parts.join('')}</div>
+  </div>`;
+}
+
+/* Render a stack accordion section (pypi) */
+function renderStackSection(registry, deps, labelOverride) {
+  if (!deps.length) return '';
+  const label = labelOverride || (registry === 'npm' ? '📦 package.json (npm)' : '🐍 Dependencies (PyPI)');
+  const cls   = registry;
+  return `
+  <div class="stack-section open">
+    <div class="stack-section-header" onclick="this.closest('.stack-section').classList.toggle('open')">
+      <span>${label} <span class="stack-section-badge ${cls}">${deps.length} deps</span></span>
+      <svg class="stack-section-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none">
+        <path d="M4 2l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="stack-section-body">${stackDepRowsHtml(deps)}</div>
+  </div>`;
+}
+
+/* Lazy-load stack deps for a row. Mutates the .stack-lazy el and may set r.packages. */
+async function loadStackPane(lazyEl) {
+  lazyEl.dataset.loaded = '1';
+  const slug = lazyEl.dataset.repo;
+  lazyEl.innerHTML = `<div style="display:flex;align-items:center;gap:8px;color:var(--text-muted);font-size:13px;padding:var(--sp3) 0"><span class="spinner"></span> Loading dependencies…</div>`;
+
+  const CAP = 20;
+  async function enrichNpm(deps) {
+    const slice = deps.slice(0, CAP);
+    const descs = await Promise.all(slice.map(d => npmDesc(d.name)));
+    return slice.map((d, i) => ({ ...d, desc: descs[i] || '' }));
+  }
+  async function enrichPypi(deps) {
+    const slice = deps.slice(0, CAP);
+    const descs = await Promise.all(slice.map(d => pypiDesc(d.name)));
+    return slice.map((d, i) => ({ ...d, desc: descs[i] || '' }));
+  }
+
+  try {
+    const r = S.repos.find(x => x.full_name === slug);
+    if (!r) {
+      lazyEl.innerHTML = '<div class="empty-state">Repository not in list.</div>';
+      return;
+    }
+
+    if (!Array.isArray(r.packages) || !r.packages.length) {
+      const pkgs = await fillRepoPackagesForRecord(r);
+      r.packages = pkgs;
+      await sleep(100);
+    }
+
+    const npmRows = (r.packages || []).filter(p => p.registry === 'npm');
+    let npmProd = npmRows.filter(p => !p.devDependency).map(d => ({
+      name: d.name, ver: d.version || '', desc: d.description || '',
+    }));
+    let npmDev = npmRows.filter(p => p.devDependency).map(d => ({
+      name: d.name, ver: d.version || '', desc: d.description || '',
+    }));
+    let pypiDeps = (r.packages || []).filter(p => p.registry === 'pypi').map(d => ({
+      name: d.name, ver: d.version || '', desc: d.description || '',
+    }));
+
+    if (!npmProd.length && !npmDev.length && !pypiDeps.length) {
+      const [pkgJson, reqTxt, pyproj] = await Promise.all([
+        ghFetchFile(slug, 'package.json'),
+        ghFetchFile(slug, 'requirements.txt'),
+        ghFetchFile(slug, 'pyproject.toml'),
+      ]);
+      const rawNpm = pkgJson ? parsePackageJson(pkgJson) : [];
+      const rawNpmProd = rawNpm.filter(d => !d.dev);
+      const rawNpmDev = rawNpm.filter(d => d.dev);
+      const rawReq = reqTxt ? parseRequirementsTxt(reqTxt) : [];
+      const rawProj = pyproj ? parsePyproject(pyproj) : [];
+      if (!rawNpm.length && !rawReq.length && !rawProj.length) {
+        lazyEl.innerHTML = `<div class="empty-state">No dependencies found (tree scan and root manifests).</div>`;
+        r.stack_fetched = true;
+        persistProjectRepos();
+        return;
+      }
+      const [enrichedNpmProd, enrichedNpmDev, enrichedReq, enrichedProj] = await Promise.all([
+        rawNpmProd.length ? enrichNpm(rawNpmProd) : Promise.resolve([]),
+        rawNpmDev.length ? enrichNpm(rawNpmDev) : Promise.resolve([]),
+        rawReq.length ? enrichPypi(rawReq) : Promise.resolve([]),
+        rawProj.length ? enrichPypi(rawProj) : Promise.resolve([]),
+      ]);
+      lazyEl.innerHTML =
+        renderNpmStackSection(enrichedNpmProd, enrichedNpmDev) +
+        renderStackSection('pypi', enrichedReq, '🐍 requirements.txt (PyPI)') +
+        renderStackSection('pypi', enrichedProj, '🐍 pyproject.toml (PyPI)');
+      r.packages = [
+        ...enrichedNpmProd.map(d => ({ name: d.name, version: d.ver, registry: 'npm', description: d.desc || '', devDependency: false })),
+        ...enrichedNpmDev.map(d => ({ name: d.name, version: d.ver, registry: 'npm', description: d.desc || '', devDependency: true })),
+        ...enrichedReq.map(d => ({ name: d.name, version: d.ver, registry: 'pypi', description: d.desc || '' })),
+        ...enrichedProj.map(d => ({ name: d.name, version: d.ver, registry: 'pypi', description: d.desc || '' })),
+      ];
+      r.stack_fetched = true;
+      persistProjectRepos();
+      return;
+    }
+
+    const [enrichedNpmProd, enrichedNpmDev, enrichedPypi] = await Promise.all([
+      npmProd.length ? enrichNpm(npmProd) : Promise.resolve([]),
+      npmDev.length ? enrichNpm(npmDev) : Promise.resolve([]),
+      pypiDeps.length ? enrichPypi(pypiDeps) : Promise.resolve([]),
+    ]);
+    lazyEl.innerHTML =
+      renderNpmStackSection(enrichedNpmProd, enrichedNpmDev) +
+      renderStackSection('pypi', enrichedPypi, '🐍 PyPI (from tree / search)');
+    r.stack_fetched = true;
+    persistProjectRepos();
+  } catch (e) {
+    lazyEl.innerHTML = '<div class="empty-state">Could not load dependency data.</div>';
+  }
+}
+
+function activeTabForRow(row) {
+  const id = row.dataset.id;
+  return S.openTabs[id] || 'readme';
+}
+
+function ensureReadmeLoadedForRow(row) {
+  if (activeTabForRow(row) !== 'readme') return;
+  const pane = row.querySelector('.tab-pane[data-pane="readme"]');
+  const lazy = pane && pane.querySelector('.readme-lazy');
+  if (!lazy || lazy.dataset.loaded === '1') return;
+  lazy.dataset.loaded = '1';
+  lazy.innerHTML = `<div style="display:flex;align-items:center;gap:8px;color:var(--text-muted);font-size:13px;padding:var(--sp3) 0"><span class="spinner"></span> Loading README…</div>`;
+  const slug = lazy.dataset.repo;
+  fetchReadme(slug).then(md => {
+    const rec = S.repos.find(x => x.full_name === slug);
+    if (rec) {
+      rec.readme = md || '';
+      rec.readme_fetched = true;
+      persistProjectRepos();
+    }
+    lazy.innerHTML = md
+      ? `<div class="readme-wrap readme-preview" tabindex="0" role="button" data-readme-slug="${escAttr(slug)}" title="Click to open full README"><div class="md-body">${parseMarkdown(md)}</div></div>`
+      : '<div class="empty-state">README not available for this repository.</div>';
+  }).catch(() => {
+    const rec = S.repos.find(x => x.full_name === slug);
+    if (rec) {
+      rec.readme = '';
+      rec.readme_fetched = true;
+      persistProjectRepos();
+    }
+    lazy.innerHTML = '<div class="empty-state">Could not load README.</div>';
+  });
+}
+
+function ensureStackLoadedForRow(row) {
+  if (activeTabForRow(row) !== 'stack') return;
+  const pane = row.querySelector('.tab-pane[data-pane="stack"]');
+  const lazy = pane && pane.querySelector('.stack-lazy');
+  if (!lazy || lazy.dataset.loaded === '1') return;
+  loadStackPane(lazy);
+}
+
+function maxOpenRowIndexInList(repos) {
+  let maxIdx = -1;
+  for (let i = 0; i < repos.length; i++) {
+    if (S.openRows.has(String(repos[i].id))) maxIdx = i;
+  }
+  return maxIdx;
+}
+
+function computeRepoListRenderedCount(repos, keepListChunk) {
+  const n = repos.length;
+  if (!n) return 0;
+  const maxIdx = maxOpenRowIndexInList(repos);
+  if (keepListChunk) {
+    const need = maxIdx < 0 ? 0 : maxIdx + 1;
+    const floor = need === 0 ? S.repoListRenderedCount : Math.max(REPO_LIST_PAGE_SIZE, need);
+    return Math.min(n, Math.max(S.repoListRenderedCount, floor));
+  }
+  if (maxIdx < 0) return Math.min(REPO_LIST_PAGE_SIZE, n);
+  return Math.min(n, Math.max(REPO_LIST_PAGE_SIZE, maxIdx + 1));
+}
+
+function updateRepoListCountLabels(repos) {
+  const loaded = Math.min(S.repoListRenderedCount, repos.length);
+  const elLoaded = document.getElementById('repoLoadedCount');
+  const elFiltered = document.getElementById('filteredRepoCount');
+  if (elLoaded) elLoaded.textContent = String(loaded);
+  if (elFiltered) elFiltered.textContent = String(repos.length);
+  const tc = document.getElementById('totalCount');
+  if (tc) tc.textContent = String(S.repos.length);
+  const statShown = document.getElementById('statShown');
+  if (statShown) statShown.textContent = String(loaded);
+  document.getElementById('statTotal').textContent = String(S.repos.length);
+  document.getElementById('statAI').textContent = String(
+    Object.values(S.aiSessions).filter(s => s && s.session?.turns?.length > 0).length
+  );
+}
+
+function wireRepoRow(row) {
+  const summary = row.querySelector('.repo-summary');
+  if (!summary || summary.dataset.wired === '1') return;
+  summary.dataset.wired = '1';
+  summary.addEventListener('click', e => {
+    if (e.target.closest('.ai-btn')) return;
+    if (e.target.closest('.repo-list-actions')) return;
+    const r = summary.closest('.repo-row');
+    const id = r.dataset.id;
+    if (S.openRows.has(id)) {
+      S.openRows.delete(id);
+      r.classList.remove('open');
+    } else {
+      S.openRows.add(id);
+      r.classList.add('open');
+      ensureReadmeLoadedForRow(r);
+      ensureStackLoadedForRow(r);
+    }
+  });
+  row.querySelectorAll('.tab-btn').forEach(btn => {
+    if (btn.dataset.wired === '1') return;
+    btn.dataset.wired = '1';
+    btn.addEventListener('click', () => {
+      const r = btn.closest('.repo-row');
+      const id = r.dataset.id;
+      S.openTabs[id] = btn.dataset.tab;
+      r.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === btn.dataset.tab));
+      r.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('active', p.dataset.pane === btn.dataset.tab));
+      if (btn.dataset.tab === 'readme') ensureReadmeLoadedForRow(r);
+      if (btn.dataset.tab === 'stack') ensureStackLoadedForRow(r);
+    });
+  });
+}
+
+function wireRepoRowsIn(container) {
+  container.querySelectorAll('.repo-row').forEach(wireRepoRow);
+}
+
+function teardownRepoListObserver() {
+  if (S.repoListObserver) {
+    S.repoListObserver.disconnect();
+    S.repoListObserver = null;
+  }
+}
+
+function setupRepoListScrollObserver() {
+  teardownRepoListObserver();
+  const list = document.getElementById('repoList');
+  if (!list) return;
+  const sentinel = list.querySelector('.repo-list-sentinel');
+  if (!sentinel) return;
+  S.repoListObserver = new IntersectionObserver(
+    entries => {
+      for (const e of entries) {
+        if (!e.isIntersecting || S.repoListLoadBusy) continue;
+        const all = filteredRepos();
+        if (S.repoListRenderedCount >= all.length) continue;
+        S.repoListLoadBusy = true;
+        requestAnimationFrame(() => {
+          appendNextRepoBatch();
+          updateRepoListCountLabels(filteredRepos());
+          S.repoListLoadBusy = false;
+          const rest = filteredRepos();
+          if (S.repoListRenderedCount >= rest.length) {
+            const s = list.querySelector('.repo-list-sentinel');
+            if (s) s.remove();
+            teardownRepoListObserver();
+          }
+        });
+      }
+    },
+    { root: list, rootMargin: '200px', threshold: 0 }
+  );
+  S.repoListObserver.observe(sentinel);
+}
+
+function appendNextRepoBatch() {
+  const list = document.getElementById('repoList');
+  const sentinel = list && list.querySelector('.repo-list-sentinel');
+  if (!list || !sentinel) return;
+  const all = filteredRepos();
+  const prev = S.repoListRenderedCount;
+  if (prev >= all.length) return;
+  S.repoListRenderedCount = Math.min(prev + REPO_LIST_PAGE_SIZE, all.length);
+  const slice = all.slice(prev, S.repoListRenderedCount);
+  const html = slice.map(renderRow).join('');
+  sentinel.insertAdjacentHTML('beforebegin', html);
+  const toWire = [];
+  let el = sentinel.previousElementSibling;
+  while (toWire.length < slice.length && el) {
+    if (el.classList?.contains('repo-row')) toWire.push(el);
+    el = el.previousElementSibling;
+  }
+  toWire.reverse().forEach(wireRepoRow);
+}
+
+/* ── RENDER: Full table ─────────────────────── */
+function renderTable(options) {
+  const keepListChunk = options && options.keepListChunk === true;
+  renderRepoListTabs();
+  const repos = filteredRepos();
+  S.repoListRenderedCount = computeRepoListRenderedCount(repos, keepListChunk);
+  updateRepoListCountLabels(repos);
+
+  const infoParts = [];
+  if (S.search) infoParts.push(`"${S.search}"`);
+  if (S.langFilter.size > 0) infoParts.push([...S.langFilter].join(', '));
+  document.getElementById('activeFilterInfo').textContent =
+    infoParts.length ? `Filtered by: ${infoParts.join(' · ')}` : '';
+
+  document.querySelectorAll('.th.sortable').forEach(th => {
+    th.classList.toggle('active-sort', th.dataset.sort === S.sortKey);
+    const arrow = th.querySelector('.sort-arrow');
+    if (arrow) arrow.remove();
+    if (th.dataset.sort === S.sortKey) {
+      const a = document.createElement('span');
+      a.className = 'sort-arrow';
+      a.textContent = '↓';
+      th.appendChild(a);
+    }
+  });
+
+  const list = document.getElementById('repoList');
+  teardownRepoListObserver();
+  if (!repos.length) {
+    const msg =
+      S.repos.length === 0
+        ? 'No repositories yet. Use Add search in the header to find and add repos.'
+        : 'No projects match your filters.';
+    list.innerHTML = `<div class="no-results">${esc(msg)}</div>`;
+    return;
+  }
+
+  const chunk = repos.slice(0, S.repoListRenderedCount);
+  const more = S.repoListRenderedCount < repos.length;
+  list.innerHTML =
+    chunk.map(renderRow).join('') + (more ? '<div class="repo-list-sentinel" aria-hidden="true"></div>' : '');
+  wireRepoRowsIn(list);
+  if (more) setupRepoListScrollObserver();
+}
+
+/* ── Language filter ────────────────────────── */
+function renderLangFilter() {
+  const map = {};
+  S.repos.forEach(r => { if(r.language) map[r.language]=(map[r.language]||0)+1; });
+  const langs = Object.entries(map).sort((a,b)=>b[1]-a[1]);
+  const body = document.getElementById('fbody-lang');
+  body.innerHTML = langs.map(([lang,count]) => {
+    const active = S.langFilter.has(lang) ? ' active' : '';
+    const dot = `<span class="lang-dot" style="background:${getLangColor(lang)};width:8px;height:8px;display:inline-block;border-radius:50%"></span>`;
+    return `<button class="lang-btn${active}" data-lang="${esc(lang)}">${dot} ${esc(lang)} <span class="tag-count">${count}</span></button>`;
+  }).join('');
+  body.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const lang = btn.dataset.lang;
+      if (S.langFilter.has(lang)) { S.langFilter.delete(lang); btn.classList.remove('active'); }
+      else { S.langFilter.add(lang); btn.classList.add('active'); }
+      updateFilterBadge('lang', S.langFilter.size);
+      renderTable();
+    });
+  });
+}
+
+function toggleFilter(name) { document.getElementById(`fs-${name}`).classList.toggle('open'); }
+function updateFilterBadge(name, count) {
+  const badge = document.getElementById(`fb-${name}`); if(!badge)return;
+  badge.textContent = count; badge.style.display = count>0?'':'none';
+}
+
+/* ── Build main layout (after data loaded) ── */
+function buildLayout() {
+  const main = document.getElementById('mainArea');
+  main.innerHTML = `
+    <div class="results-bar">
+      <div class="results-count">Loaded <strong id="repoLoadedCount">0</strong> of <strong id="filteredRepoCount">0</strong> matching · <strong id="totalCount">0</strong> in project</div>
+      <div class="active-filter-info" id="activeFilterInfo"></div>
+    </div>
+    <div class="list-tabs-bar">
+      <div class="list-tabs" id="repoListTabs" aria-label="Repository lists"></div>
+    </div>
+    <div class="table-header">
+      <div></div>
+      <div class="th sortable" data-sort="name">Project</div>
+      <div class="th sortable" data-sort="language">Language</div>
+      <div class="th sortable" data-sort="stars">Stars</div>
+      <div class="th sortable" data-sort="forks">Forks</div>
+      <div class="th sortable" data-sort="commits">Commits</div>
+      <div class="th sortable" data-sort="last_commit">Last Commit</div>
+      <div class="th">AI</div>
+    </div>
+    <div class="repo-list" id="repoList">
+      <div class="no-results">Loading…</div>
+    </div>`;
+}
+
+/* ── OpenRouter ─────────────────────────────── */
+async function loadModels() {
+  if (S.modelsLoaded) return;
+  try {
+    const res = await fetch(`${API_BASE}/api/models`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'models');
+    S.models = (data.data||[]).filter(m=>(m.context_length||0)>4096)
+      .sort((a,b)=>(b.context_length||0)-(a.context_length||0)).slice(0,200);
+    S.modelsLoaded = true;
+  } catch {
+    S.models = [
+      {id:'anthropic/claude-sonnet-4-5',name:'Claude Sonnet 4.5',context_length:200000,pricing:{prompt:'0.000003',completion:'0.000015'}},
+      {id:'openai/gpt-4o',name:'GPT-4o',context_length:128000,pricing:{prompt:'0.0000025',completion:'0.00001'}},
+      {id:'openai/gpt-4o-mini',name:'GPT-4o Mini',context_length:128000,pricing:{prompt:'0.00000015',completion:'0.0000006'}},
+      {id:'google/gemini-2.0-flash-001',name:'Gemini 2.0 Flash',context_length:1048576,pricing:{prompt:'0.0000001',completion:'0.0000004'}},
+    ];
+    S.modelsLoaded = true;
+  }
+  populateModelSelect();
+}
+
+function populateModelSelect() {
+  const sel = document.getElementById('modelSelect');
+  sel.innerHTML = S.models.map(m => {
+    const ctx = m.context_length ? (m.context_length>=1e6?(m.context_length/1e6).toFixed(1)+'M':Math.round(m.context_length/1000)+'k') : '?';
+    const inp = (m.pricing?.input??m.pricing?.prompt) ? '$'+(parseFloat(m.pricing.input??m.pricing.prompt)*1e6).toFixed(2)+'/Mtok' : '?';
+    const out = (m.pricing?.output??m.pricing?.completion) ? '$'+(parseFloat(m.pricing.output??m.pricing.completion)*1e6).toFixed(2)+'/Mtok' : '?';
+    return `<option value="${esc(m.id)}" data-ctx="${ctx}" data-inp="${inp}" data-out="${out}">${esc(m.name||m.id)} — ctx:${ctx} in:${inp} out:${out}</option>`;
+  }).join('');
+  const preferred = ['claude-sonnet','gpt-4o','gemini'];
+  for (const p of preferred) {
+    const opt = Array.from(sel.options).find(o=>o.value.includes(p));
+    if (opt) { sel.value=opt.value; break; }
+  }
+  updateModelMeta();
+}
+
+function updateModelMeta() {
+  const sel=document.getElementById('modelSelect'), opt=sel.options[sel.selectedIndex];
+  document.getElementById('mdCtx').textContent=opt?.dataset.ctx||'—';
+  document.getElementById('mdInp').textContent=opt?.dataset.inp||'—';
+  document.getElementById('mdOut').textContent=opt?.dataset.out||'—';
+}
+
+function getAiProvider() {
+  return document.querySelector('input[name="aiProvider"]:checked')?.value || 'openrouter';
+}
+
+function syncAiProviderUI() {
+  const p = getAiProvider();
+  const orRow = document.getElementById('openrouterModelRow');
+  const curRow = document.getElementById('cursorModelRow');
+  const label = document.getElementById('askBtnLabel');
+  if (orRow) orRow.style.display = p === 'openrouter' ? '' : 'none';
+  if (curRow) curRow.style.display = p === 'cursor' ? '' : 'none';
+  if (label) label.textContent = p === 'cursor' ? 'Build Cursor prompt' : 'Ask AI';
+}
+
+async function loadCursorModels() {
+  if (S.cursorModelsLoaded) return;
+  try {
+    const res = await fetch(`${API_BASE}/api/cursor-models`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'cursor-models');
+    S.cursorModels = Array.isArray(data.models) ? data.models : [];
+    S.cursorModelsLoaded = true;
+  } catch {
+    S.cursorModels = [{ id: 'Composer 2 Fast', label: 'Composer 2 Fast' }];
+    S.cursorModelsLoaded = true;
+  }
+  populateCursorModelSelect();
+}
+
+function populateCursorModelSelect() {
+  const sel = document.getElementById('cursorModelSelect');
+  if (!sel) return;
+  sel.innerHTML = S.cursorModels.map(m => {
+    const id = m.id || m.label;
+    const lab = m.label || m.id;
+    return `<option value="${esc(id)}">${esc(lab)}</option>`;
+  }).join('');
+  const opt = Array.from(sel.options).find(
+    o => o.value.toLowerCase() === 'composer 2 fast' || (o.textContent || '').toLowerCase().includes('composer 2 fast'),
+  );
+  if (opt) sel.value = opt.value;
+}
+
+function renderCursorPackResult(pack) {
+  S.pendingCursorPack = pack;
+  const fp = pack.filteredPaths || [];
+  const paths = fp.slice(0, 12).map(esc).join(', ');
+  const more = fp.length > 12 ? '…' : '';
+  const repoLine = pack.fullName ? ` · ${esc(pack.fullName)}` : '';
+  const topicLine = pack.githubTopic ? ` · topic <strong>${esc(pack.githubTopic)}</strong>` : '';
+  const meta =
+    `Cursor · model: <strong>${esc(pack.cursorModel || '')}</strong>${repoLine}${topicLine}` +
+    (paths ? `<br/><span style="font-size:0.95em;opacity:0.92">Files: ${paths}${more}</span>` : '');
+  return (
+    `<div class="ai-modal-result-meta">${meta}</div>` +
+    `<p class="form-hint" style="margin:0 0 var(--sp2)">Copy into Cursor Composer and choose the model above in Cursor.</p>` +
+    `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:var(--sp2)">` +
+    `<button type="button" class="btn-secondary" onclick="copyCursorPackField('system')">Copy system</button>` +
+    `<button type="button" class="btn-secondary" onclick="copyCursorPackField('user')">Copy user</button>` +
+    `<button type="button" class="btn-primary" onclick="copyCursorPackField('all')">Copy all</button>` +
+    `</div>` +
+    `<div class="ai-turn-a"><strong>System</strong><pre class="ai-cursor-pre">${esc(pack.system || '')}</pre></div>` +
+    `<div class="ai-turn-a"><strong>User</strong><pre class="ai-cursor-pre">${esc(pack.user || '')}</pre></div>`
+  );
+}
+
+window.copyCursorPackField = function(part) {
+  const p = S.pendingCursorPack;
+  if (!p) return;
+  let t = '';
+  if (part === 'system') t = p.system || '';
+  else if (part === 'user') t = p.user || '';
+  else t = `${p.system ? `## System\n${p.system}\n\n## User\n` : ''}${p.user || ''}`;
+  navigator.clipboard.writeText(t).catch(() => {});
+};
+
+function slugFromProjectFname(fname) {
+  const s = String(fname || '').trim().toLowerCase();
+  return s.replace(/^\d+_/, '') || s;
+}
+
+function syncAiModalContextUI() {
+  const global = document.querySelector('input[name="aiContextMode"]:checked')?.value === 'global';
+  const row = document.getElementById('aiGlobalTopicRow');
+  if (row) row.style.display = global ? '' : 'none';
+}
+
+function openModal(repoId, opts = {}) {
+  const r = S.repos.find(x => String(x.id) === String(repoId));
+  if (!r) return;
+  S.activeModal = String(repoId);
+  S.aiModalOpts = {
+    contextMode: opts.contextMode === 'global' ? 'global' : 'repo',
+    githubTopic: opts.githubTopic != null ? String(opts.githubTopic) : '',
+    topicContextBlock:
+      opts.contextMode === 'global' && opts.topicContextBlock != null
+        ? String(opts.topicContextBlock)
+        : '',
+  };
+  document.getElementById('modalTitle').textContent =
+    S.aiModalOpts.contextMode === 'global'
+      ? `🌐 Global: ${r.name}`
+      : `🤖 Ask AI: ${r.name}`;
+  document.getElementById('modalSubtitle').textContent =
+    S.aiModalOpts.contextMode === 'global'
+      ? `${r.full_name} · ${S.searchProjectSlug}${S.aiModalOpts.githubTopic ? ' · #' + S.aiModalOpts.githubTopic : ''}`
+      : (r.description || '');
+  document.getElementById('modalStatus').textContent = '';
+  document.getElementById('aiPrompt').value = '';
+  document.getElementById('askBtn').disabled = false;
+  const repoRadio = document.querySelector('input[name="aiContextMode"][value="repo"]');
+  const globalRadio = document.querySelector('input[name="aiContextMode"][value="global"]');
+  if (repoRadio) repoRadio.checked = S.aiModalOpts.contextMode !== 'global';
+  if (globalRadio) globalRadio.checked = S.aiModalOpts.contextMode === 'global';
+  document.getElementById('aiGithubTopic').value = S.aiModalOpts.githubTopic;
+  syncAiModalContextUI();
+  const resBox = document.getElementById('aiModalResult');
+  if (resBox) {
+    resBox.classList.remove('visible');
+    resBox.innerHTML = '';
+  }
+  document.getElementById('aiModal').classList.add('open');
+  syncAiProviderUI();
+  if (!S.modelsLoaded) loadModels();
+  if (!S.cursorModelsLoaded) loadCursorModels();
+}
+function closeModal() {
+  document.getElementById('aiModal').classList.remove('open');
+  S.activeModal = null;
+}
+function handleModalBackdropClick(e) { if(e.target===document.getElementById('aiModal')) closeModal(); }
+
+function closeGlobalContextModal() {
+  document.getElementById('globalContextModal').classList.remove('open');
+}
+function handleGlobalContextBackdrop(e) {
+  if (e.target === document.getElementById('globalContextModal')) closeGlobalContextModal();
+}
+
+async function openGlobalContextModal() {
+  document.getElementById('globalContextModal').classList.add('open');
+  const acc = document.getElementById('globalContextAccordion');
+  const sub = document.getElementById('globalContextSubtitle');
+  if (sub) sub.textContent = `Project: ${S.searchProjectSlug} · data/global_context/${S.searchProjectSlug}/`;
+  acc.innerHTML = '<div class="empty-state">Loading…</div>';
+  try {
+    const res = await fetch(`${API_BASE}/api/global-context/${encodeURIComponent(S.searchProjectSlug)}`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || res.statusText);
+    if (!data.topics || !data.topics.length) {
+      acc.innerHTML = '<div class="empty-state">No saved global context yet. Use the row 🤖 button, choose <strong>Search project (global)</strong>, enter a GitHub topic, and ask.</div>';
+      return;
+    }
+    const baseDl = `${API_BASE}/api/global-context/${encodeURIComponent(S.searchProjectSlug)}/topic`;
+    acc.innerHTML = data.topics.map((t, i) => {
+      const dlMd = `${baseDl}/${encodeURIComponent(t.topicKey)}/download?which=md`;
+      const dlJson = `${baseDl}/${encodeURIComponent(t.topicKey)}/download?which=json`;
+      const dlZip = `${baseDl}/${encodeURIComponent(t.topicKey)}/download?which=zip`;
+      return `<div class="stack-section gc-acc${i === 0 ? ' open' : ''}">
+      <div class="stack-section-header" onclick="this.closest('.stack-section').classList.toggle('open')">
+        <span>${esc(t.label || t.topicKey)} <span class="stack-section-badge npm">${esc(t.topicKey)}</span></span>
+        <svg class="stack-section-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <path d="M4 2l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="stack-section-body">
+        <div class="md-body">${typeof marked !== 'undefined' ? parseMarkdown(t.mdPreview || '') : `<pre style="white-space:pre-wrap">${esc(t.mdPreview || '')}</pre>`}</div>
+        <div class="gc-dl-row">
+          <a class="btn-secondary" href="${dlMd}" download>Download .md</a>
+          ${t.hasJson ? `<a class="btn-secondary" href="${dlJson}" download>Download .json</a>` : ''}
+          <a class="btn-secondary" href="${dlZip}" download>Download .zip</a>
+        </div>
+      </div>
+    </div>`;
+    }).join('');
+  } catch (err) {
+    acc.innerHTML = `<div class="ai-error">Error: ${esc(err.message)}</div>`;
+  }
+}
+
+async function submitAiQuery() {
+  const id = S.activeModal;
+  if (!id) return;
+  const r = S.repos.find(x => String(x.id) === id);
+  if (!r) return;
+  const prompt = document.getElementById('aiPrompt').value.trim();
+  if (!prompt) {
+    document.getElementById('aiPrompt').focus();
+    return;
+  }
+  const provider = getAiProvider();
+  const mode = document.querySelector('input[name="aiContextMode"]:checked')?.value || 'repo';
+  const statusEl = document.getElementById('modalStatus');
+  const askBtn = document.getElementById('askBtn');
+  const resBoxStart = document.getElementById('aiModalResult');
+  if (resBoxStart) {
+    resBoxStart.classList.remove('visible');
+    resBoxStart.innerHTML = '';
+  }
+  askBtn.disabled = true;
+  let statusMsg =
+    mode === 'global'
+      ? 'Answering (global context)…'
+      : 'Cloning / selecting files / answering…';
+  if (provider === 'cursor') {
+    statusMsg =
+      mode === 'global'
+        ? 'Building Cursor prompt…'
+        : 'Cloning / selecting files / building prompt…';
+  }
+  statusEl.innerHTML =
+    '<span style="display:flex;align-items:center;gap:8px"><span class="spinner"></span> ' + statusMsg + '</span>';
+  if (mode === 'global') {
+    const ghTopic = document.getElementById('aiGithubTopic').value.trim();
+    if (!ghTopic) {
+      statusEl.innerHTML = '<div class="ai-error">Enter a GitHub topic for global mode.</div>';
+      askBtn.disabled = false;
+      document.getElementById('aiGithubTopic').focus();
+      return;
+    }
+  }
+  try {
+    const body = {
+      fullName: r.full_name,
+      prompt,
+      contextMode: mode,
+      aiProvider: provider,
+    };
+    if (provider === 'openrouter') {
+      body.userModel = document.getElementById('modelSelect').value;
+    } else if (provider === 'cursor') {
+      body.cursorModel = document.getElementById('cursorModelSelect').value;
+    }
+    if (mode === 'global') {
+      body.searchProjectSlug = S.searchProjectSlug;
+      body.githubTopic = document.getElementById('aiGithubTopic').value.trim();
+      body.topicContextBlock = S.aiModalOpts.topicContextBlock || '';
+    }
+    const res = await fetch(`${API_BASE}/api/ai/ask`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+
+    if (data.provider === 'cursor' && data.cursorPack) {
+      const pack = data.cursorPack;
+      const resBox = document.getElementById('aiModalResult');
+      if (resBox) {
+        resBox.innerHTML = renderCursorPackResult(pack);
+        resBox.classList.add('visible');
+      }
+      document.getElementById('aiPrompt').value = '';
+      statusEl.textContent = '';
+      askBtn.disabled = false;
+      return;
+    }
+
+    const turn = data.lastTurn;
+    const isGlobal = data.contextMode === 'global';
+    if (!isGlobal) {
+      let st = S.aiSessions[id];
+      if (!st) {
+        st = { session: null, loaded: true, loading: false, error: null };
+        S.aiSessions[id] = st;
+      }
+      st.session = data.session;
+      st.loaded = true;
+      st.error = null;
+      updateRepoListCountLabels(filteredRepos());
+    }
+    const meta = isGlobal
+      ? `Saved for topic <strong>${esc(turn.githubTopic || '')}</strong>. Open <strong>Global context</strong> in the header to browse or download.`
+      : `Model: ${esc(turn.userModel || '—')} · This repository (saved on server)`;
+    const resBox = document.getElementById('aiModalResult');
+    if (resBox) {
+      resBox.innerHTML =
+        `<div class="ai-modal-result-meta">${meta}</div>` +
+        `<div class="ai-turn-q"><strong>Your question</strong><div class="md-body">${parseMarkdown(turn.prompt || '')}</div></div>` +
+        `<div class="ai-turn-a"><strong>Answer</strong><div class="md-body">${parseMarkdown(turn.content || '')}</div></div>`;
+      resBox.classList.add('visible');
+    }
+    document.getElementById('aiPrompt').value = '';
+    statusEl.textContent = '';
+    askBtn.disabled = false;
+  } catch (err) {
+    statusEl.innerHTML = `<div class="ai-error">Error: ${esc(err.message)}</div>`;
+    askBtn.disabled = false;
+  }
+}
+
+/* ── Events ─────────────────────────────────── */
+function setupEvents() {
+  let timer;
+  document.getElementById('searchInput').addEventListener('input', e => {
+    clearTimeout(timer); timer=setTimeout(()=>{ S.search=e.target.value; renderTable(); },200);
+  });
+  document.getElementById('sortSelect').addEventListener('change', e => { S.sortKey=e.target.value; renderTable(); });
+  document.getElementById('clearBtn').addEventListener('click', () => {
+    S.search=''; S.sortKey='composite'; S.langFilter.clear();
+    document.getElementById('searchInput').value='';
+    document.getElementById('sortSelect').value='composite';
+    document.querySelectorAll('.lang-btn.active').forEach(b=>b.classList.remove('active'));
+    updateFilterBadge('lang',0);
+    renderTable();
+  });
+  document.querySelectorAll('.th.sortable').forEach(th => {
+    th.addEventListener('click', ()=>{ S.sortKey=th.dataset.sort; document.getElementById('sortSelect').value=S.sortKey; renderTable(); });
+  });
+  document.getElementById('themeBtn').addEventListener('click', ()=>{
+    const h=document.documentElement; h.dataset.theme=h.dataset.theme==='dark'?'light':'dark';
+  });
+  document.getElementById('modelSelect').addEventListener('change', updateModelMeta);
+  document.querySelectorAll('input[name="aiContextMode"]').forEach(rad => {
+    rad.addEventListener('change', () => syncAiModalContextUI());
+  });
+  document.querySelectorAll('input[name="aiProvider"]').forEach(rad => {
+    rad.addEventListener('change', () => syncAiProviderUI());
+  });
+  document.getElementById('globalContextHeaderBtn').addEventListener('click', () => openGlobalContextModal());
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      const rs = document.getElementById('readmeFullscreenModal');
+      if (rs && rs.classList.contains('open')) {
+        closeReadmeFullscreenModal();
+        return;
+      }
+      const extAi = document.getElementById('extendAiKeywordsModal');
+      if (extAi && extAi.classList.contains('open')) {
+        closeExtendAiKeywordsModal();
+        return;
+      }
+      closeModal();
+      closeGlobalContextModal();
+      closeExtendSearchModal();
+    }
+  });
+  document.getElementById('repoList').addEventListener('keydown', e => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    if (e.target.closest && e.target.closest('a')) return;
+    const prev = e.target.closest('.readme-preview');
+    if (!prev || !document.getElementById('repoList').contains(prev)) return;
+    e.preventDefault();
+    const slug = prev.dataset.readmeSlug;
+    const r = S.repos.find(x => x.full_name === slug);
+    if (r && r.readme) openReadmeFullscreenModal(slug, r.readme);
+  });
+  document.getElementById('extendSearchHeaderBtn').addEventListener('click', () => openExtendSearchModal());
+  document.getElementById('extendKeywordInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      const val = e.target.value.trim();
+      if (val) addExtendKeyword(val);
+      e.target.value = '';
+    } else if (e.key === 'Backspace' && !e.target.value && extendKeywords.length) {
+      extendKeywords.pop();
+      renderExtendKeywordChips();
+    }
+  });
+  document.getElementById('extendAddKwBtn').addEventListener('click', () => {
+    flushExtendKeywordInput();
+    document.getElementById('extendKeywordInput').focus();
+  });
+  document.getElementById('extendAiKeywordsBtn').addEventListener('click', () => openExtendAiKeywordsModal());
+  document.getElementById('extendAiKeywordsRunBtn').addEventListener('click', () => runExtendAiKeywordsGenerate());
+  document.getElementById('extendAddLangBtn').addEventListener('click', () => {
+    const inp = document.getElementById('extendExtraLangInput');
+    const t = inp.value.trim();
+    if (!t) return;
+    const k = t.toLowerCase();
+    const inPreset = EXTEND_LANG_OPTIONS.some((x) => x.toLowerCase() === k);
+    const inExtra = extendExtraLangs.some((x) => x.toLowerCase() === k);
+    if (!inPreset && !inExtra) extendExtraLangs.push(t);
+    inp.value = '';
+    renderExtendLangChips();
+  });
+  document.getElementById('extendExtraLangInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      document.getElementById('extendAddLangBtn').click();
+    }
+  });
+  document.getElementById('repoList').addEventListener('click', handleRepoListClick);
+}
+
+/* \u2500\u2500 INIT \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 */
+async function init() {
+  if (typeof marked!=='undefined') marked.setOptions({breaks:true,gfm:true});
+
+  document.getElementById('footerDate').textContent =
+    `Data from GitHub API \u00b7 ${new Date().toLocaleDateString('en-US',{year:'numeric',month:'long'})}`;
+
+  const params = new URLSearchParams(window.location.search);
+  const fname  = params.get('file');
+  if (!fname) { window.location.href='index.html'; return; }
+
+  // Show spinner while loading
+  const loadEl = document.getElementById('loadingScreen');
+  loadEl.innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;gap:1rem;padding:4rem 2rem;font-family:var(--font-mono)">
+      <svg style="animation:spin 1s linear infinite" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5">
+        <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+      </svg>
+      <span style="color:var(--text-muted);font-size:13px">Loading ${esc(fname)}.json\u2026</span>
+    </div>`;
+
+  const fetched = await fetchProjectJson(fname);
+  const vfsP = vfsGet(fname);
+
+  let project = fetched;
+  if (vfsP) {
+    const merged = { ...(fetched || {}), ...vfsP, _fname: vfsP._fname || fname };
+    project = normalizeProjectMeta(merged, fname);
+  }
+
+  if (!project) {
+    loadEl.innerHTML = `
+      <div style="font-family:var(--font-mono);padding:3rem 2rem;text-align:center">
+        <div style="font-size:2rem;margin-bottom:1rem">\ud83d\udea7</div>
+        <div style="color:var(--red);font-size:14px;margin-bottom:.5rem">File \u201c${esc(fname)}.json\u201d not found</div>
+        <div style="color:var(--text-muted);font-size:12px;margin-bottom:1.5rem">This project may have been created in a different browser session and the data wasn\u2019t saved.</div>
+        <a href="/" style="display:inline-flex;align-items:center;gap:.5rem;background:var(--accent);color:white;padding:.5rem 1.25rem;border-radius:.375rem;font-size:12px;font-weight:700">
+          \u2190 Back to Projects
+        </a>
+      </div>`;
+    return;
+  }
+
+  // Update header
+  document.title = `${project.name} \u2014 OSS Intelligence`;
+  document.getElementById('projectTitle').textContent = project.name;
+  document.getElementById('projectKw').textContent =
+    `${project._fname}.json \u00b7 ${(project.keywords||[]).slice(0,3).join(', ')}`;
+
+  const repos = normalizeRepoList(resolveProjectRepos(fetched, vfsP));
+  project.repos = repos;
+  project.schemaVersion = Number(project.schemaVersion) || 1;
+
+  S.projectFname = project._fname || fname;
+  S.searchProjectSlug = slugFromProjectFname(S.projectFname);
+  S.projectLoaded = project;
+  S.repos = repos;
+
+  if (!S.repos.length) {
+    await hydrateRepoListBucket(S.projectFname);
+    loadEl.remove();
+    buildLayout();
+    setupEvents();
+    renderLangFilter();
+    renderTable();
+    return;
+  }
+
+  await hydrateRepoListBucket(S.projectFname);
+
+  loadEl.remove();
+  buildLayout();
+  setupEvents();
+  renderLangFilter();
+  renderTable();
+}
+
+init();
+</script>
+</body>
+</html>
