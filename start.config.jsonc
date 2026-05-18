@@ -1,6 +1,7 @@
 {
   "services": [
     {
+      //************************APPLICATIONS************************
       "name": "cron-supervisor",
       "description": "Scheduled GitHub Actions and periodic tasks",
       "type": "app",
@@ -24,17 +25,7 @@
       "init": "npm install && npm --prefix server install && test -f .env || cp .env.example .env",
       "start": "bash ./run.sh"
     },
-    {
-      "name": "open-screen",
-      "description": "OpenScreen content factory UI",
-      "type": "github-project",
-      "developmentEnabled": false,
-      "productionEnabled": false,
-      "envFiles": [],
-      "path": "github-projects/content-factory/openscreen/repo",
-      "init": "bash ../openscreen.init.sh",
-      "start": "bash ../openscreen.start.sh"
-    },
+    //************************AGENTS************************
     {
       "name": "main",
       "description": "Root-repo Claude agent — Telegram via envs/main.telegram",
@@ -68,6 +59,7 @@
       "init": "bun install",
       "start": "bash ./ragent.claude.sh --telegram"
     },
+    //************************GITHUB-PROJECTS************************
     {
       "name": "brightbean-studio",
       "description": "Self-hosted social media management platform — schedule, publish, and monitor content across 10+ social networks",
@@ -79,8 +71,6 @@
       "path": "github-projects/content-factory/brightbean-studio/repo",
       "init": "bash ../brightbean-studio.init.sh",
       "start": "bash ../brightbean-studio.start.sh"
-      // requires .env file — copy from .env.example and fill SECRET_KEY, ENCRYPTION_KEY_SALT, DATABASE_URL
-      // for production: use docker compose up -d --build with docker-compose.prod.yml
     },
     {
       "name": "postiz-app",
@@ -93,9 +83,6 @@
       "path": "github-projects/content-factory/postiz-app/repo",
       "init": "bash ../postiz-app.init.sh",
       "start": "bash ../postiz-app.start.sh"
-      // frontend is typically available on 4200, backend on 3000 (from .env.example)
-      // requires PostgreSQL + Redis and a configured .env file
-      // alternative local stack: docker compose -f docker-compose.dev.yaml up -d
     },
     {
       "name": "BMAD-METHOD",
@@ -107,8 +94,6 @@
       "path": "github-projects/coding-terminals/BMAD-METHOD/repo",
       "init": "bash ../BMAD-METHOD.init.sh",
       "start": "bash ../BMAD-METHOD.start.sh"
-      // not a running service — invoke manually to install .github/workflows into a target project
-      // non-interactive: node tools/installer/bmad-cli.js install --directory /path --modules bmm --tools claude-code --yes
     },
     {
       "name": "claude-code",
@@ -175,7 +160,6 @@
       "path": "github-projects/content-factory/OpenMontage/repo",
       "init": "bash ../OpenMontage.init.sh",
       "start": "bash ../OpenMontage.start.sh"
-      // requires Python 3.10+, Node.js 18+, and FFmpeg on host
     }
   ]
 }

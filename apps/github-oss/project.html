@@ -164,7 +164,7 @@ a:hover { text-decoration:underline; }
 
 /* ── Main Table ─────────────────────────────── */
 .main { flex:1; padding:var(--sp4) var(--sp6) var(--sp10); max-width:1600px; margin:0 auto; width:100%; }
-.results-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp3); font-size:var(--text-xs); font-family:var(--font-mono); color:var(--text-muted); }
+.results-bar { display:flex; justify-content:flex-start; align-items:center; margin-bottom:var(--sp3); font-size:var(--text-xs); font-family:var(--font-mono); color:var(--text-muted); }
 
 .list-tabs-bar { display:flex; align-items:center; gap:var(--sp3); flex-wrap:wrap; margin-bottom:var(--sp3); }
 .list-tabs { display:flex; align-items:center; gap:var(--sp2); flex-wrap:wrap; flex:1; min-width:0; }
@@ -185,6 +185,7 @@ a:hover { text-decoration:underline; }
 }
 .tab-add-btn:hover { border-color:var(--accent); color:var(--accent-text); background:var(--accent-dim); }
 .repo-list-actions {
+  grid-column:1 / -1;
   display:grid;
   grid-template-columns:minmax(0, 1fr) auto;
   align-items:center;
@@ -192,6 +193,7 @@ a:hover { text-decoration:underline; }
   margin-top:var(--sp2);
   padding-top:var(--sp2);
   border-top:1px dashed var(--border);
+  width:100%;
 }
 .repo-list-actions-collections {
   display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp2);
@@ -229,7 +231,7 @@ a:hover { text-decoration:underline; }
 .active-filter-info { color:var(--text-faint); font-size:11px; }
 
 .table-header,
-.repo-summary { display:grid; grid-template-columns:28px 1fr 110px 80px 70px 90px 110px 52px; gap:var(--sp3); padding:var(--sp2) var(--sp4); align-items:start; }
+.repo-summary { display:grid; grid-template-columns:28px 1fr 110px 80px 70px 90px 110px; gap:var(--sp3); padding:var(--sp2) var(--sp4); align-items:start; }
 .table-header { background:var(--surface-3); border:1px solid var(--border); border-radius:var(--rad-md) var(--rad-md) 0 0; font-size:11px; font-family:var(--font-mono); color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em; user-select:none; }
 .th { display:flex; align-items:center; gap:4px; }
 .th.sortable { cursor:pointer; transition:color var(--trans); }
@@ -274,13 +276,6 @@ a:hover { text-decoration:underline; }
 .col-num strong { color:var(--text); font-weight:600; }
 .date-fresh { color:var(--accent-text); font-weight:500; }
 .date-old   { color:var(--text-faint); }
-.ai-btn-cell { padding-top:2px; display:flex; align-items:flex-start; gap:4px; flex-wrap:wrap; justify-content:flex-end; }
-.ai-btn { display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:var(--rad-full); font-size:10px; font-family:var(--font-mono); font-weight:600; background:var(--purple-dim); color:var(--purple); border:1px solid color-mix(in srgb, var(--purple) 40%, transparent); transition:all var(--trans); white-space:nowrap; }
-.ai-btn:hover { background:var(--purple); color:var(--surface); }
-.ai-btn.ai-clone-btn { background:color-mix(in srgb, var(--green) 12%, transparent); color:var(--green); border-color:color-mix(in srgb, var(--green) 40%, transparent); }
-.ai-btn.ai-clone-btn:hover { background:var(--green); color:var(--surface); }
-.ai-btn.ai-clone-btn:disabled { opacity:0.55; cursor:wait; }
-.ai-btn.ai-clone-btn.is-cloned { opacity:0.85; }
 .clone-indicator {
   font-size:10px; font-family:var(--font-mono); font-weight:600;
   border-radius:var(--rad-full); padding:1px 7px; flex-shrink:0;
@@ -303,17 +298,26 @@ a:hover { text-decoration:underline; }
 .tab-pane { display:none; }
 .tab-pane.active { display:block; }
 .tab-pane-toolbar {
-  display:flex; justify-content:flex-end; margin-bottom:var(--sp3);
-  padding-bottom:var(--sp2); border-bottom:1px dashed var(--border);
+  display:flex; justify-content:flex-end; align-items:center; gap:var(--sp2);
+  margin-bottom:var(--sp3); padding-bottom:var(--sp2); border-bottom:1px dashed var(--border);
 }
-.tab-ask-ai-btn {
+.tab-ask-ai-btn,
+.tab-fetch-btn {
   padding:4px 10px; border-radius:var(--rad-sm); font-size:10px;
   font-family:var(--font-mono); font-weight:600;
-  border:1px solid color-mix(in srgb, var(--purple) 40%, transparent);
-  background:var(--purple-dim); color:var(--purple);
   transition:all var(--trans);
 }
+.tab-ask-ai-btn {
+  border:1px solid color-mix(in srgb, var(--purple) 40%, transparent);
+  background:var(--purple-dim); color:var(--purple);
+}
 .tab-ask-ai-btn:hover { background:var(--purple); color:var(--surface); }
+.tab-fetch-btn {
+  border:1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  background:var(--accent-dim); color:var(--accent-text);
+}
+.tab-fetch-btn:hover { background:var(--accent); color:var(--surface); }
+.tab-fetch-btn:disabled { opacity:0.55; cursor:wait; }
 .tab-btn.tab-doc { text-transform:none; letter-spacing:0; }
 .doc-file-pane { padding:var(--sp2) 0; }
 .doc-file-meta { font-size:11px; font-family:var(--font-mono); color:var(--text-faint); margin-bottom:var(--sp3); }
@@ -354,8 +358,6 @@ a:hover { text-decoration:underline; }
 .context-mode-row { display:flex; gap:var(--sp2); flex-wrap:wrap; }
 .context-mode-opt { display:flex; align-items:center; gap:6px; font-size:var(--text-xs); color:var(--text-muted); cursor:pointer; font-family:var(--font-mono); }
 .context-mode-opt input { accent-color:var(--purple); }
-.header-gc-btn { margin-right:var(--sp2); padding:var(--sp2) var(--sp4); font-size:10px; font-family:var(--font-mono); font-weight:600; border-radius:var(--rad-md); border:1px solid var(--border-2); background:var(--surface-3); color:var(--text-muted); cursor:pointer; transition:all var(--trans); white-space:nowrap; }
-.header-gc-btn:hover { border-color:var(--purple); color:var(--purple); background:var(--purple-dim); }
 .header-add-search-btn {
   margin-right:var(--sp2); padding:var(--sp2) var(--sp4); font-size:10px; font-family:var(--font-mono); font-weight:700;
   border-radius:var(--rad-md); border:none; background:var(--accent); color:white; cursor:pointer;
@@ -416,9 +418,6 @@ a:hover { text-decoration:underline; }
 }
 #extendSearchModal .btn-extend-search:hover { background:color-mix(in srgb, var(--accent) 85%, black); }
 #extendSearchModal .btn-extend-search:disabled { opacity:.5; cursor:not-allowed; }
-.gc-dl-row { display:flex; flex-wrap:wrap; gap:var(--sp2); margin-top:var(--sp4); padding-top:var(--sp3); border-top:1px solid var(--border); }
-.gc-dl-row a { font-size:10px; font-family:var(--font-mono); text-decoration:none; }
-.gc-acc.stack-section .stack-section-body { max-height:320px; overflow-y:auto; }
 .empty-state { padding:var(--sp6); text-align:center; color:var(--text-faint); font-family:var(--font-mono); font-size:var(--text-xs); }
 
 /* Matched search file tab */
@@ -488,6 +487,8 @@ a:hover { text-decoration:underline; }
 /* AI Modal */
 .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:1000; display:flex; align-items:center; justify-content:center; padding:var(--sp6); opacity:0; pointer-events:none; transition:opacity var(--trans); }
 .modal-backdrop.open { opacity:1; pointer-events:all; }
+/* Stacked on top of another open modal (e.g. Generate keywords over Add repositories). */
+.modal-backdrop.modal-above { z-index:1100; }
 .modal { background:var(--surface); border:1px solid var(--border-2); border-radius:var(--rad-xl); width:100%; max-width:760px; max-height:90vh; display:flex; flex-direction:column; box-shadow:var(--shadow-lg); transform:translateY(20px); transition:transform var(--trans); }
 .modal-backdrop.open .modal { transform:translateY(0); }
 .modal-header { padding:var(--sp4) var(--sp6); border-bottom:1px solid var(--border); display:flex; align-items:flex-start; justify-content:space-between; flex-shrink:0; }
@@ -570,12 +571,14 @@ a:hover { text-decoration:underline; }
 
 /* Responsive */
 @media (max-width:1100px) {
-  .table-header, .repo-summary { grid-template-columns:28px 1fr 90px 75px 70px 100px 44px; }
-  .col-num:nth-child(6) { display:none; }
+  .table-header, .repo-summary { grid-template-columns:28px 1fr 90px 75px 70px 100px; }
+  .repo-summary > .col-num:nth-child(6) { display:none; }
 }
 @media (max-width:768px) {
-  .table-header, .repo-summary { grid-template-columns:28px 1fr 70px 65px 44px; }
-  .col-lang, .col-num:nth-child(5), .col-num:nth-child(6) { display:none; }
+  .table-header, .repo-summary { grid-template-columns:28px 1fr 70px 65px; }
+  .repo-summary > .col-lang,
+  .repo-summary > .col-num:nth-child(5),
+  .repo-summary > .col-num:nth-child(6) { display:none; }
   .header-stats { display:none; }
   .detail-inner { padding:var(--sp3); }
   .main, .controls-inner { padding-left:var(--sp3); padding-right:var(--sp3); }
@@ -609,7 +612,6 @@ a:hover { text-decoration:underline; }
       <div class="stat-pill"><strong id="statAI">0</strong>&nbsp;AI</div>
     </div>
     <button type="button" class="header-add-search-btn" id="extendSearchHeaderBtn" title="Search GitHub and add repos to this project">Add search</button>
-    <button type="button" class="header-gc-btn" id="globalContextHeaderBtn" title="Browse saved global context files">Global context</button>
     <button class="icon-btn" id="themeBtn" title="Toggle theme">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
     </button>
@@ -674,17 +676,6 @@ a:hover { text-decoration:underline; }
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
     <div class="modal-body">
-      <div class="form-group" id="aiContextModeRow">
-        <label class="form-label">Context</label>
-        <div class="context-mode-row">
-          <label class="context-mode-opt"><input type="radio" name="aiContextMode" value="repo" checked/> This repository (project)</label>
-          <label class="context-mode-opt"><input type="radio" name="aiContextMode" value="global"/> Search project (global context)</label>
-        </div>
-      </div>
-      <div class="form-group" id="aiGlobalTopicRow" style="display:none">
-        <label class="form-label">GitHub topic (global)</label>
-        <input type="text" class="form-select" id="aiGithubTopic" placeholder="e.g. ethereum, python" autocomplete="off" style="cursor:text"/>
-      </div>
       <div class="form-group">
         <label class="form-label">AI provider</label>
         <div class="context-mode-row" id="aiProviderRow">
@@ -734,22 +725,63 @@ a:hover { text-decoration:underline; }
   </div>
 </div>
 
-<div class="modal-backdrop" id="globalContextModal" onclick="handleGlobalContextBackdrop(event)">
-  <div class="modal" style="max-width:720px">
+<div class="modal-backdrop" id="collectionAiModal" onclick="handleCollectionAiBackdrop(event)">
+  <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-header">
       <div>
-        <div class="modal-title">Global context</div>
-        <div class="modal-subtitle" id="globalContextSubtitle">Saved notes per topic under data/global_context/</div>
+        <div class="modal-title" id="collectionAiModalTitle">Ask AI For Collection</div>
+        <div class="modal-subtitle" id="collectionAiModalSubtitle"></div>
       </div>
-      <button type="button" class="modal-close" onclick="closeGlobalContextModal()">✕</button>
+      <button type="button" class="modal-close" onclick="closeCollectionAiModal()">✕</button>
     </div>
-    <div class="modal-body" id="globalContextBody">
-      <div class="empty-state" id="globalContextAccordion">Open to load…</div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Output folder <span class="form-hint" style="display:inline;font-weight:400">(under repo root)</span></label>
+        <input type="text" class="form-select" id="collectionAiOutputFolder" value="research/docs" placeholder="research/docs" autocomplete="off" style="cursor:text"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">AI provider</label>
+        <div class="context-mode-row" id="collectionAiProviderRow">
+          <label class="context-mode-opt"><input type="radio" name="collectionAiProvider" value="openrouter" checked/> OpenRouter</label>
+          <label class="context-mode-opt"><input type="radio" name="collectionAiProvider" value="claude"/> Claude (ragent.claude.sh)</label>
+          <label class="context-mode-opt"><input type="radio" name="collectionAiProvider" value="cursor"/> Cursor (ragent.cursor.sh)</label>
+        </div>
+      </div>
+      <div class="form-group" id="collectionOpenrouterModelRow">
+        <label class="form-label">OpenRouter model</label>
+        <select class="form-select" id="collectionAiModelSelect">
+          <option value="anthropic/claude-sonnet-4-5">Loading models…</option>
+        </select>
+      </div>
+      <div class="form-group" id="collectionClaudeModelRow" style="display:none">
+        <label class="form-label">Claude model</label>
+        <select class="form-select" id="collectionAiClaudeModelSelect">
+          <option value="sonnet">sonnet</option>
+        </select>
+      </div>
+      <div class="form-group" id="collectionCursorModelRow" style="display:none">
+        <label class="form-label">Cursor model</label>
+        <select class="form-select" id="collectionAiCursorModelSelect">
+          <option value="Composer 2 Fast">Composer 2 Fast</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Your Question / Prompt</label>
+        <textarea class="form-textarea" id="collectionAiPrompt" placeholder="e.g. Compare these projects and recommend which to adopt for a content pipeline."></textarea>
+      </div>
+      <div id="collectionAiModalResult" class="ai-modal-result" aria-live="polite"></div>
+      <div id="collectionAiStatus" style="font-size:var(--text-xs);font-family:var(--font-mono);color:var(--text-muted)"></div>
     </div>
     <div class="modal-footer">
-      <button type="button" class="btn-secondary" onclick="closeGlobalContextModal()">Close</button>
+      <button type="button" class="btn-secondary" onclick="closeCollectionAiModal()">Cancel</button>
+      <button type="button" class="btn-primary" id="collectionAskBtn" onclick="submitCollectionAiQuery()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m22 2-7 20-4-9-9-4 20-7z"/></svg>
+        <span id="collectionAskBtnLabel">Ask AI</span>
+      </button>
     </div>
   </div>
+</div>
+
 </div>
 
 <div class="modal-backdrop" id="extendSearchModal" onclick="handleExtendSearchBackdrop(event)">
@@ -848,7 +880,7 @@ a:hover { text-decoration:underline; }
   </div>
 </div>
 
-<div class="modal-backdrop" id="extendAiKeywordsModal" style="z-index:250" onclick="handleExtendAiKeywordsBackdrop(event)">
+<div class="modal-backdrop modal-above" id="extendAiKeywordsModal" onclick="handleExtendAiKeywordsBackdrop(event)">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-header">
       <span class="modal-title">Generate keywords</span>
@@ -1251,11 +1283,8 @@ async function enrichRepos(rawRepos, onProgress, enrichOpts) {
       archived:    r.archived || false,
       default_branch: r.default_branch || 'main',
       commit_count: null,
-      readme:      typeof r.readme === 'string' ? r.readme : '',
-      readme_fetched:
-        !!r.readme_fetched || (typeof r.readme === 'string' && r.readme.length > 0),
-      stack_fetched: false,
-      packages:    [],
+      // readme + stack + notes staged in temp_files; flushed to docs/ on clone.
+      temp_files: [],
       search_file_path: filePath,
       search_file_text: existingFileText,
       search_file_fetched:
@@ -1264,6 +1293,8 @@ async function enrichRepos(rawRepos, onProgress, enrichOpts) {
       cloned_at: '',
       github_collection: '',
     };
+    const readmeText = typeof r.readme === 'string' ? r.readme : '';
+    let pkgs = [];
     try {
       const res = await fetch(
         `https://api.github.com/repos/${r.full_name}/commits?per_page=1`,
@@ -1282,10 +1313,10 @@ async function enrichRepos(rawRepos, onProgress, enrichOpts) {
     }
     if (extract) {
       try {
-        base.packages = await fillRepoPackagesForRecord(r);
-        if (Array.isArray(base.packages) && base.packages.length) base.stack_fetched = true;
+        pkgs = await fillRepoPackagesForRecord(r);
       } catch { /* keep [] */ }
     }
+    base.temp_files = buildRepoTempFiles({ readme: readmeText, packages: pkgs, notes: '' });
     enriched.push(base);
     await sleep(extract || fetchFile ? 100 : 80);
   }
@@ -1420,7 +1451,28 @@ function parsePyproject(text) {
   return results.slice(0, 40);
 }
 function reposForPersistence(repos) {
-  return (repos || []).map(r => ({ ...r }));
+  return (repos || []).map((r) => {
+    const out = { ...r };
+    // readme + stack + notes persist inside temp_files (pre-clone staging).
+    // After a repo is cloned and its docs/ folder is seeded, temp_files is
+    // dropped and the content lives only in the folder.
+    if (Array.isArray(r.temp_files)) {
+      const prevNotes = tempFileEntry(r.temp_files, 'notes');
+      out.temp_files = buildRepoTempFiles({
+        readme: r.readme || '',
+        packages: r.packages || [],
+        notes: prevNotes ? prevNotes.text : '',
+      });
+    } else {
+      delete out.temp_files;
+    }
+    // Hydrated/derived fields are never persisted as top-level keys.
+    delete out.readme;
+    delete out.readme_fetched;
+    delete out.packages;
+    delete out.stack_fetched;
+    return out;
+  });
 }
 
 function snapshotProjectForDisk() {
@@ -1756,13 +1808,31 @@ async function runExtendSearchMerge() {
 /* ── Canonical repo shape (matches enrichRepos on index.html) ─── */
 function normalizeRepoRecord(r) {
   if (!r || r.id == null) return null;
-  const readme = typeof r.readme === 'string' ? r.readme : '';
-  const readme_fetched = !!r.readme_fetched || readme.length > 0;
-  const packages = Array.isArray(r.packages) ? r.packages : [];
-  const stack_fetched = !!r.stack_fetched || packages.length > 0;
+  const cloned = !!r.cloned;
+  // Resolve the temp_files staging array: explicit, migrated from legacy
+  // readme/packages fields, or a fresh empty set for an un-cloned repo.
+  let temp_files = Array.isArray(r.temp_files) ? r.temp_files : null;
+  const legacyReadme = typeof r.readme === 'string' ? r.readme : '';
+  const legacyPackages = Array.isArray(r.packages) ? r.packages : [];
+  if (!temp_files && (legacyReadme || legacyPackages.length)) {
+    temp_files = buildRepoTempFiles({ readme: legacyReadme, packages: legacyPackages, notes: '' });
+  }
+  if (!temp_files && !cloned) temp_files = buildRepoTempFiles({});
+  // Hydrate readme/packages from temp_files so the existing render code
+  // (which reads r.readme / r.packages) keeps working unchanged.
+  let readme = legacyReadme;
+  let packages = legacyPackages;
+  if (temp_files) {
+    const rt = tempFileEntry(temp_files, 'readme');
+    readme = rt ? String(rt.text || '') : '';
+    const st = tempFileEntry(temp_files, 'stack');
+    packages = st ? packagesFromStackFile(st.text) : [];
+  }
+  const readme_fetched = readme.length > 0;
+  const stack_fetched = packages.length > 0;
   const search_file_text = typeof r.search_file_text === 'string' ? r.search_file_text : '';
   const search_file_fetched = !!r.search_file_fetched || search_file_text.length > 0;
-  return {
+  const rec = {
     id: r.id,
     name: r.name ?? '',
     full_name: r.full_name ?? '',
@@ -1787,10 +1857,12 @@ function normalizeRepoRecord(r) {
     search_file_path: typeof r.search_file_path === 'string' ? r.search_file_path : '',
     search_file_text,
     search_file_fetched,
-    cloned: !!r.cloned,
+    cloned,
     cloned_at: typeof r.cloned_at === 'string' ? r.cloned_at : '',
     github_collection: typeof r.github_collection === 'string' ? r.github_collection : '',
   };
+  if (temp_files) rec.temp_files = temp_files;
+  return rec;
 }
 
 function normalizeRepoList(arr) {
@@ -2118,6 +2190,13 @@ function renderRepoListTabs() {
   addListBtn.title = 'Create a folder under github-projects/';
   addListBtn.addEventListener('click', () => promptAndAddGithubCollection());
   wrap.appendChild(addListBtn);
+  const askCollBtn = document.createElement('button');
+  askCollBtn.type = 'button';
+  askCollBtn.className = 'tab-add-btn';
+  askCollBtn.textContent = 'Ask AI For Collection';
+  askCollBtn.title = 'Ask AI about the active collection tab; saves markdown under research/docs by default';
+  askCollBtn.addEventListener('click', () => openCollectionAiModal());
+  wrap.appendChild(askCollBtn);
   b.customLists.forEach(c => addTab(REPO_LIST_CUSTOM_PREFIX + c.id, c.name));
 }
 
@@ -2220,6 +2299,43 @@ function persistProjectRepos() {
   void persistProjectFileOnServer();
 }
 
+/**
+ * Flush the temp_files of any newly-cloned repo into its docs/ folder, then
+ * drop temp_files so the repo renders from the folder going forward.
+ * Idempotent — only acts on cloned repos that still carry temp_files.
+ */
+async function seedPendingClonedRepos() {
+  const pending = S.repos.filter((r) => r.cloned && Array.isArray(r.temp_files));
+  if (!pending.length) return;
+  let seeded = false;
+  for (const r of pending) {
+    const files = [
+      { name: 'readme.md', text: String(r.readme || '') },
+      { name: 'stack.md', text: packagesToStackFileText(r.packages || []) },
+      { name: 'notes.md', text: tempFileEntry(r.temp_files, 'notes')?.text || '' },
+    ];
+    try {
+      const res = await fetch(`${API_BASE}/api/repos/docs/seed`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName: r.full_name,
+          collection: r.github_collection || '',
+          files,
+        }),
+      });
+      if (!res.ok) continue;
+      delete r.temp_files;
+      invalidateRepoDocsCache(r.id);
+      seeded = true;
+    } catch { /* retry on the next clone-status sync */ }
+  }
+  if (seeded) {
+    persistProjectRepos();
+    renderTable();
+  }
+}
+
 const CLONE_STATUS_CHUNK = 100;
 
 async function fetchCloneStatuses(fullNames) {
@@ -2302,6 +2418,7 @@ async function refreshCloneStatusForProject() {
   try {
     const statusMap = await fetchCloneStatuses(S.repos.map((r) => r.full_name));
     if (applyCloneStatusMap(statusMap)) renderTable();
+    await seedPendingClonedRepos();
   } catch (e) {
     console.warn('clone status sync failed', e);
   }
@@ -2316,6 +2433,7 @@ function pollRepoCloneUntil(fullName, { intervalMs = 8000, maxAttempts = 45 } = 
       const installed = !!statusMap[fullName];
       if (installed) {
         if (applyCloneStatusMap(statusMap)) renderTable();
+        await seedPendingClonedRepos();
         return;
       }
     } catch { /* retry */ }
@@ -2385,7 +2503,6 @@ async function addRepoToGithubCollection(fullName, collection) {
       body: JSON.stringify({
         fullName,
         collection: coll,
-        useAiInstaller: false,
         searchProjectSlug: S.searchProjectSlug,
         projectName: S.projectLoaded?.name || '',
       }),
@@ -2472,6 +2589,7 @@ async function onAiCloneClick(repoId) {
       invalidateRepoDocsCache(repoId);
       persistProjectRepos();
       renderTable();
+      void seedPendingClonedRepos();
     } else {
       pollRepoCloneUntil(r.full_name);
     }
@@ -2507,6 +2625,22 @@ function handleRepoListClick(e) {
     e.stopPropagation();
     const repoId = cloneBtn.dataset.aiCloneId;
     if (repoId) onAiCloneClick(repoId);
+    return;
+  }
+  const getReadmeBtn = e.target.closest('.tab-get-readme-btn');
+  if (getReadmeBtn) {
+    e.preventDefault();
+    e.stopPropagation();
+    const row = getReadmeBtn.closest('.repo-row');
+    if (row) loadReadmeForRow(row);
+    return;
+  }
+  const getStackBtn = e.target.closest('.tab-get-stack-btn');
+  if (getStackBtn) {
+    e.preventDefault();
+    e.stopPropagation();
+    const row = getStackBtn.closest('.repo-row');
+    if (row) loadStackForRow(row);
     return;
   }
   const tabAskBtn = e.target.closest('.tab-ask-ai-btn');
@@ -2590,13 +2724,11 @@ const S = {
   pendingRagentLaunch: null,
   activeModal: null,
   aiModalOpts: {
-    contextMode: 'repo',
-    githubTopic: '',
-    topicContextBlock: '',
     docFile: '',
     tabKey: '',
     tabLabel: '',
   },
+  collectionAiCollection: null,
   repoListRenderedCount: 0,
   repoListObserver: null,
   repoListLoadBusy: false,
@@ -2780,10 +2912,19 @@ function docFileFromTabKey(tabKey) {
 
 function tabPaneToolbarHtml(r, tabKey, docFile) {
   const id = String(r.id);
-  return `<div class="tab-pane-toolbar"><button type="button" class="tab-ask-ai-btn" data-ask-ai-id="${id}" data-tab-key="${escAttr(tabKey)}" data-doc-file="${escAttr(docFile || '')}">Ask AI</button></div>`;
+  const askBtn = `<button type="button" class="tab-ask-ai-btn" data-ask-ai-id="${id}" data-tab-key="${escAttr(tabKey)}" data-doc-file="${escAttr(docFile || '')}">Ask AI</button>`;
+  if (tabKey === 'readme') {
+    return `<div class="tab-pane-toolbar"><button type="button" class="tab-fetch-btn tab-get-readme-btn" data-repo-id="${id}">Get README</button>${askBtn}</div>`;
+  }
+  if (tabKey === 'stack') {
+    return `<div class="tab-pane-toolbar"><button type="button" class="tab-fetch-btn tab-get-stack-btn" data-repo-id="${id}">Get Stack</button>${askBtn}</div>`;
+  }
+  return `<div class="tab-pane-toolbar">${askBtn}</div>`;
 }
 
 function tabLabelForDocFile(name) {
+  if (name === 'readme.md') return 'README';
+  if (name === 'stack.md') return 'Stack';
   if (name === 'notes.md') return 'Notes';
   if (name === 'qa-log.md') return 'Q&A log';
   return String(name || '').replace(/\.md$/i, '');
@@ -2879,7 +3020,7 @@ async function ensureDocFileLoadedForRow(row, fileName) {
 
 function tabLabelForKey(tabKey, r) {
   if (tabKey === 'readme') return 'README';
-  if (tabKey === 'stack') return 'Stack & Topics';
+  if (tabKey === 'stack') return 'Stack';
   if (tabKey === 'matchfile') return searchFileTabLabel(r);
   const df = docFileFromTabKey(tabKey);
   if (df) return tabLabelForDocFile(df);
@@ -2963,8 +3104,10 @@ function renderRow(r) {
   const isOpen    = S.openRows.has(id);
   const canGithub = repoHasValidGithubSlug(r);
   const showFileTab = repoShowsSearchFileTab(r);
-  let activeTab   = S.openTabs[id] || (showFileTab && projectUsesFileSearch() ? 'matchfile' : 'readme');
-  if (activeTab === 'matchfile' && !showFileTab) activeTab = 'readme';
+  // README + Stack are dedicated tabs only while the repo is still staged
+  // (temp_files). Once cloned + seeded, that content lives in docs/ files and
+  // shows via the regular doc tabs instead.
+  const hasTemp   = Array.isArray(r.temp_files);
   const langColor = getLangColor(r.language);
   const daysSince = r.pushed_at ? (Date.now()-new Date(r.pushed_at))/86400000 : 9999;
   const topicsHtml = (r.topics||[]).slice(0,8)
@@ -2994,12 +3137,22 @@ function renderRow(r) {
     `<span class="row-meta-sep">·</span><span class="row-meta-item" style="color:${r.archived?'var(--orange)':daysSince<90?'var(--green)':daysSince>730?'var(--orange)':'var(--text-muted)'}">${r.archived?'Archived':daysSince<7?'Active now':daysSince<90?'Active':daysSince>730?'Stale':'Maintained'}</span>`,
   ].filter(Boolean).join('');
 
-  const tabs = [{ key:'readme', label:'README' }];
+  const tabs = [];
+  if (hasTemp) tabs.push({ key:'readme', label:'README' });
   if (showFileTab) tabs.push({ key:'matchfile', label: searchFileTabLabel(r) });
-  tabs.push({ key:'stack', label:'Stack & Topics' });
+  if (hasTemp) tabs.push({ key:'stack', label:'Stack' });
   for (const f of repoDocTabFiles(r)) {
     tabs.push({ key: docTabKey(f.name), label: tabLabelForDocFile(f.name), doc: true });
   }
+  // Transient fallback: a cloned repo whose docs/ list hasn't loaded yet.
+  const noTabs = !tabs.length;
+  if (noTabs) tabs.push({ key:'readme', label:'README' });
+
+  let activeTab = S.openTabs[id];
+  if (!activeTab || !tabs.some((t) => t.key === activeTab)) {
+    activeTab = (showFileTab && projectUsesFileSearch()) ? 'matchfile' : tabs[0].key;
+  }
+  S.openTabs[id] = activeTab;
 
   const tabBtns = tabs.map((t) => {
     const cls = `tab-btn${activeTab === t.key ? ' active' : ''}${t.doc ? ' tab-doc' : ''}`;
@@ -3012,11 +3165,15 @@ function renderRow(r) {
     })
     .join('');
   const tabPanes = [
-    `<div class="tab-pane${activeTab === 'readme' ? ' active' : ''}" data-pane="readme">${tabPaneToolbarHtml(r, 'readme', '')}${buildReadmePane(r)}</div>`,
+    (hasTemp || noTabs)
+      ? `<div class="tab-pane${activeTab === 'readme' ? ' active' : ''}" data-pane="readme">${tabPaneToolbarHtml(r, 'readme', '')}${buildReadmePane(r)}</div>`
+      : '',
     showFileTab
       ? `<div class="tab-pane${activeTab === 'matchfile' ? ' active' : ''}" data-pane="matchfile">${tabPaneToolbarHtml(r, 'matchfile', '')}${buildSearchFilePane(r)}</div>`
       : '',
-    `<div class="tab-pane${activeTab === 'stack' ? ' active' : ''}" data-pane="stack">${tabPaneToolbarHtml(r, 'stack', '')}${buildStackPane(r)}</div>`,
+    hasTemp
+      ? `<div class="tab-pane${activeTab === 'stack' ? ' active' : ''}" data-pane="stack">${tabPaneToolbarHtml(r, 'stack', '')}${buildStackPane(r)}</div>`
+      : '',
     docPanes,
   ].join('');
 
@@ -3032,16 +3189,15 @@ function renderRow(r) {
         ${r.archived?'<span class="archived-badge">archived</span>':''}
       </div>
       <div class="repo-desc">${esc(r.description||'No description')}</div>
-      ${topicsHtml?`<div class="repo-topics">${topicsHtml}</div>`:''}
+      ${topicsHtml ? '<div class="repo-topics">' + topicsHtml + '</div>' : ''}
       <div class="repo-row-meta">${metaParts}</div>
-      ${listRow}
     </div>
     <div class="col-lang"><span class="lang-dot" style="background:${langColor}"></span><span>${esc(r.language||'—')}</span></div>
     <div class="col-num"><strong>⭐ ${fmtN(r.stars)}</strong></div>
     <div class="col-num">${fmtN(r.forks)}</div>
     <div class="col-num"><strong>${r.commit_count?fmtN(r.commit_count):'—'}</strong></div>
     <div class="col-num">${fmtDate(r.pushed_at)}</div>
-    <div class="ai-btn-cell">${canGithub ? `<button type="button" class="ai-btn repo-ask-ai-btn" data-ask-ai-id="${id}" title="Ask AI about this project">🤖</button>` : ''}</div>
+    ${listRow}
   </div>
   <div class="repo-detail">
     <div class="detail-inner">
@@ -3063,7 +3219,7 @@ function buildReadmePane(r) {
     }
     return '<div class="empty-state">README not available for this repository.</div>';
   }
-  return `<div class="readme-lazy" data-repo="${esc(r.full_name)}"></div>`;
+  return `<div class="readme-lazy" data-repo="${escAttr(r.full_name)}"><div class="empty-state">Click <strong>Get README</strong> above to load from GitHub.</div></div>`;
 }
 
 function stackSectionsHtmlFromPackages(r) {
@@ -3094,7 +3250,7 @@ function buildStackPane(r) {
     }
     return '<div class="empty-state">No dependencies found (tree scan and root manifests).</div>';
   }
-  return `<div class="stack-lazy" data-repo="${esc(r.full_name)}" data-lang="${esc(r.language||'')}"></div>`;
+  return `<div class="stack-lazy" data-repo="${escAttr(r.full_name)}" data-lang="${escAttr(r.language||'')}"><div class="empty-state">Click <strong>Get Stack</strong> above to scan dependencies.</div></div>`;
 }
 
 function stackDepRowsHtml(deps) {
@@ -3240,7 +3396,7 @@ async function loadStackPane(lazyEl) {
     persistProjectRepos();
   } catch (e) {
     delete lazyEl.dataset.loaded;
-    lazyEl.innerHTML = '<div class="empty-state">Could not load dependency data. Click Stack again to retry.</div>';
+    lazyEl.innerHTML = '<div class="empty-state">Could not load dependency data. Click Get Stack to retry.</div>';
   }
 }
 
@@ -3252,49 +3408,85 @@ function activeTabForRow(row) {
   return 'readme';
 }
 
-function ensureReadmeLoadedForRow(row) {
-  if (activeTabForRow(row) !== 'readme') return;
-  const pane = row.querySelector('.tab-pane[data-pane="readme"]');
-  const lazy = pane && pane.querySelector('.readme-lazy');
-  if (!lazy || lazy.dataset.loaded === '1') return;
-  lazy.dataset.loaded = '1';
-  lazy.innerHTML = `<div style="display:flex;align-items:center;gap:8px;color:var(--text-muted);font-size:13px;padding:var(--sp3) 0"><span class="spinner"></span> Loading README…</div>`;
-  const slug = lazy.dataset.repo;
-  fetchReadme(slug).then(md => {
-    const rec = S.repos.find(x => x.full_name === slug);
-    if (rec) {
-      rec.readme = md || '';
-      rec.readme_fetched = true;
-      persistProjectRepos();
-    }
-    lazy.innerHTML = md
-      ? `<div class="readme-wrap readme-preview" tabindex="0" role="button" data-readme-slug="${escAttr(slug)}" title="Click to open full README"><div class="md-body">${parseMarkdown(md)}</div></div>`
-      : '<div class="empty-state">README not available for this repository.</div>';
-  }).catch(() => {
-    const rec = S.repos.find(x => x.full_name === slug);
-    if (rec) {
-      rec.readme = '';
-      rec.readme_fetched = true;
-      persistProjectRepos();
-    }
-    lazy.innerHTML = '<div class="empty-state">Could not load README.</div>';
-  });
+function resetPaneAfterToolbar(pane, html) {
+  const toolbar = pane.querySelector('.tab-pane-toolbar');
+  while (toolbar && toolbar.nextSibling) toolbar.nextSibling.remove();
+  if (toolbar) toolbar.insertAdjacentHTML('afterend', html);
+  else pane.insertAdjacentHTML('beforeend', html);
 }
 
-function ensureStackLoadedForRow(row) {
-  if (activeTabForRow(row) !== 'stack') return;
-  const pane = row.querySelector('.tab-pane[data-pane="stack"]');
-  const lazy = pane && pane.querySelector('.stack-lazy');
-  if (!lazy || lazy.dataset.loaded === '1') return;
+function loadReadmeForRow(row) {
+  const r = S.repos.find((x) => String(x.id) === String(row.dataset.id));
+  if (!r) return;
+  const pane = row.querySelector('.tab-pane[data-pane="readme"]');
+  if (!pane) return;
+  const btn = pane.querySelector('.tab-get-readme-btn');
+  if (btn) btn.disabled = true;
+  resetPaneAfterToolbar(
+    pane,
+    `<div class="readme-lazy" data-repo="${escAttr(r.full_name)}"><div style="display:flex;align-items:center;gap:8px;color:var(--text-muted);font-size:13px;padding:var(--sp3) 0"><span class="spinner"></span> Loading README…</div></div>`,
+  );
+  const lazy = pane.querySelector('.readme-lazy');
+  if (!lazy) {
+    if (btn) btn.disabled = false;
+    return;
+  }
   lazy.dataset.loaded = '1';
-  loadStackPane(lazy);
+  const slug = lazy.dataset.repo;
+  fetchReadme(slug)
+    .then((md) => {
+      const rec = S.repos.find((x) => x.full_name === slug);
+      if (rec) {
+        rec.readme = md || '';
+        rec.readme_fetched = true;
+        persistProjectRepos();
+      }
+      resetPaneAfterToolbar(
+        pane,
+        md
+          ? `<div class="readme-wrap readme-preview" tabindex="0" role="button" data-readme-slug="${escAttr(slug)}" title="Click to open full README"><div class="md-body">${parseMarkdown(md)}</div></div>`
+          : '<div class="empty-state">README not available for this repository.</div>',
+      );
+    })
+    .catch(() => {
+      const rec = S.repos.find((x) => x.full_name === slug);
+      if (rec) {
+        rec.readme = '';
+        rec.readme_fetched = true;
+        persistProjectRepos();
+      }
+      resetPaneAfterToolbar(pane, '<div class="empty-state">Could not load README.</div>');
+    })
+    .finally(() => {
+      if (btn) btn.disabled = false;
+    });
+}
+
+function loadStackForRow(row) {
+  const r = S.repos.find((x) => String(x.id) === String(row.dataset.id));
+  if (!r) return;
+  const pane = row.querySelector('.tab-pane[data-pane="stack"]');
+  if (!pane) return;
+  const btn = pane.querySelector('.tab-get-stack-btn');
+  if (btn) btn.disabled = true;
+  resetPaneAfterToolbar(
+    pane,
+    `<div class="stack-lazy" data-repo="${escAttr(r.full_name)}" data-lang="${escAttr(r.language || '')}"><div style="display:flex;align-items:center;gap:8px;color:var(--text-muted);font-size:13px;padding:var(--sp3) 0"><span class="spinner"></span> Loading stack…</div></div>`,
+  );
+  const lazy = pane.querySelector('.stack-lazy');
+  if (!lazy) {
+    if (btn) btn.disabled = false;
+    return;
+  }
+  lazy.dataset.loaded = '1';
+  Promise.resolve(loadStackPane(lazy)).finally(() => {
+    if (btn) btn.disabled = false;
+  });
 }
 
 function ensureLazyPanesForOpenRow(row) {
   if (!row || !row.classList.contains('open')) return;
-  ensureReadmeLoadedForRow(row);
   ensureSearchFileLoadedForRow(row);
-  ensureStackLoadedForRow(row);
   ensureRepoDocsListLoaded(row);
   const docKeyOpen = docFileFromTabKey(activeTabForRow(row));
   if (docKeyOpen) ensureDocFileLoadedForRow(row, docKeyOpen);
@@ -3379,7 +3571,7 @@ function wireRepoRow(row) {
   if (!summary || summary.dataset.wired === '1') return;
   summary.dataset.wired = '1';
   summary.addEventListener('click', e => {
-    if (e.target.closest('.repo-list-actions, .ai-btn-cell')) return;
+    if (e.target.closest('.repo-list-actions')) return;
     const r = summary.closest('.repo-row');
     const id = r.dataset.id;
     if (S.openRows.has(id)) {
@@ -3388,9 +3580,7 @@ function wireRepoRow(row) {
     } else {
       S.openRows.add(id);
       r.classList.add('open');
-      ensureReadmeLoadedForRow(r);
       ensureSearchFileLoadedForRow(r);
-      ensureStackLoadedForRow(r);
       ensureRepoDocsListLoaded(r);
       const docKeyOpen = docFileFromTabKey(activeTabForRow(r));
       if (docKeyOpen) ensureDocFileLoadedForRow(r, docKeyOpen);
@@ -3405,9 +3595,7 @@ function wireRepoRow(row) {
       S.openTabs[id] = btn.dataset.tab;
       r.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === btn.dataset.tab));
       r.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('active', p.dataset.pane === btn.dataset.tab));
-      if (btn.dataset.tab === 'readme') ensureReadmeLoadedForRow(r);
       if (btn.dataset.tab === 'matchfile') ensureSearchFileLoadedForRow(r);
-      if (btn.dataset.tab === 'stack') ensureStackLoadedForRow(r);
       const docKeyTab = docFileFromTabKey(btn.dataset.tab);
       if (docKeyTab) ensureDocFileLoadedForRow(r, docKeyTab);
     });
@@ -3485,21 +3673,6 @@ function renderTable(options) {
   S.repoListRenderedCount = computeRepoListRenderedCount(repos, keepListChunk);
   updateRepoListCountLabels(repos);
 
-  const infoParts = [];
-  const listTab = getRepoListBucket().activeTab;
-  if (listTab.startsWith(REPO_LIST_GP_PREFIX)) {
-    const collName = listTab.slice(REPO_LIST_GP_PREFIX.length);
-    const coll = S.githubCollections.find((c) => c.name === collName);
-    const dirs = (coll?.projects || []).map((p) => normalizeCollProject(p).projectDir).filter(Boolean);
-    infoParts.push(
-      `github-projects/${collName}/ (${dirs.length} on disk${dirs.length ? ': ' + dirs.join(', ') : ''})`,
-    );
-  }
-  if (S.search) infoParts.push(`"${S.search}"`);
-  if (S.langFilter.size > 0) infoParts.push([...S.langFilter].join(', '));
-  document.getElementById('activeFilterInfo').textContent =
-    infoParts.length ? infoParts.join(' · ') : '';
-
   document.querySelectorAll('.th.sortable').forEach(th => {
     th.classList.toggle('active-sort', th.dataset.sort === S.sortKey);
     const arrow = th.querySelector('.sort-arrow');
@@ -3566,7 +3739,6 @@ function buildLayout() {
   main.innerHTML = `
     <div class="results-bar">
       <div class="results-count">Loaded <strong id="repoLoadedCount">0</strong> of <strong id="filteredRepoCount">0</strong> matching · <strong id="totalCount">0</strong> in project</div>
-      <div class="active-filter-info" id="activeFilterInfo"></div>
     </div>
     <div class="list-tabs-bar">
       <div class="list-tabs" id="repoListTabs" aria-label="Repository lists"></div>
@@ -3579,7 +3751,6 @@ function buildLayout() {
       <div class="th sortable" data-sort="forks">Forks</div>
       <div class="th sortable" data-sort="commits">Commits</div>
       <div class="th sortable" data-sort="last_commit">Last Commit</div>
-      <div class="th">AI</div>
     </div>
     <div class="repo-list" id="repoList">
       <div class="no-results">Loading…</div>
@@ -3609,7 +3780,9 @@ async function loadModels() {
 }
 
 function populateModelSelect() {
-  const sel = document.getElementById('modelSelect');
+  for (const selId of ['modelSelect', 'collectionAiModelSelect']) {
+    const sel = document.getElementById(selId);
+    if (!sel) continue;
   sel.innerHTML = S.models.map(m => {
     const ctx = m.context_length ? (m.context_length>=1e6?(m.context_length/1e6).toFixed(1)+'M':Math.round(m.context_length/1000)+'k') : '?';
     const inp = (m.pricing?.input??m.pricing?.prompt) ? '$'+(parseFloat(m.pricing.input??m.pricing.prompt)*1e6).toFixed(2)+'/Mtok' : '?';
@@ -3621,7 +3794,8 @@ function populateModelSelect() {
     const opt = Array.from(sel.options).find(o=>o.value.includes(p));
     if (opt) { sel.value=opt.value; break; }
   }
-  updateModelMeta();
+  if (selId === 'modelSelect') updateModelMeta();
+  }
 }
 
 function updateModelMeta() {
@@ -3633,6 +3807,10 @@ function updateModelMeta() {
 
 function getAiProvider() {
   return document.querySelector('input[name="aiProvider"]:checked')?.value || 'openrouter';
+}
+
+function getCollectionAiProvider() {
+  return document.querySelector('input[name="collectionAiProvider"]:checked')?.value || 'openrouter';
 }
 
 function syncAiProviderUI() {
@@ -3667,8 +3845,9 @@ async function loadCursorModels() {
 }
 
 function populateCursorModelSelect() {
-  const sel = document.getElementById('cursorModelSelect');
-  if (!sel) return;
+  for (const selId of ['cursorModelSelect', 'collectionAiCursorModelSelect']) {
+  const sel = document.getElementById(selId);
+  if (!sel) continue;
   sel.innerHTML = S.cursorModels.map(m => {
     const id = m.id || m.label;
     const lab = m.label || m.id;
@@ -3678,8 +3857,8 @@ function populateCursorModelSelect() {
     o => o.value.toLowerCase() === 'composer 2 fast' || (o.textContent || '').toLowerCase().includes('composer 2 fast'),
   );
   if (opt) sel.value = opt.value;
+  }
 }
-
 
 const CLAUDE_MODELS_FALLBACK = [
   'sonnet', 'opus', 'haiku',
@@ -3708,15 +3887,16 @@ async function loadClaudeModels(force) {
 }
 
 function populateClaudeModelSelect() {
-  const sel = document.getElementById('claudeModelSelect');
   const hint = document.getElementById('claudeModelHint');
-  if (!sel) return;
   if (hint) {
     hint.textContent = S.claudeModelsError
       ? `Using built-in list (${S.claudeModelsError}). Restart github-oss server for /api/claude-models.`
       : '';
     hint.style.display = S.claudeModelsError ? '' : 'none';
   }
+  for (const selId of ['claudeModelSelect', 'collectionAiClaudeModelSelect']) {
+  const sel = document.getElementById(selId);
+  if (!sel) continue;
   sel.innerHTML = S.claudeModels.map(m => {
     const id = m.id || m.label;
     const lab = m.label || m.id;
@@ -3724,6 +3904,7 @@ function populateClaudeModelSelect() {
   }).join('');
   const opt = Array.from(sel.options).find(o => o.value.toLowerCase() === 'sonnet');
   if (opt) sel.value = opt.value;
+  }
 }
 
 function renderRagentLaunchResult(launch, provider) {
@@ -3758,45 +3939,21 @@ function slugFromProjectFname(fname) {
   return s.replace(/^\d+_/, '') || s;
 }
 
-function syncAiModalContextUI() {
-  const global = document.querySelector('input[name="aiContextMode"]:checked')?.value === 'global';
-  const row = document.getElementById('aiGlobalTopicRow');
-  if (row) row.style.display = global ? '' : 'none';
-}
-
 function openModal(repoId, opts = {}) {
   const r = S.repos.find(x => String(x.id) === String(repoId));
   if (!r) return;
   S.activeModal = String(repoId);
   S.aiModalOpts = {
-    contextMode: opts.contextMode === 'global' ? 'global' : 'repo',
-    githubTopic: opts.githubTopic != null ? String(opts.githubTopic) : '',
-    topicContextBlock:
-      opts.contextMode === 'global' && opts.topicContextBlock != null
-        ? String(opts.topicContextBlock)
-        : '',
     docFile: opts.docFile != null ? String(opts.docFile) : '',
     tabKey: opts.tabKey != null ? String(opts.tabKey) : '',
     tabLabel: '',
   };
   const docHint = S.aiModalOpts.docFile ? ` · docs/${S.aiModalOpts.docFile}` : '';
-  document.getElementById('modalTitle').textContent =
-    S.aiModalOpts.contextMode === 'global'
-      ? `🌐 Global: ${r.name}`
-      : `🤖 Ask AI: ${r.name}${docHint}`;
-  document.getElementById('modalSubtitle').textContent =
-    S.aiModalOpts.contextMode === 'global'
-      ? `${r.full_name} · ${S.searchProjectSlug}${S.aiModalOpts.githubTopic ? ' · #' + S.aiModalOpts.githubTopic : ''}`
-      : (r.description || '');
+  document.getElementById('modalTitle').textContent = `🤖 Ask AI: ${r.name}${docHint}`;
+  document.getElementById('modalSubtitle').textContent = r.description || '';
   document.getElementById('modalStatus').textContent = '';
   document.getElementById('aiPrompt').value = '';
   document.getElementById('askBtn').disabled = false;
-  const repoRadio = document.querySelector('input[name="aiContextMode"][value="repo"]');
-  const globalRadio = document.querySelector('input[name="aiContextMode"][value="global"]');
-  if (repoRadio) repoRadio.checked = S.aiModalOpts.contextMode !== 'global';
-  if (globalRadio) globalRadio.checked = S.aiModalOpts.contextMode === 'global';
-  document.getElementById('aiGithubTopic').value = S.aiModalOpts.githubTopic;
-  syncAiModalContextUI();
   const resBox = document.getElementById('aiModalResult');
   if (resBox) {
     resBox.classList.remove('visible');
@@ -3814,51 +3971,141 @@ function closeModal() {
 }
 function handleModalBackdropClick(e) { if(e.target===document.getElementById('aiModal')) closeModal(); }
 
-function closeGlobalContextModal() {
-  document.getElementById('globalContextModal').classList.remove('open');
-}
-function handleGlobalContextBackdrop(e) {
-  if (e.target === document.getElementById('globalContextModal')) closeGlobalContextModal();
+function activeCollectionName() {
+  const tab = getRepoListBucket().activeTab;
+  if (!tab.startsWith(REPO_LIST_GP_PREFIX)) return null;
+  return tab.slice(REPO_LIST_GP_PREFIX.length);
 }
 
-async function openGlobalContextModal() {
-  document.getElementById('globalContextModal').classList.add('open');
-  const acc = document.getElementById('globalContextAccordion');
-  const sub = document.getElementById('globalContextSubtitle');
-  if (sub) sub.textContent = `Project: ${S.searchProjectSlug} · data/global_context/${S.searchProjectSlug}/`;
-  acc.innerHTML = '<div class="empty-state">Loading…</div>';
+function syncCollectionAiProviderUI() {
+  const p = getCollectionAiProvider();
+  const orRow = document.getElementById('collectionOpenrouterModelRow');
+  const clRow = document.getElementById('collectionClaudeModelRow');
+  const curRow = document.getElementById('collectionCursorModelRow');
+  const label = document.getElementById('collectionAskBtnLabel');
+  if (orRow) orRow.style.display = p === 'openrouter' ? '' : 'none';
+  if (clRow) clRow.style.display = p === 'claude' ? '' : 'none';
+  if (curRow) curRow.style.display = p === 'cursor' ? '' : 'none';
+  if (label) label.textContent = p === 'openrouter' ? 'Ask AI' : 'Run agent';
+}
+
+function openCollectionAiModal() {
+  const coll = activeCollectionName();
+  if (!coll) {
+    window.alert('Select a collection tab first (e.g. Favourite).');
+    return;
+  }
+  S.collectionAiCollection = coll;
+  const repos = reposForCollectionTab(coll);
+  document.getElementById('collectionAiModalTitle').textContent = `Ask AI: ${collectionTabLabel(coll)}`;
+  document.getElementById('collectionAiModalSubtitle').textContent =
+    `${repos.length} repositories in github-projects/${coll}/`;
+  document.getElementById('collectionAiOutputFolder').value = 'research/docs';
+  document.getElementById('collectionAiPrompt').value = '';
+  document.getElementById('collectionAiStatus').textContent = '';
+  document.getElementById('collectionAskBtn').disabled = false;
+  const resBox = document.getElementById('collectionAiModalResult');
+  if (resBox) {
+    resBox.classList.remove('visible');
+    resBox.innerHTML = '';
+  }
+  document.getElementById('collectionAiModal').classList.add('open');
+  syncCollectionAiProviderUI();
+  if (!S.modelsLoaded) loadModels();
+  if (!S.cursorModelsLoaded) loadCursorModels();
+  if (!S.claudeModelsLoaded) loadClaudeModels();
+}
+
+function closeCollectionAiModal() {
+  document.getElementById('collectionAiModal').classList.remove('open');
+  S.collectionAiCollection = null;
+}
+
+function handleCollectionAiBackdrop(e) {
+  if (e.target === document.getElementById('collectionAiModal')) closeCollectionAiModal();
+}
+
+async function submitCollectionAiQuery() {
+  const coll = S.collectionAiCollection;
+  if (!coll) return;
+  const prompt = document.getElementById('collectionAiPrompt').value.trim();
+  if (!prompt) {
+    document.getElementById('collectionAiPrompt').focus();
+    return;
+  }
+  const provider = getCollectionAiProvider();
+  const outputFolder = document.getElementById('collectionAiOutputFolder').value.trim() || 'research/docs';
+  const statusEl = document.getElementById('collectionAiStatus');
+  const askBtn = document.getElementById('collectionAskBtn');
+  const resBoxStart = document.getElementById('collectionAiModalResult');
+  if (resBoxStart) {
+    resBoxStart.classList.remove('visible');
+    resBoxStart.innerHTML = '';
+  }
+  askBtn.disabled = true;
+  const statusMsg =
+    provider === 'openrouter'
+      ? 'Analyzing collection…'
+      : `Starting ${provider === 'cursor' ? 'ragent.cursor.sh' : 'ragent.claude.sh'}…`;
+  statusEl.innerHTML =
+    '<span style="display:flex;align-items:center;gap:8px"><span class="spinner"></span> ' + statusMsg + '</span>';
   try {
-    const res = await fetch(`${API_BASE}/api/global-context/${encodeURIComponent(S.searchProjectSlug)}`);
+    const repos = reposForCollectionTab(coll).map(r => ({
+      full_name: r.full_name,
+      description: r.description,
+      language: r.language,
+      stars: r.stars,
+    }));
+    const body = { prompt, outputFolder, aiProvider: provider, repos };
+    if (provider === 'openrouter') {
+      body.userModel = document.getElementById('collectionAiModelSelect').value;
+    } else if (provider === 'claude') {
+      body.claudeModel = document.getElementById('collectionAiClaudeModelSelect').value;
+    } else if (provider === 'cursor') {
+      body.cursorModel = document.getElementById('collectionAiCursorModelSelect').value;
+    }
+    const res = await fetch(`${API_BASE}/api/collections/${encodeURIComponent(coll)}/ai-ask`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || res.statusText);
-    if (!data.topics || !data.topics.length) {
-      acc.innerHTML = '<div class="empty-state">No saved global context yet. Use the row 🤖 button, choose <strong>Search project (global)</strong>, enter a GitHub topic, and ask.</div>';
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+
+    if ((data.provider === 'claude' || data.provider === 'cursor') && data.ragentLaunch) {
+      const launch = data.ragentLaunch;
+      const resBox = document.getElementById('collectionAiModalResult');
+      if (resBox) {
+        resBox.innerHTML = renderRagentLaunchResult(launch, data.provider);
+        resBox.classList.add('visible');
+      }
+      if (launch.command) {
+        try {
+          await navigator.clipboard.writeText(launch.command);
+        } catch { /* ignore */ }
+      }
+      document.getElementById('collectionAiPrompt').value = '';
+      statusEl.textContent = data.relativePath ? `Saved context: ${data.relativePath}` : '';
+      askBtn.disabled = false;
       return;
     }
-    const baseDl = `${API_BASE}/api/global-context/${encodeURIComponent(S.searchProjectSlug)}/topic`;
-    acc.innerHTML = data.topics.map((t, i) => {
-      const dlMd = `${baseDl}/${encodeURIComponent(t.topicKey)}/download?which=md`;
-      const dlJson = `${baseDl}/${encodeURIComponent(t.topicKey)}/download?which=json`;
-      const dlZip = `${baseDl}/${encodeURIComponent(t.topicKey)}/download?which=zip`;
-      return `<div class="stack-section gc-acc${i === 0 ? ' open' : ''}">
-      <div class="stack-section-header" onclick="this.closest('.stack-section').classList.toggle('open')">
-        <span>${esc(t.label || t.topicKey)} <span class="stack-section-badge npm">${esc(t.topicKey)}</span></span>
-        <svg class="stack-section-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none">
-          <path d="M4 2l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </div>
-      <div class="stack-section-body">
-        <div class="md-body">${typeof marked !== 'undefined' ? parseMarkdown(t.mdPreview || '') : `<pre style="white-space:pre-wrap">${esc(t.mdPreview || '')}</pre>`}</div>
-        <div class="gc-dl-row">
-          <a class="btn-secondary" href="${dlMd}" download>Download .md</a>
-          ${t.hasJson ? `<a class="btn-secondary" href="${dlJson}" download>Download .json</a>` : ''}
-          <a class="btn-secondary" href="${dlZip}" download>Download .zip</a>
-        </div>
-      </div>
-    </div>`;
-    }).join('');
+
+    const turn = data.lastTurn;
+    const savedPath = data.relativePath || data.fileName || '';
+    const resBox = document.getElementById('collectionAiModalResult');
+    if (resBox) {
+      resBox.innerHTML =
+        `<div class="ai-modal-result-meta">Saved to <code>${esc(savedPath)}</code> · Model: ${esc(turn?.userModel || '—')}</div>` +
+        `<div class="ai-turn-q"><strong>Your question</strong><div class="md-body">${parseMarkdown(turn?.prompt || '')}</div></div>` +
+        `<div class="ai-turn-a"><strong>Answer</strong><div class="md-body">${parseMarkdown(turn?.content || '')}</div></div>`;
+      resBox.classList.add('visible');
+    }
+    document.getElementById('collectionAiPrompt').value = '';
+    statusEl.textContent = '';
+    askBtn.disabled = false;
   } catch (err) {
-    acc.innerHTML = `<div class="ai-error">Error: ${esc(err.message)}</div>`;
+    statusEl.innerHTML = `<div class="ai-error">Error: ${esc(err.message)}</div>`;
+    askBtn.disabled = false;
   }
 }
 
@@ -3873,7 +4120,6 @@ async function submitAiQuery() {
     return;
   }
   const provider = getAiProvider();
-  const mode = document.querySelector('input[name="aiContextMode"]:checked')?.value || 'repo';
   const statusEl = document.getElementById('modalStatus');
   const askBtn = document.getElementById('askBtn');
   const resBoxStart = document.getElementById('aiModalResult');
@@ -3884,32 +4130,16 @@ async function submitAiQuery() {
   askBtn.disabled = true;
   let statusMsg;
   if (provider === 'openrouter') {
-    statusMsg =
-      mode === 'global'
-        ? 'Answering (global context)…'
-        : 'Installing (github-installer) / selecting files / answering…';
+    statusMsg = 'Installing (github-installer) / selecting files / answering…';
   } else {
-    statusMsg =
-      mode === 'global'
-        ? `Starting ${provider === 'cursor' ? 'ragent.cursor.sh' : 'ragent.claude.sh'}…`
-        : 'Installing (github-installer) / starting agent…';
+    statusMsg = 'Installing (github-installer) / starting agent…';
   }
   statusEl.innerHTML =
     '<span style="display:flex;align-items:center;gap:8px"><span class="spinner"></span> ' + statusMsg + '</span>';
-  if (mode === 'global') {
-    const ghTopic = document.getElementById('aiGithubTopic').value.trim();
-    if (!ghTopic) {
-      statusEl.innerHTML = '<div class="ai-error">Enter a GitHub topic for global mode.</div>';
-      askBtn.disabled = false;
-      document.getElementById('aiGithubTopic').focus();
-      return;
-    }
-  }
   try {
     const body = {
       fullName: r.full_name,
       prompt,
-      contextMode: mode,
       aiProvider: provider,
     };
     if (provider === 'openrouter') {
@@ -3919,20 +4149,13 @@ async function submitAiQuery() {
     } else if (provider === 'cursor') {
       body.cursorModel = document.getElementById('cursorModelSelect').value;
     }
-    if (mode === 'repo') {
-      body.docFile = S.aiModalOpts.docFile || '';
-      const ctx = await gatherTabContextForAsk(r, S.aiModalOpts.tabKey || 'readme', body.docFile);
-      body.tabLabel = ctx.tabLabel;
-      body.tabContext = ctx.tabContext;
-      body.searchProjectSlug = S.searchProjectSlug;
-      body.projectName = S.projectLoaded?.name || '';
-      body.collection = r.github_collection || S.defaultCloneCollection || 'favourite';
-    }
-    if (mode === 'global') {
-      body.searchProjectSlug = S.searchProjectSlug;
-      body.githubTopic = document.getElementById('aiGithubTopic').value.trim();
-      body.topicContextBlock = S.aiModalOpts.topicContextBlock || '';
-    }
+    body.docFile = S.aiModalOpts.docFile || '';
+    const ctx = await gatherTabContextForAsk(r, S.aiModalOpts.tabKey || 'readme', body.docFile);
+    body.tabLabel = ctx.tabLabel;
+    body.tabContext = ctx.tabContext;
+    body.searchProjectSlug = S.searchProjectSlug;
+    body.projectName = S.projectLoaded?.name || '';
+    body.collection = r.github_collection || S.defaultCloneCollection || 'favourite';
     const res = await fetch(`${API_BASE}/api/ai/ask`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -3953,7 +4176,7 @@ async function submitAiQuery() {
           await navigator.clipboard.writeText(launch.command);
         } catch { /* ignore */ }
       }
-      if (mode === 'repo') {
+      {
         setRepoCloneState(r.full_name, true, data.collection || r.github_collection);
         if (data.docFile) {
           S.openTabs[id] = docTabKey(data.docFile);
@@ -3974,8 +4197,7 @@ async function submitAiQuery() {
     }
 
     const turn = data.lastTurn;
-    const isGlobal = data.contextMode === 'global';
-    if (!isGlobal) {
+    {
       setRepoCloneState(r.full_name, true, data.collection || r.github_collection);
       if (data.docFile) {
         S.openTabs[id] = docTabKey(data.docFile);
@@ -3990,9 +4212,7 @@ async function submitAiQuery() {
       renderTable();
       updateRepoListCountLabels(filteredRepos());
     }
-    const meta = isGlobal
-      ? `Saved for topic <strong>${esc(turn.githubTopic || '')}</strong>. Open <strong>Global context</strong> in the header to browse or download.`
-      : `Model: ${esc(turn.userModel || '—')} · Updated <code>docs/${esc(data.docFile || '')}</code>`;
+    const meta = `Model: ${esc(turn.userModel || '—')} · Updated <code>docs/${esc(data.docFile || '')}</code>`;
     const resBox = document.getElementById('aiModalResult');
     if (resBox) {
       resBox.innerHTML =
@@ -4032,13 +4252,12 @@ function setupEvents() {
     const h=document.documentElement; h.dataset.theme=h.dataset.theme==='dark'?'light':'dark';
   });
   document.getElementById('modelSelect').addEventListener('change', updateModelMeta);
-  document.querySelectorAll('input[name="aiContextMode"]').forEach(rad => {
-    rad.addEventListener('change', () => syncAiModalContextUI());
-  });
   document.querySelectorAll('input[name="aiProvider"]').forEach(rad => {
     rad.addEventListener('change', () => syncAiProviderUI());
   });
-  document.getElementById('globalContextHeaderBtn').addEventListener('click', () => openGlobalContextModal());
+  document.querySelectorAll('input[name="collectionAiProvider"]').forEach(rad => {
+    rad.addEventListener('change', () => syncCollectionAiProviderUI());
+  });
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
       const rs = document.getElementById('readmeFullscreenModal');
@@ -4052,7 +4271,7 @@ function setupEvents() {
         return;
       }
       closeModal();
-      closeGlobalContextModal();
+      closeCollectionAiModal();
       closeExtendSearchModal();
     }
   });

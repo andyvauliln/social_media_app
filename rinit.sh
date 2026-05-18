@@ -145,22 +145,33 @@ done < <(parse_common "$CONFIG")
 
 echo "[init] --- services ---"
 while IFS=$'\t' read -r name type development_enabled svc_path init_cmd start_cmd production_enabled; do
-  # Development: init services flagged for dev. Production: init services flagged for prod.
-  if [[ "$ENVIRONMENT" == "production" ]]; then
-    [[ "$production_enabled" != "true" ]] && continue
-  else
-    [[ "$development_enabled" != "true" ]] && continue
-  fi
   [[ -z "$init_cmd" ]] && continue
 
-  cwd="$ROOT/$svc_path"
-
-  if [[ ! -d "$cwd" ]]; then
-    echo "[init] skip $name: directory $cwd not found" >&2
-    continue
+  # github-project: always run init when listed in config (clone/pull + deps).
+  # developmentEnabled/productionEnabled only gate rstart.sh — not install/init.
+  if [[ "$type" != "github-project" ]]; then
+    if [[ "$ENVIRONMENT" == "production" ]]; then
+      [[ "$production_enabled" != "true" ]] && continue
+    else
+      [[ "$development_enabled" != "true" ]] && continue
+    fi
   fi
 
-  echo "[init] $name: $init_cmd"
+  cwd="$ROOT/$svc_path"
+  if [[ ! -d "$cwd" ]]; then
+    if [[ "$type" == "github-project" ]]; then
+      mkdir -p "$cwd"
+    else
+      echo "[init] skip $name: directory $cwd not found" >&2
+      continue
+    fi
+  fi
+
+  if [[ "$type" == "github-project" ]]; then
+    echo "[init] $name (github-project, install-only): $init_cmd"
+  else
+    echo "[init] $name: $init_cmd"
+  fi
   if ! (cd "$cwd" && eval "$init_cmd"); then
     echo "[init] FAILED: $name" >&2
     failed=1
