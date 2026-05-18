@@ -12,12 +12,36 @@ if [[ ! -d "$REPO_DIR" ]]; then
   fi
   echo "[init] cloning $REPO_URL -> $REPO_DIR"
   git clone "$REPO_URL" "$REPO_DIR"
-elif [[ -d "$REPO_DIR/.git" ]]; then
-  echo "[init] pulling latest in $REPO_DIR"
-  (cd "$REPO_DIR" && git pull --ff-only)
-else
-  echo "[init] warning: $REPO_DIR exists but is not a git repo; skipping pull" >&2
+elif [[ ! -d "$REPO_DIR/.git" ]]; then
+  if [[ -z "$(ls -A "$REPO_DIR" 2>/dev/null)" ]]; then
+    echo "[init] removing empty placeholder at $REPO_DIR"
+    rmdir "$REPO_DIR"
+    echo "[init] cloning $REPO_URL -> $REPO_DIR"
+    git clone "$REPO_URL" "$REPO_DIR"
+  else
+    echo "[init] error: $REPO_DIR exists but is not a git repository (refusing to overwrite)" >&2
+    exit 1
+  fi
+fi
+
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+
+# HyperFrames requires Node >= 22 and ffmpeg on PATH (see tools/video/hyperframes_compose.py).
+if [[ -f "$REPO_ROOT/scripts/ensure-nvm-node.sh" ]]; then
+  # shellcheck disable=SC1090
+  eval "$(bash "$REPO_ROOT/scripts/ensure-nvm-node.sh")"
+fi
+if [[ -f "$REPO_ROOT/scripts/ensure-ffmpeg.sh" ]]; then
+  # shellcheck disable=SC1090
+  eval "$(bash "$REPO_ROOT/scripts/ensure-ffmpeg.sh")"
 fi
 
 cd "$REPO_DIR"
+# Upstream Makefile invokes `python`; Ubuntu often provides only python3.
+if ! command -v python >/dev/null 2>&1 && command -v python3 >/dev/null 2>&1; then
+  init_bin="$SCRIPT_DIR/.init-bin"
+  mkdir -p "$init_bin"
+  ln -sf "$(command -v python3)" "$init_bin/python"
+  export PATH="$init_bin:$PATH"
+fi
 make setup

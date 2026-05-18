@@ -172,6 +172,38 @@ a { color:var(--accent-text); text-decoration:none; }
   font-size:11px; font-family:var(--font-mono); color:var(--text-faint);
 }
 .card-open-btn { display:inline-flex; align-items:center; gap:4px; font-size:11px; font-family:var(--font-mono); font-weight:600; color:var(--accent-text); }
+.card-search-meta {
+  display:flex; flex-direction:column; gap:var(--sp3);
+  padding:var(--sp3) var(--sp4);
+  background:var(--surface-2); border:1px solid var(--border);
+  border-radius:var(--rad-md);
+}
+.card-meta-block { display:flex; flex-direction:column; gap:var(--sp2); min-width:0; }
+.card-meta-label {
+  font-size:10px; font-family:var(--font-mono); font-weight:700;
+  text-transform:uppercase; letter-spacing:.08em; color:var(--text-faint);
+}
+.card-status-row { display:flex; flex-wrap:wrap; align-items:flex-start; gap:var(--sp2); }
+.card-status-badge {
+  font-size:10px; font-family:var(--font-mono); font-weight:700;
+  padding:2px 8px; border-radius:var(--rad-full); white-space:nowrap; flex-shrink:0;
+}
+.card-status-ok { background:var(--green-dim); color:var(--green); }
+.card-status-partial { background:var(--orange-dim); color:var(--orange); }
+.card-search-error {
+  flex:1; min-width:0; font-size:10px; font-family:var(--font-mono);
+  color:var(--text-muted); line-height:1.45; word-break:break-word;
+}
+.card-kw-counts { display:flex; flex-wrap:wrap; gap:5px; }
+.kw-count-chip {
+  display:inline-flex; align-items:center; gap:4px;
+  font-size:10px; font-family:var(--font-mono);
+  background:var(--surface-3); border:1px solid var(--border);
+  border-radius:var(--rad-full); padding:2px 8px; color:var(--text-muted);
+  max-width:100%;
+}
+.kw-count-chip strong { color:var(--text); font-weight:700; }
+.card-kw-empty { font-size:10px; font-family:var(--font-mono); color:var(--text-faint); font-style:italic; }
 .project-card > .card-delete-btn {
   position:absolute; top:var(--sp3); right:var(--sp3); z-index:2;
   display:inline-flex; align-items:center; justify-content:center;
@@ -651,6 +683,16 @@ function buildCard(p) {
       <span class="card-badge">${p.repoCount||0} repos</span>
     </div>
     <div class="card-langs">${langHtml || '<span style="font-size:11px;color:var(--text-faint);font-family:var(--font-mono)">No language data</span>'}</div>
+    <div class="card-search-meta">
+      <div class="card-meta-block">
+        <span class="card-meta-label">Search status</span>
+        ${buildCardSearchStatusHtml(p)}
+      </div>
+      <div class="card-meta-block">
+        <span class="card-meta-label">Per keyword</span>
+        <div class="card-kw-counts">${buildCardKeywordCountsHtml(p)}</div>
+      </div>
+    </div>
     <div class="card-footer">
       <span>${fmtDate(p.createdAt)}</span>
       <div style="display:flex;align-items:center;gap:var(--sp3)">
@@ -696,6 +738,34 @@ function hashStr(s) {
   let h = 0;
   for (let i=0; i<s.length; i++) h = (Math.imul(31,h)+s.charCodeAt(i))|0;
   return h;
+}
+
+function buildCardSearchStatusHtml(p) {
+  const partial = !!p.partial;
+  const err = String(p.searchError || '').trim();
+  const badgeClass = partial ? 'card-status-badge card-status-partial' : 'card-status-badge card-status-ok';
+  const badgeText = partial ? 'Partial scan' : 'Complete';
+  let html = `<div class="card-status-row"><span class="${badgeClass}">${badgeText}</span>`;
+  if (err) {
+    html += `<span class="card-search-error">${esc(err)}</span>`;
+  } else if (!partial) {
+    html += `<span class="card-search-error" style="color:var(--text-faint)">No scan errors</span>`;
+  }
+  return html + '</div>';
+}
+
+function buildCardKeywordCountsHtml(p) {
+  const kc = p.keywordCounts;
+  if (!kc || typeof kc !== 'object' || Array.isArray(kc)) {
+    return '<span class="card-kw-empty">No per-keyword counts</span>';
+  }
+  const entries = Object.entries(kc);
+  if (!entries.length) {
+    return '<span class="card-kw-empty">No per-keyword counts</span>';
+  }
+  return entries.map(([kw, n]) =>
+    `<span class="kw-count-chip" title="Unique repos this keyword contributed">${esc(kw)} <strong>${Number(n) || 0}</strong></span>`
+  ).join('');
 }
 
 /* ── Persist project JSON on disk (same as trading) — requires local server ─── */

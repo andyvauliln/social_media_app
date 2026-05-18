@@ -146,6 +146,12 @@ function projectCardMetaFromFileJson(raw, fnameNoExt) {
     createdAt: raw.createdAt || '',
     seeded: !!raw.seeded,
     searchOptions: raw.searchOptions && typeof raw.searchOptions === 'object' ? raw.searchOptions : undefined,
+    keywordCounts:
+      raw.keywordCounts && typeof raw.keywordCounts === 'object' && !Array.isArray(raw.keywordCounts)
+        ? raw.keywordCounts
+        : {},
+    partial: !!raw.partial,
+    searchError: String(raw.searchError || ''),
   };
 }
 

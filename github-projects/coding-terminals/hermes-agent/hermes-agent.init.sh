@@ -12,12 +12,18 @@ if [[ ! -d "$REPO_DIR" ]]; then
   fi
   echo "[init] cloning $REPO_URL -> $REPO_DIR"
   git clone "$REPO_URL" "$REPO_DIR"
-elif [[ -d "$REPO_DIR/.git" ]]; then
-  echo "[init] pulling latest in $REPO_DIR"
-  (cd "$REPO_DIR" && git pull --ff-only)
-else
-  echo "[init] warning: $REPO_DIR exists but is not a git repo; skipping pull" >&2
+elif [[ ! -d "$REPO_DIR/.git" ]]; then
+  if [[ -z "$(ls -A "$REPO_DIR" 2>/dev/null)" ]]; then
+    echo "[init] removing empty placeholder at $REPO_DIR"
+    rmdir "$REPO_DIR"
+    echo "[init] cloning $REPO_URL -> $REPO_DIR"
+    git clone "$REPO_URL" "$REPO_DIR"
+  else
+    echo "[init] error: $REPO_DIR exists but is not a git repository (refusing to overwrite)" >&2
+    exit 1
+  fi
 fi
 
 cd "$REPO_DIR"
-pip install -r requirements.txt
+# setup-hermes.sh prompts for ripgrep and the config wizard; decline for unattended init.
+printf 'n\nn\n' | bash ./setup-hermes.sh

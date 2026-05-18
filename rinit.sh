@@ -50,6 +50,19 @@ if [[ -f "$ROOT/scripts/ensure-cursor-agent.sh" ]]; then
   [[ -n "${_cursor_agent_env:-}" ]] && eval "$_cursor_agent_env"
 fi
 
+echo "[init] --- root common (node via nvm) ---"
+if [[ -f "$ROOT/scripts/ensure-nvm-node.sh" ]]; then
+  _node_env="$(bash "$ROOT/scripts/ensure-nvm-node.sh")" || exit 1
+  [[ -n "${_node_env:-}" ]] && eval "$_node_env"
+fi
+if [[ -f "$ROOT/scripts/ensure-pnpm.sh" ]]; then
+  bash "$ROOT/scripts/ensure-pnpm.sh" || exit 1
+fi
+if [[ -f "$ROOT/scripts/ensure-ffmpeg.sh" ]]; then
+  _ffmpeg_env="$(bash "$ROOT/scripts/ensure-ffmpeg.sh")" || exit 1
+  [[ -n "${_ffmpeg_env:-}" ]] && eval "$_ffmpeg_env"
+fi
+
 echo "[init] --- plugins ---"
 plugins_dir="$ROOT/plugins"
 if [[ -d "$plugins_dir" ]]; then
@@ -147,7 +160,7 @@ echo "[init] --- services ---"
 while IFS=$'\t' read -r name type development_enabled svc_path init_cmd start_cmd production_enabled; do
   [[ -z "$init_cmd" ]] && continue
 
-  # github-project: always run init when listed in config (clone/pull + deps).
+  # github-project: always run init when listed in config (clone if missing + deps; git pull is cron).
   # developmentEnabled/productionEnabled only gate rstart.sh — not install/init.
   if [[ "$type" != "github-project" ]]; then
     if [[ "$ENVIRONMENT" == "production" ]]; then
@@ -158,11 +171,18 @@ while IFS=$'\t' read -r name type development_enabled svc_path init_cmd start_cm
   fi
 
   cwd="$ROOT/$svc_path"
-  if [[ ! -d "$cwd" ]]; then
-    if [[ "$type" == "github-project" ]]; then
-      mkdir -p "$cwd"
-    else
-      echo "[init] skip $name: directory $cwd not found" >&2
+  if [[ "$type" == "github-project" ]]; then
+    # Init scripts clone into repo/ when missing; do not mkdir repo/ here. Updates: cron git-sync.
+    run_cwd="$(dirname "$cwd")"
+    init_cmd="bash ./${name}.init.sh"
+    if [[ ! -d "$run_cwd" ]]; then
+      echo "[init] skip $name: project directory $run_cwd not found" >&2
+      continue
+    fi
+  else
+    run_cwd="$cwd"
+    if [[ ! -d "$run_cwd" ]]; then
+      echo "[init] skip $name: directory $run_cwd not found" >&2
       continue
     fi
   fi
@@ -172,7 +192,7 @@ while IFS=$'\t' read -r name type development_enabled svc_path init_cmd start_cm
   else
     echo "[init] $name: $init_cmd"
   fi
-  if ! (cd "$cwd" && eval "$init_cmd"); then
+  if ! (cd "$run_cwd" && eval "$init_cmd"); then
     echo "[init] FAILED: $name" >&2
     failed=1
   fi
@@ -188,9 +208,8 @@ chmod +x "$ROOT/apps/cron-supervisor/acron.sh"
 chmod +x "$ROOT/apps/cron-supervisor/scripts/setup-service.sh"
 chmod +x "$ROOT/apps/cron-supervisor/scripts/cron-edit.mjs"
 
-if ! bash "$ROOT/apps/cron-supervisor/scripts/setup-service.sh"; then
+bash "$ROOT/apps/cron-supervisor/scripts/setup-service.sh" || \
   echo "[init] WARN: cron supervisor service setup failed; continuing" >&2
-fi
 
 echo "[init] --- acron CLI (shell alias) ---"
 echo "[init] use: sma.acron <command>   (after: source ~/.bashrc or ~/.zshrc — installed by install-shell-aliases.sh above)"
