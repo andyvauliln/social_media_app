@@ -25,11 +25,12 @@ Use this skill when:
 - Local `main` and `origin/main` diverged during sync.
 - A sync script says a merge problem must be resolved by an agent.
 - `scripts/git-sync-pull-push.sh` invoked the agent with reason **working tree or index has local changes before sync** (dirty tree, not necessarily a merge).
+- `scripts/github-projects-sync-mine.sh` invoked the agent for a nested repo under `github-projects/` while updating `main` or merging `main` into `mine`.
 
 
 ## First Checks
 
-1. Run `git status --short --branch`. If `git` is not available, execution is blocked, the shell returns `Rejected`, or the command produces no real Git output, stop immediately. Do not edit files, do not stage, do not continue the operation, and do not write or update `unresolved_merge.md` from guesses when Git was never queried.
+1. Run `git status --short --branch`. If the caller gives a nested repository path, run `git -C "<repo-path>" status --short --branch` instead. If `git` is not available, execution is blocked, the shell returns `Rejected`, or the command produces no real Git output, stop immediately. Do not edit files, do not stage, do not continue the operation, and do not write or update `unresolved_merge.md` from guesses when Git was never queried.
    - **Partial fallback (read-only):** when Git truly cannot run, you may still scan the worktree for `<<<<<<<` / `=======` / `>>>>>>>` and check `.git/` for `MERGE_HEAD`, `rebase-merge/`, `rebase-apply/`, `CHERRY_PICK_HEAD`, `REVERT_HEAD` to infer whether a conflict operation is in progress. Treat this as incomplete: always tell the user to run `git status --short --branch` locally before pushing or stashing, and do not claim the repo is clean without Git output.
    - **Blocked agent shell:** if the agent environment rejects shell commands so `git status` never runs, still apply the partial fallback above; state clearly that Git was not executed in-session; for dirty-tree-only sync, do not create `unresolved_merge.md` or commits when fallback shows no interrupted operation and no markers.
    - **Git binary blocked, filesystem allowed:** some sandboxes deny `git` while still allowing `test -f` / `ls` on `.git/MERGE_HEAD`, `.git/rebase-merge`, `.git/CHERRY_PICK_HEAD`, `.git/REVERT_HEAD`. Use those when `git` never runs; conclusions stay incomplete until the user runs `git status --short --branch` locally.
@@ -44,6 +45,8 @@ Use this skill when:
 ## Diverged `main` / sync workflow
 
 `scripts/git-sync-pull-push.sh` tries a non-interactive `git merge origin/<main>` in Bash (with real Git) when local and `origin/<main>` diverge. You usually run **after** that step failed with conflicts, or when `GIT_SYNC_AUTO_MERGE=0`, or when fixing an already-started merge/rebase. Prefer finishing the current in-progress operation (`git merge --continue` after resolved paths) over choosing a new strategy.
+
+For `scripts/github-projects-sync-mine.sh`, the caller provides a nested Git repository path under `github-projects/`. Keep all Git commands scoped to that repo with `git -C "<repo-path>" ...`. The usual target is to finish either updating local `main` from `origin/main` or merging `main` into local `mine`; write any `unresolved_merge.md` in that nested repository root, not the parent project root.
 
 ## Choose the Resolution
 

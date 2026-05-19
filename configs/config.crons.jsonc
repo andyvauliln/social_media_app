@@ -54,6 +54,20 @@
             }
         },
         {
+            "name": "sync-github-projects-mine",
+            "description": "sync each cloned github-projects repo: pull origin/main, create mine if missing, and merge main into mine",
+            "schedule": "0 3 * * *",
+            "production": true,
+            "development": true,
+            "end_date": null,
+            "runLocation": "supervisor",
+            "run": {
+                "type": "shell",
+                "cwd": ".",
+                "command": "bash scripts/github-projects-sync-mine.sh --cursor"
+            }
+        },
+        {
             "name": "collect-inline-tasks",
             "description": "run every 5 minutes; check if exist ai comments tags and run agent to make task for them",
             "schedule": "* * * * *",

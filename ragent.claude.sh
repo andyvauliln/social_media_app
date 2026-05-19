@@ -341,7 +341,7 @@ args=(
   --plugin-dir "./plugins/skill-creator"
   --plugin-dir "./plugins/ui5/0.1.0"
   # need auth vercel (later)
-  --plugin-dir "./plugins/vercel/0.40.0"
+  # --plugin-dir "./plugins/vercel/0.40.0"
   --dangerously-skip-permissions
   --permission-mode bypassPermissions
   

@@ -5,8 +5,8 @@
       "name": "cron-supervisor",
       "description": "Scheduled GitHub Actions and periodic tasks",
       "type": "app",
-      "developmentEnabled": true,
-      "productionEnabled": true,
+      "developmentEnabled": true, // RUN IN DEVELOPMENT
+      "productionEnabled": true, // RUN IN PRODUCTION
       "serviceManaged": true, // managed by launchd (macOS) / systemd (Linux) — not started by rstart.sh
       "envFiles": [],
       "path": "apps/cron-supervisor",
@@ -17,8 +17,8 @@
       "name": "github-oss",
       "description": "GitHub OSS discovery and project intelligence UI (static + API on one port)",
       "type": "app",
-      "developmentEnabled": true,
-      "productionEnabled": true,
+      "developmentEnabled": true, // RUN IN DEVELOPMENT
+      "productionEnabled": true, // RUN IN PRODUCTION
       "port": 3847,
       "envFiles": ["envs/app.github-oss.symlink.env"],
       "path": "apps/github-oss",
@@ -31,7 +31,7 @@
       "description": "Root-repo Claude agent — Telegram via envs/main.telegram",
       "type": "agent",
       "developmentEnabled": false,
-      "productionEnabled": true,
+      "productionEnabled": true, // RUN IN PRODUCTION
       "envFiles": [],
       "path": "agents/main",
       "init": "bun install",
@@ -53,13 +53,25 @@
       "description": "Dante Claude agent — Telegram via envs/dante.telegram",
       "type": "agent",
       "developmentEnabled": false,
-      "productionEnabled": true,
+      "productionEnabled": true, // RUN IN PRODUCTION
       "envFiles": [],
       "path": "agents/dante",
       "init": "bun install",
       "start": "bash ./ragent.claude.sh --telegram"
     },
     //************************GITHUB-PROJECTS************************
+    // github-project: developmentEnabled/productionEnabled false = not started by rstart.sh; rinit still runs init.
+    {
+      "name": "open-screen",
+      "description": "OpenScreen content factory UI",
+      "type": "github-project",
+      "developmentEnabled": false,
+      "productionEnabled": false,
+      "envFiles": [],
+      "path": "github-projects/content-factory/openscreen/repo",
+      "init": "bash ../openscreen.init.sh",
+      "start": "bash ../openscreen.start.sh"
+    },
     {
       "name": "brightbean-studio",
       "description": "Self-hosted social media management platform — schedule, publish, and monitor content across 10+ social networks",

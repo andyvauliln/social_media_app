@@ -20,4 +20,4 @@
 
 ## DEV FLOW
 - don't create folder for task that not reqire changes like check
-
+- metadata for file that he know what to update after that

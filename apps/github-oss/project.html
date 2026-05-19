@@ -223,6 +223,8 @@ a:hover { text-decoration:underline; }
 .repo-list-btn.repo-clone-btn:hover { background:var(--green); color:var(--surface); }
 .repo-list-btn.repo-clone-btn:disabled { opacity:0.55; cursor:wait; }
 .repo-list-btn.repo-clone-btn.is-cloned { opacity:0.85; }
+.repo-list-btn.repo-add-to-favourite { color:var(--gold); border-color:color-mix(in srgb, var(--gold) 40%, transparent); background:color-mix(in srgb, var(--gold) 10%, transparent); }
+.repo-list-btn.repo-add-to-favourite:hover { background:var(--gold-dim); border-color:var(--gold); }
 .ai-docs-pane { padding:var(--sp3) 0; }
 .ai-docs-meta { font-size:11px; font-family:var(--font-mono); color:var(--text-faint); margin-bottom:var(--sp3); }
 .ai-docs-turn { border:1px solid var(--border); border-radius:var(--rad-md); padding:var(--sp3); margin-bottom:var(--sp3); background:var(--surface-2); }
@@ -270,6 +272,30 @@ a:hover { text-decoration:underline; }
 .row-meta-sep { color:var(--border-2); }
 .repo-topics { display:flex; flex-wrap:wrap; gap:4px; margin-top:var(--sp2); }
 .topic-chip { font-size:10px; font-family:var(--font-mono); background:var(--surface-3); color:var(--text-muted); border:1px solid var(--border-2); border-radius:var(--rad-full); padding:1px 7px; }
+.repo-topic-add-btn {
+  font-size:10px; font-family:var(--font-mono); font-weight:700;
+  border:1px dashed var(--border-2); border-radius:var(--rad-full);
+  padding:1px 8px; color:var(--accent-text); background:var(--surface-2);
+  transition:all var(--trans);
+}
+.repo-topic-add-btn:hover { border-color:var(--accent); background:var(--accent-dim); }
+.repo-topic-form { display:inline-flex; align-items:center; gap:4px; }
+.repo-topic-input {
+  width:120px; min-height:20px; padding:1px 7px;
+  border:1px solid var(--accent); border-radius:var(--rad-full);
+  background:var(--surface); color:var(--text); outline:none;
+  font-size:10px; font-family:var(--font-mono);
+}
+.repo-topic-save-btn,
+.repo-topic-cancel-btn {
+  font-size:10px; font-family:var(--font-mono); font-weight:700;
+  border:1px solid var(--border-2); border-radius:var(--rad-full);
+  padding:1px 7px; background:var(--surface-2); color:var(--text-muted);
+  transition:all var(--trans);
+}
+.repo-topic-save-btn { color:var(--accent-text); border-color:color-mix(in srgb, var(--accent) 45%, transparent); }
+.repo-topic-save-btn:hover { background:var(--accent-dim); border-color:var(--accent); }
+.repo-topic-cancel-btn:hover { background:var(--red-dim); border-color:var(--red); color:var(--red); }
 .col-lang { font-family:var(--font-mono); font-size:var(--text-xs); display:flex; align-items:flex-start; gap:5px; padding-top:3px; color:var(--text-muted); }
 .lang-dot  { width:9px; height:9px; border-radius:50%; flex-shrink:0; margin-top:3px; }
 .col-num   { font-family:var(--font-mono); font-size:var(--text-xs); color:var(--text-muted); padding-top:3px; }
@@ -319,6 +345,9 @@ a:hover { text-decoration:underline; }
 .tab-fetch-btn:hover { background:var(--accent); color:var(--surface); }
 .tab-fetch-btn:disabled { opacity:0.55; cursor:wait; }
 .tab-btn.tab-doc { text-transform:none; letter-spacing:0; }
+.tab-btn-delete { display:inline-flex; align-items:center; justify-content:center; margin-left:5px; width:14px; height:14px; border-radius:50%; font-size:11px; line-height:1; opacity:.5; transition:all var(--trans); vertical-align:middle; }
+.tab-btn:hover .tab-btn-delete, .tab-btn.active .tab-btn-delete { opacity:.8; }
+.tab-btn-delete:hover { opacity:1 !important; color:var(--red); background:var(--red-dim); }
 .doc-file-pane { padding:var(--sp2) 0; }
 .doc-file-meta { font-size:11px; font-family:var(--font-mono); color:var(--text-faint); margin-bottom:var(--sp3); }
 
@@ -525,6 +554,10 @@ a:hover { text-decoration:underline; }
 .form-textarea { width:100%; padding:var(--sp3); background:var(--surface-3); border:1.5px solid var(--border-2); border-radius:var(--rad-md); color:var(--text); font-size:var(--text-sm); font-family:var(--font-body); outline:none; resize:vertical; min-height:120px; line-height:1.6; transition:border-color var(--trans); }
 .form-textarea:focus { border-color:var(--accent); }
 .form-textarea::placeholder { color:var(--text-faint); }
+.skill-picker-row { display:grid; grid-template-columns:1fr auto auto; gap:var(--sp2); align-items:center; }
+.skill-name-row { display:none; grid-template-columns:110px 1fr; gap:var(--sp2); align-items:center; }
+.skill-name-row.open { display:grid; }
+.skill-editor { min-height:180px; font-family:var(--font-mono); font-size:12px; line-height:1.5; }
 .model-meta-row { display:flex; gap:var(--sp4); flex-wrap:wrap; margin-top:var(--sp2); }
 .model-meta-pill { font-size:10px; font-family:var(--font-mono); background:var(--surface-3); border:1px solid var(--border); border-radius:var(--rad-full); padding:2px 8px; color:var(--text-muted); }
 .model-meta-pill strong { color:var(--text); }
@@ -707,6 +740,22 @@ a:hover { text-decoration:underline; }
         <select class="form-select" id="cursorModelSelect">
           <option value="Composer 2 Fast">Composer 2 Fast</option>
         </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Skill</label>
+        <div class="skill-picker-row">
+          <select class="form-select" id="aiSkillSelect">
+            <option value="">No skill</option>
+          </select>
+          <button type="button" class="btn-secondary" id="aiAddSkillBtn">Add skill</button>
+          <button type="button" class="btn-primary" id="aiSaveSkillBtn">Save</button>
+        </div>
+        <div class="skill-name-row" id="aiSkillNameRow">
+          <span class="form-label">Folder</span>
+          <input type="text" class="form-select" id="aiSkillNameInput" placeholder="my-skill" autocomplete="off" style="cursor:text"/>
+        </div>
+        <textarea class="form-textarea skill-editor" id="aiSkillText" placeholder="Select or add a skill to include it in the prompt."></textarea>
+        <p class="form-hint" id="aiSkillHint">Only skills from <code>.claude/skills/github-oss</code> are listed. The editable text is included before your prompt.</p>
       </div>
       <div class="form-group">
         <label class="form-label">Your Question / Prompt</label>
@@ -1109,24 +1158,14 @@ function ghRestHeaders() {
   };
 }
 
-/** Blob paths via recursive git tree (no hardcoded manifest locations). */
+/** Blob paths via server-side GitHub proxy. */
 async function fetchRepoBlobPaths(full_name, branch) {
   try {
-    const cr = await fetch(
-      `https://api.github.com/repos/${full_name}/commits/${encodeURIComponent(branch)}`,
-      { headers: ghRestHeaders() }
-    );
-    if (!cr.ok) return [];
-    const c = await cr.json();
-    const treeSha = c?.commit?.tree?.sha;
-    if (!treeSha) return [];
-    const tr = await fetch(
-      `https://api.github.com/repos/${full_name}/git/trees/${treeSha}?recursive=1`,
-      { headers: ghRestHeaders() }
-    );
-    if (!tr.ok) return [];
-    const t = await tr.json();
-    return (t.tree || []).filter((x) => x.type === 'blob' && x.path).map((x) => x.path);
+    const q = new URLSearchParams({ repo: full_name, branch: branch || 'main' });
+    const res = await fetch(apiUrl(`/api/github/tree?${q}`));
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data.paths) ? data.paths : [];
   } catch {
     return [];
   }
@@ -1143,19 +1182,21 @@ function manifestPathsForBasename(paths, baseName) {
     });
 }
 
+async function fetchGhRaw(full_name, branch, filePath) {
+  const q = new URLSearchParams({ repo: full_name, branch, path: filePath });
+  const res = await fetch(apiUrl(`/api/github/raw?${q}`));
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.text();
+}
+
 async function packagesFromTreeNpm(full_name, branch) {
   const paths = await fetchRepoBlobPaths(full_name, branch);
   const rels = manifestPathsForBasename(paths, 'package.json').slice(0, MAX_MANIFEST_FILES);
-  const rawHdr = { headers: { 'Authorization': `Bearer ${GH_TOKEN}` } };
   const byName = new Map();
   for (const rel of rels) {
     try {
-      const pkgRes = await fetch(
-        `https://raw.githubusercontent.com/${full_name}/${branch}/${rel}`,
-        rawHdr
-      );
-      if (!pkgRes.ok) continue;
-      const pkg = await pkgRes.json();
+      const text = await fetchGhRaw(full_name, branch, rel);
+      const pkg = JSON.parse(text);
       for (const [name, ver] of Object.entries(pkg.dependencies || {})) {
         byName.set(name, { ver, dev: false });
       }
@@ -1176,17 +1217,11 @@ async function packagesFromTreeNpm(full_name, branch) {
 async function packagesFromTreePypi(full_name, branch) {
   const paths = await fetchRepoBlobPaths(full_name, branch);
   const rels = manifestPathsForBasename(paths, 'requirements.txt').slice(0, MAX_MANIFEST_FILES);
-  const rawHdr = { headers: { 'Authorization': `Bearer ${GH_TOKEN}` } };
   const seen = new Set();
   const out = [];
   for (const rel of rels) {
     try {
-      const reqRes = await fetch(
-        `https://raw.githubusercontent.com/${full_name}/${branch}/${rel}`,
-        rawHdr
-      );
-      if (!reqRes.ok) continue;
-      const text = await reqRes.text();
+      const text = await fetchGhRaw(full_name, branch, rel);
       for (const line of text.split('\n')) {
         const name = line.trim().split(/[>=<!\[]/)[0].trim();
         if (!name || name.startsWith('#') || name.length >= 60) continue;
@@ -1204,17 +1239,11 @@ async function packagesFromTreePypi(full_name, branch) {
 async function packagesFromTreePyproject(full_name, branch) {
   const paths = await fetchRepoBlobPaths(full_name, branch);
   const rels = manifestPathsForBasename(paths, 'pyproject.toml').slice(0, MAX_MANIFEST_FILES);
-  const rawHdr = { headers: { 'Authorization': `Bearer ${GH_TOKEN}` } };
   const seen = new Set();
   const out = [];
   for (const rel of rels) {
     try {
-      const res = await fetch(
-        `https://raw.githubusercontent.com/${full_name}/${branch}/${rel}`,
-        rawHdr
-      );
-      if (!res.ok) continue;
-      const text = await res.text();
+      const text = await fetchGhRaw(full_name, branch, rel);
       for (const d of parsePyproject(text)) {
         const k = d.name.toLowerCase();
         if (seen.has(k)) continue;
@@ -1296,13 +1325,10 @@ async function enrichRepos(rawRepos, onProgress, enrichOpts) {
     const readmeText = typeof r.readme === 'string' ? r.readme : '';
     let pkgs = [];
     try {
-      const res = await fetch(
-        `https://api.github.com/repos/${r.full_name}/commits?per_page=1`,
-        { headers: { 'Authorization': `Bearer ${GH_TOKEN}`, 'Accept': 'application/vnd.github+json' } }
-      );
-      const link = res.headers.get('link') || '';
-      const m = link.match(/page=(\d+)>; rel="last"/);
-      base.commit_count = m ? parseInt(m[1]) : null;
+      const q = new URLSearchParams({ repo: r.full_name, branch: r.default_branch || 'main' });
+      const res = await fetch(apiUrl(`/api/github/commit-count?${q}`));
+      const data = await res.json();
+      base.commit_count = data.count ?? null;
     } catch {}
     if (fetchFile && filePath && !base.search_file_fetched) {
       try {
@@ -1327,26 +1353,18 @@ function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 /* ── Lazy content fetch helpers ─────────────── */
 
-// Fetch a raw file from GitHub. Returns text or null.
-async function ghFetchFile(slug, path) {
+// Fetch a raw file from GitHub via server proxy. Returns text or null.
+async function ghFetchFile(slug, filePath) {
   try {
-    const res = await fetch(`${GH_API}/repos/${slug}/contents/${path}`, {
-      headers: { 'Authorization': `Bearer ${GH_TOKEN}`, 'Accept': 'application/vnd.github+json' }
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    if (!data.content) return null;
-    const bytes = atob(data.content.replace(/\n/g, ''));
-    return decodeURIComponent(escape(bytes));
+    return await fetchGhRaw(slug, 'HEAD', filePath);
   } catch(e) { return null; }
 }
 
 // Fetch README markdown. Returns string or null.
 async function fetchReadme(slug) {
   try {
-    const res = await fetch(`${GH_API}/repos/${slug}/readme`, {
-      headers: { 'Authorization': `Bearer ${GH_TOKEN}`, 'Accept': 'application/vnd.github+json' }
-    });
+    const q = new URLSearchParams({ repo: slug });
+    const res = await fetch(apiUrl(`/api/github/readme?${q}`));
     if (!res.ok) return null;
     const data = await res.json();
     if (!data.content) return null;
@@ -1487,16 +1505,21 @@ function snapshotProjectForDisk() {
 
 async function persistProjectFileOnServer() {
   const payload = snapshotProjectForDisk();
-  if (!payload) return;
+  if (!payload) return false;
   try {
-    const res = await fetch('/api/projects/save', {
+    const res = await fetch(`${API_BASE}/api/projects/save`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-    if (!res.ok) console.warn('data/projects save:', await res.text());
+    if (!res.ok) {
+      console.warn('data/projects save:', await res.text());
+      return false;
+    }
+    return true;
   } catch (e) {
     console.warn('data/projects save failed', e);
+    return false;
   }
 }
 
@@ -1860,6 +1883,7 @@ function normalizeRepoRecord(r) {
     cloned,
     cloned_at: typeof r.cloned_at === 'string' ? r.cloned_at : '',
     github_collection: typeof r.github_collection === 'string' ? r.github_collection : '',
+    isFavourite: !!r.isFavourite,
   };
   if (temp_files) rec.temp_files = temp_files;
   return rec;
@@ -2146,11 +2170,18 @@ function reposForCollectionTab(collName) {
   return matched;
 }
 
-function repoListAddButtonsHtml(slugAttr) {
+function repoListAddButtonsHtml(slugAttr, r) {
   const b = getRepoListBucket();
   const tab = b.activeTab;
   let h = '';
+  // Favourite button — always present unless on favourite tab or already marked
+  const favTabId = repoListTabForCollection(S.defaultCloneCollection);
+  if (tab !== favTabId && !(r && r.isFavourite)) {
+    h += `<button type="button" class="repo-list-btn repo-add-to-favourite" data-slug="${slugAttr}" title="Add to Favourites">★ Favourite</button>`;
+  }
+  // Other disk collections (skip favourite — handled above)
   for (const coll of S.githubCollections) {
+    if (coll.name === S.defaultCloneCollection) continue;
     const tabId = repoListTabForCollection(coll.name);
     if (tab === tabId) continue;
     const label = collectionTabLabel(coll.name);
@@ -2180,7 +2211,13 @@ function renderRepoListTabs() {
     wrap.appendChild(el);
   }
   addTab('all', 'All');
+  // Favourite is always the first collection tab; count derived from isFavourite field
+  const favTabId = repoListTabForCollection(S.defaultCloneCollection);
+  const favCount = S.repos.filter(r => !!r.isFavourite).length;
+  addTab(favTabId, favCount ? `Favourite (${favCount})` : 'Favourite');
+  // Other disk collections (skip favourite — already added above)
   for (const coll of S.githubCollections) {
+    if (coll.name === S.defaultCloneCollection) continue;
     addTab(repoListTabForCollection(coll.name), collectionTabLabel(coll));
   }
   const addListBtn = document.createElement('button');
@@ -2203,10 +2240,14 @@ function renderRepoListTabs() {
 function filterReposByListTab(repos, tab, b) {
   if (tab === 'all') return repos;
   if (tab.startsWith(REPO_LIST_GP_PREFIX)) {
-    return reposForCollectionTab(tab.slice(REPO_LIST_GP_PREFIX.length));
+    const collName = tab.slice(REPO_LIST_GP_PREFIX.length);
+    if (collName === S.defaultCloneCollection) {
+      return repos.filter(r => !!r.isFavourite);
+    }
+    return reposForCollectionTab(collName);
   }
   if (tab === 'favourite') {
-    return filterReposByListTab(repos, repoListTabForCollection(S.defaultCloneCollection), b);
+    return repos.filter(r => !!r.isFavourite);
   }
   if (tab.startsWith(REPO_LIST_CUSTOM_PREFIX)) {
     const id = tab.slice(REPO_LIST_CUSTOM_PREFIX.length);
@@ -2231,13 +2272,31 @@ function addRepoToStoredList(targetValue, fullName) {
   renderTable();
 }
 
+function addRepoToFavourite(fullName) {
+  const r = S.repos.find(x => x.full_name === fullName);
+  if (!r) return;
+  r.isFavourite = true;
+  persistProjectRepos();
+  renderRepoListTabs();
+  renderTable({ keepListChunk: true });
+}
+
 function removeRepoFromActiveListTab(fullName) {
   const b = getRepoListBucket();
   const tab = b.activeTab;
   if (tab === 'all') return;
-  if (tab === 'favourite') {
-    b.favourites = b.favourites.filter(s => s !== fullName);
-  } else if (tab.startsWith(REPO_LIST_CUSTOM_PREFIX)) {
+  // Favourite tab: toggle isFavourite on the repo record
+  if (tab === repoListTabForCollection(S.defaultCloneCollection) || tab === 'favourite') {
+    const r = S.repos.find(x => x.full_name === fullName);
+    if (r) {
+      r.isFavourite = false;
+      persistProjectRepos();
+      renderRepoListTabs();
+      renderTable();
+    }
+    return;
+  }
+  if (tab.startsWith(REPO_LIST_CUSTOM_PREFIX)) {
     const id = tab.slice(REPO_LIST_CUSTOM_PREFIX.length);
     const list = b.customLists.find(c => c.id === id);
     if (list) list.items = list.items.filter(s => s !== fullName);
@@ -2293,10 +2352,10 @@ function addCustomRepoList(name) {
 }
 
 function persistProjectRepos() {
-  if (!S.projectFname || !S.projectLoaded) return;
+  if (!S.projectFname || !S.projectLoaded) return Promise.resolve(false);
   S.projectLoaded.repos = reposForPersistence(S.repos);
   S.projectLoaded.repoCount = S.repos.length;
-  void persistProjectFileOnServer();
+  return persistProjectFileOnServer();
 }
 
 /**
@@ -2497,34 +2556,62 @@ async function addRepoToGithubCollection(fullName, collection) {
     btn.textContent = '…';
   }
   try {
-    const res = await fetch(`${API_BASE}/api/repos/install-to-collection`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        fullName,
-        collection: coll,
-        searchProjectSlug: S.searchProjectSlug,
-        projectName: S.projectLoaded?.name || '',
-      }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
-    const r = S.repos.find((x) => x.full_name === fullName);
-    if (r) {
-      if (data.cloned) setRepoCloneState(fullName, true, coll);
-      else r.github_collection = coll;
-      invalidateRepoDocsCache(r.id);
-      persistProjectRepos();
+    const activeTab = getRepoListBucket().activeTab;
+    const isFromAllTab = activeTab === 'all';
+    if (isFromAllTab) {
+      // From "all" tab: async clone via github-installer skill
+      const res = await fetch(`${API_BASE}/api/repos/ai-clone`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName,
+          collection: coll,
+          searchProjectSlug: S.searchProjectSlug,
+          projectName: S.projectLoaded?.name || '',
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      const r = S.repos.find(x => x.full_name === fullName);
+      if (r) {
+        r.github_collection = coll;
+        if (data.cloned) setRepoCloneState(fullName, true, coll);
+        invalidateRepoDocsCache(r.id);
+        persistProjectRepos();
+      }
+      await loadGithubCollections();
+      renderRepoListTabs();
+      renderTable();
+      window.alert(`AI Clone started for ${fullName} under github-projects/${coll}/.\nLog: ${data.logFile || '—'}`);
+    } else {
+      // From an existing collection tab: move folder via install-to-collection
+      const res = await fetch(`${API_BASE}/api/repos/install-to-collection`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName,
+          collection: coll,
+          searchProjectSlug: S.searchProjectSlug,
+          projectName: S.projectLoaded?.name || '',
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      const r = S.repos.find(x => x.full_name === fullName);
+      if (r) {
+        if (data.cloned) setRepoCloneState(fullName, true, coll);
+        else r.github_collection = coll;
+        invalidateRepoDocsCache(r.id);
+        persistProjectRepos();
+      }
+      await loadGithubCollections();
+      renderRepoListTabs();
+      renderTable();
+      const moveHint = data.moved && data.fromCollection ? ` (moved from ${data.fromCollection})` : '';
+      window.alert(`Installed ${fullName} under github-projects/${coll}/${data.projectDir || ''}/repo${moveHint}`);
     }
-    await loadGithubCollections();
-    renderRepoListTabs();
-    renderTable();
-    const moveHint = data.moved && data.fromCollection
-      ? ` (moved from ${data.fromCollection})`
-      : '';
-    window.alert(`Installed ${fullName} under github-projects/${coll}/${data.projectDir || ''}/repo${moveHint}`);
   } catch (err) {
-    window.alert(`Could not install to ${coll}: ${err.message}`);
+    window.alert(`Could not add to ${coll}: ${err.message}`);
   } finally {
     if (btn) {
       btn.disabled = false;
@@ -2548,6 +2635,57 @@ function deleteRepoFromProject(fullName) {
   persistProjectRepos();
   renderLangFilter();
   renderTable();
+}
+
+function normalizeManualTopic(raw) {
+  return String(raw || '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 50);
+}
+
+function focusTopicInput(repoId) {
+  setTimeout(() => {
+    const sel = `.repo-topic-input[data-repo-id="${CSS.escape(String(repoId))}"]`;
+    const input = document.querySelector(sel);
+    if (input) input.focus();
+  }, 0);
+}
+
+function beginTopicEdit(repoId) {
+  S.topicEditRepoId = String(repoId);
+  renderTable({ keepListChunk: true });
+  focusTopicInput(repoId);
+}
+
+function cancelTopicEdit() {
+  S.topicEditRepoId = null;
+  renderTable({ keepListChunk: true });
+}
+
+async function addTopicToRepo(repoId, raw) {
+  const r = S.repos.find((x) => String(x.id) === String(repoId));
+  if (!r) return;
+  const topic = normalizeManualTopic(raw);
+  if (!topic) {
+    const input = document.querySelector(`.repo-topic-input[data-repo-id="${CSS.escape(String(repoId))}"]`);
+    if (input) input.focus();
+    return;
+  }
+  const existing = new Set((Array.isArray(r.topics) ? r.topics : []).map((t) => String(t).toLowerCase()));
+  S.topicEditRepoId = null;
+  if (existing.has(topic)) {
+    renderTable({ keepListChunk: true });
+    return;
+  }
+  r.topics = [topic, ...(Array.isArray(r.topics) ? r.topics : [])];
+  const saved = await persistProjectRepos();
+  renderTable({ keepListChunk: true });
+  if (!saved) window.alert('Topic was added in the UI, but saving the project file failed. Is the local server running?');
 }
 
 async function onAiCloneClick(repoId) {
@@ -2611,6 +2749,29 @@ async function onAiCloneClick(repoId) {
 }
 
 function handleRepoListClick(e) {
+  const topicBtn = e.target.closest('.repo-topic-add-btn');
+  if (topicBtn) {
+    e.preventDefault();
+    e.stopPropagation();
+    beginTopicEdit(topicBtn.dataset.repoId);
+    return;
+  }
+  const topicSaveBtn = e.target.closest('.repo-topic-save-btn');
+  if (topicSaveBtn) {
+    e.preventDefault();
+    e.stopPropagation();
+    const repoId = topicSaveBtn.dataset.repoId;
+    const input = document.querySelector(`.repo-topic-input[data-repo-id="${CSS.escape(String(repoId))}"]`);
+    void addTopicToRepo(repoId, input ? input.value : '');
+    return;
+  }
+  const topicCancelBtn = e.target.closest('.repo-topic-cancel-btn');
+  if (topicCancelBtn) {
+    e.preventDefault();
+    e.stopPropagation();
+    cancelTopicEdit();
+    return;
+  }
   const askBtn = e.target.closest('.repo-ask-ai-btn');
   if (askBtn) {
     e.preventDefault();
@@ -2643,6 +2804,24 @@ function handleRepoListClick(e) {
     if (row) loadStackForRow(row);
     return;
   }
+  const genFileTreeBtn = e.target.closest('.tab-gen-filetree-btn');
+  if (genFileTreeBtn) {
+    e.preventDefault();
+    e.stopPropagation();
+    const row = genFileTreeBtn.closest('.repo-row');
+    if (row) void generateFileTreeForRow(row);
+    return;
+  }
+  const tabDelBtn = e.target.closest('.tab-btn-delete');
+  if (tabDelBtn) {
+    e.preventDefault();
+    e.stopPropagation();
+    const tabKey = tabDelBtn.dataset.tabDel;
+    const docFile = tabDelBtn.dataset.docFile;
+    const row = tabDelBtn.closest('.repo-row');
+    if (row && tabKey) deleteDocTabFromRow(row, tabKey, docFile);
+    return;
+  }
   const tabAskBtn = e.target.closest('.tab-ask-ai-btn');
   if (tabAskBtn) {
     e.preventDefault();
@@ -2661,6 +2840,14 @@ function handleRepoListClick(e) {
     const slug = readmePrev.dataset.readmeSlug;
     const r = S.repos.find(x => x.full_name === slug);
     if (r && r.readme) openReadmeFullscreenModal(slug, r.readme);
+    return;
+  }
+  const favBtn = e.target.closest('.repo-add-to-favourite');
+  if (favBtn) {
+    e.preventDefault();
+    e.stopPropagation();
+    const slug = favBtn.dataset.slug;
+    if (slug) addRepoToFavourite(slug);
     return;
   }
   const collBtn = e.target.closest('.repo-add-to-collection');
@@ -2711,6 +2898,7 @@ const S = {
   langFilter: new Set(),
   openRows:   new Set(),
   openTabs:   {},
+  topicEditRepoId: null,
   aiSessions: {},
   repoDocsListCache: {},
   repoDocFileCache: {},
@@ -2721,6 +2909,10 @@ const S = {
   claudeModels: [],
   claudeModelsLoaded: false,
   claudeModelsError: null,
+  aiSkills: [],
+  aiSkillsLoaded: false,
+  aiSkillsError: null,
+  activeAiSkillName: '',
   pendingRagentLaunch: null,
   activeModal: null,
   aiModalOpts: {
@@ -3110,8 +3302,16 @@ function renderRow(r) {
   const hasTemp   = Array.isArray(r.temp_files);
   const langColor = getLangColor(r.language);
   const daysSince = r.pushed_at ? (Date.now()-new Date(r.pushed_at))/86400000 : 9999;
-  const topicsHtml = (r.topics||[]).slice(0,8)
+  const topics = Array.isArray(r.topics) ? r.topics : [];
+  const topicsHtml = topics.slice(0,8)
     .map(t=>`<span class="topic-chip">${esc(t)}</span>`).join('');
+  const topicAction = S.topicEditRepoId === id
+    ? `<span class="repo-topic-form">
+        <input class="repo-topic-input" data-repo-id="${escAttr(id)}" type="text" placeholder="topic-name" autocomplete="off"/>
+        <button type="button" class="repo-topic-save-btn" data-repo-id="${escAttr(id)}">Save</button>
+        <button type="button" class="repo-topic-cancel-btn" data-repo-id="${escAttr(id)}">Cancel</button>
+      </span>`
+    : `<button type="button" class="repo-topic-add-btn" data-repo-id="${escAttr(id)}" title="Add topic to this project">+ Topic</button>`;
 
   const listTab = getRepoListBucket().activeTab;
   const showListRemove = listTab !== 'all';
@@ -3119,12 +3319,11 @@ function renderRow(r) {
   const listRow = `
       <div class="repo-list-actions">
         <div class="repo-list-actions-collections">
-          ${repoListAddButtonsHtml(slugAttr)}
+          ${repoListAddButtonsHtml(slugAttr, r)}
           ${showListRemove ? `<button type="button" class="repo-list-btn repo-remove-from-list" data-slug="${slugAttr}">Remove from list</button>` : ''}
         </div>
         <div class="repo-list-actions-primary">
           ${canGithub ? `<button type="button" class="repo-list-btn danger repo-delete-from-project" data-slug="${slugAttr}">Delete</button>` : ''}
-          ${canGithub ? `<button type="button" class="repo-list-btn repo-clone-btn${r.cloned ? ' is-cloned' : ''}" data-ai-clone-id="${id}" title="${r.cloned ? 'Already cloned locally' : 'Clone via github-installer'}">${r.cloned ? 'Cloned' : 'Clone'}</button>` : ''}
           ${canGithub ? `<button type="button" class="repo-list-btn repo-ask-ai-btn" data-ask-ai-id="${id}">Ask AI</button>` : ''}
         </div>
       </div>`;
@@ -3137,43 +3336,49 @@ function renderRow(r) {
     `<span class="row-meta-sep">·</span><span class="row-meta-item" style="color:${r.archived?'var(--orange)':daysSince<90?'var(--green)':daysSince>730?'var(--orange)':'var(--text-muted)'}">${r.archived?'Archived':daysSince<7?'Active now':daysSince<90?'Active':daysSince>730?'Stale':'Maintained'}</span>`,
   ].filter(Boolean).join('');
 
+  // Core doc files handled as fixed tabs — not rendered as additional doc tabs
+  const CORE_DOC_FILES_SET = new Set(['readme.md', 'stack.md', 'notes.md', 'file-tree.md']);
+
   const tabs = [];
-  if (hasTemp) tabs.push({ key:'readme', label:'README' });
-  if (showFileTab) tabs.push({ key:'matchfile', label: searchFileTabLabel(r) });
-  if (hasTemp) tabs.push({ key:'stack', label:'Stack' });
+  // 4 core tabs always present first
+  tabs.push({ key: 'readme',    label: 'README' });
+  tabs.push({ key: 'stack',     label: 'Stack' });
+  tabs.push({ key: 'filetree',  label: 'File Tree' });
+  tabs.push({ key: 'notes',     label: 'Notes' });
+  if (showFileTab) tabs.push({ key: 'matchfile', label: searchFileTabLabel(r) });
+  // Additional doc tabs (non-core files only, with delete button)
   for (const f of repoDocTabFiles(r)) {
-    tabs.push({ key: docTabKey(f.name), label: tabLabelForDocFile(f.name), doc: true });
+    if (CORE_DOC_FILES_SET.has(f.name.toLowerCase())) continue;
+    tabs.push({ key: docTabKey(f.name), label: tabLabelForDocFile(f.name), doc: true, deletable: true });
   }
-  // Transient fallback: a cloned repo whose docs/ list hasn't loaded yet.
-  const noTabs = !tabs.length;
-  if (noTabs) tabs.push({ key:'readme', label:'README' });
 
   let activeTab = S.openTabs[id];
   if (!activeTab || !tabs.some((t) => t.key === activeTab)) {
-    activeTab = (showFileTab && projectUsesFileSearch()) ? 'matchfile' : tabs[0].key;
+    activeTab = (showFileTab && projectUsesFileSearch()) ? 'matchfile' : 'readme';
   }
   S.openTabs[id] = activeTab;
 
   const tabBtns = tabs.map((t) => {
     const cls = `tab-btn${activeTab === t.key ? ' active' : ''}${t.doc ? ' tab-doc' : ''}`;
-    return `<button type="button" class="${cls}" data-tab="${escAttr(t.key)}">${esc(t.label)}</button>`;
+    const delBtn = t.deletable
+      ? `<span class="tab-btn-delete" data-tab-del="${escAttr(t.key)}" data-doc-file="${escAttr(docFileFromTabKey(t.key))}" title="Delete tab">×</span>`
+      : '';
+    return `<button type="button" class="${cls}" data-tab="${escAttr(t.key)}">${esc(t.label)}${delBtn}</button>`;
   }).join('');
+  // Additional doc panes (non-core only)
   const docPanes = repoDocTabFiles(r)
+    .filter(f => !CORE_DOC_FILES_SET.has(f.name.toLowerCase()))
     .map((f) => {
       const key = docTabKey(f.name);
       return `<div class="tab-pane${activeTab === key ? ' active' : ''}" data-pane="${escAttr(key)}" data-doc-file="${escAttr(f.name)}">${buildDocFilePane(r, f.name)}</div>`;
     })
     .join('');
   const tabPanes = [
-    (hasTemp || noTabs)
-      ? `<div class="tab-pane${activeTab === 'readme' ? ' active' : ''}" data-pane="readme">${tabPaneToolbarHtml(r, 'readme', '')}${buildReadmePane(r)}</div>`
-      : '',
-    showFileTab
-      ? `<div class="tab-pane${activeTab === 'matchfile' ? ' active' : ''}" data-pane="matchfile">${tabPaneToolbarHtml(r, 'matchfile', '')}${buildSearchFilePane(r)}</div>`
-      : '',
-    hasTemp
-      ? `<div class="tab-pane${activeTab === 'stack' ? ' active' : ''}" data-pane="stack">${tabPaneToolbarHtml(r, 'stack', '')}${buildStackPane(r)}</div>`
-      : '',
+    `<div class="tab-pane${activeTab === 'readme'   ? ' active' : ''}" data-pane="readme">${buildCoreTabPane(r, 'readme')}</div>`,
+    `<div class="tab-pane${activeTab === 'stack'    ? ' active' : ''}" data-pane="stack">${buildCoreTabPane(r, 'stack')}</div>`,
+    `<div class="tab-pane${activeTab === 'filetree' ? ' active' : ''}" data-pane="filetree">${buildCoreTabPane(r, 'filetree')}</div>`,
+    `<div class="tab-pane${activeTab === 'notes'    ? ' active' : ''}" data-pane="notes">${buildCoreTabPane(r, 'notes')}</div>`,
+    showFileTab ? `<div class="tab-pane${activeTab === 'matchfile' ? ' active' : ''}" data-pane="matchfile">${tabPaneToolbarHtml(r, 'matchfile', '')}${buildSearchFilePane(r)}</div>` : '',
     docPanes,
   ].join('');
 
@@ -3189,7 +3394,7 @@ function renderRow(r) {
         ${r.archived?'<span class="archived-badge">archived</span>':''}
       </div>
       <div class="repo-desc">${esc(r.description||'No description')}</div>
-      ${topicsHtml ? '<div class="repo-topics">' + topicsHtml + '</div>' : ''}
+      <div class="repo-topics">${topicsHtml}${topicAction}</div>
       <div class="repo-row-meta">${metaParts}</div>
     </div>
     <div class="col-lang"><span class="lang-dot" style="background:${langColor}"></span><span>${esc(r.language||'—')}</span></div>
@@ -3206,6 +3411,126 @@ function renderRow(r) {
     </div>
   </div>
 </div>`;
+}
+
+/* ── Core tab panes (README, Stack, File Tree, Notes) ─────────────── */
+
+const CORE_DOC_FILE_MAP = { readme: 'readme.md', stack: 'stack.md', filetree: 'file-tree.md', notes: 'notes.md' };
+
+function buildCorePaneToolbar(r, tabKey, docFile) {
+  const id = String(r.id);
+  const askBtn = `<button type="button" class="tab-ask-ai-btn" data-ask-ai-id="${id}" data-tab-key="${escAttr(tabKey)}" data-doc-file="${escAttr(docFile || '')}">Ask AI</button>`;
+  if (tabKey === 'readme') return `<div class="tab-pane-toolbar"><button type="button" class="tab-fetch-btn tab-get-readme-btn" data-repo-id="${id}">Get README</button>${askBtn}</div>`;
+  if (tabKey === 'stack')  return `<div class="tab-pane-toolbar"><button type="button" class="tab-fetch-btn tab-get-stack-btn" data-repo-id="${id}">Get Stack</button>${askBtn}</div>`;
+  if (tabKey === 'filetree') return `<div class="tab-pane-toolbar"><button type="button" class="tab-fetch-btn tab-gen-filetree-btn" data-repo-id="${id}">Generate</button>${askBtn}</div>`;
+  return `<div class="tab-pane-toolbar">${askBtn}</div>`;
+}
+
+function buildCoreTabPane(r, tabKey) {
+  const id = String(r.id);
+  const docFile = CORE_DOC_FILE_MAP[tabKey];
+  const toolbar = buildCorePaneToolbar(r, tabKey, docFile);
+
+  if (r.cloned) {
+    const cached = docFile ? S.repoDocFileCache[id]?.[docFile] : null;
+    if (!cached) {
+      return `${toolbar}<div class="doc-file-pane"><div class="empty-state">Loading…</div></div>`;
+    }
+    if (cached.loading) {
+      return `${toolbar}<div class="doc-file-pane"><div class="empty-state">Loading docs/${esc(docFile)}…</div></div>`;
+    }
+    if (cached.error) {
+      const hint = tabKey === 'readme' ? 'Click <strong>Get README</strong> to fetch from GitHub.'
+        : tabKey === 'stack'    ? 'Click <strong>Get Stack</strong> to scan dependencies.'
+        : tabKey === 'filetree' ? 'Click <strong>Generate</strong> to fetch from GitHub.'
+        : '';
+      return `${toolbar}<div class="doc-file-pane"><div class="empty-state">${hint || esc(cached.error)}</div></div>`;
+    }
+    const content = cached.content ?? '';
+    if (!content.trim()) {
+      const hint = tabKey === 'readme' ? 'Click <strong>Get README</strong> to fetch from GitHub.'
+        : tabKey === 'stack'    ? 'Click <strong>Get Stack</strong> to scan dependencies.'
+        : tabKey === 'filetree' ? 'Click <strong>Generate</strong> to fetch the file tree from GitHub.'
+        : 'Add notes using <strong>Ask AI</strong> or the server-side docs editor.';
+      return `${toolbar}<div class="doc-file-pane"><div class="empty-state">${hint}</div></div>`;
+    }
+    return `${toolbar}<div class="doc-file-pane"><div class="md-body">${parseMarkdown(content)}</div></div>`;
+  }
+
+  // Uncloned — use temp_files hydration
+  if (tabKey === 'readme') {
+    const fetched = !!r.readme_fetched || (typeof r.readme === 'string' && r.readme.length > 0);
+    if (fetched && r.readme) {
+      return `${toolbar}<div class="readme-wrap readme-preview" tabindex="0" role="button" data-readme-slug="${escAttr(r.full_name)}" title="Click to open full README"><div class="md-body">${parseMarkdown(r.readme)}</div></div>`;
+    }
+    if (fetched) return `${toolbar}<div class="empty-state">README not available.</div>`;
+    return `${toolbar}<div class="readme-lazy" data-repo="${escAttr(r.full_name)}"><div class="empty-state">Click <strong>Get README</strong> to load from GitHub.</div></div>`;
+  }
+  if (tabKey === 'stack') {
+    const stackReady = !!r.stack_fetched || (Array.isArray(r.packages) && r.packages.length > 0);
+    if (stackReady) {
+      const inner = stackSectionsHtmlFromPackages(r);
+      return inner ? `${toolbar}<div class="stack-cached">${inner}</div>` : `${toolbar}<div class="empty-state">No dependencies found.</div>`;
+    }
+    return `${toolbar}<div class="stack-lazy" data-repo="${escAttr(r.full_name)}" data-lang="${escAttr(r.language||'')}"><div class="empty-state">Click <strong>Get Stack</strong> to scan dependencies.</div></div>`;
+  }
+  if (tabKey === 'filetree') {
+    return `${toolbar}<div class="doc-file-pane"><div class="empty-state">Click <strong>Generate</strong> to fetch the file tree from GitHub.</div></div>`;
+  }
+  if (tabKey === 'notes') {
+    const notesText = Array.isArray(r.temp_files) ? (tempFileEntry(r.temp_files, 'notes')?.text || '') : '';
+    if (notesText.trim()) {
+      return `${toolbar}<div class="doc-file-pane"><div class="md-body">${parseMarkdown(notesText)}</div></div>`;
+    }
+    return `${toolbar}<div class="doc-file-pane"><div class="empty-state">No notes yet — use <strong>Ask AI</strong> to start.</div></div>`;
+  }
+  return `${toolbar}<div class="doc-file-pane empty-state">—</div>`;
+}
+
+async function writeRepoDocFile(r, fileName, content) {
+  const res = await fetch(`${API_BASE}/api/repos/docs/write`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fullName: r.full_name, file: fileName, content, collection: r.github_collection || '' }),
+  });
+  if (!res.ok) throw new Error((await res.json()).error || `HTTP ${res.status}`);
+  return res.json();
+}
+
+function buildMarkdownFileTree(repoName, paths) {
+  const lines = [`# File Tree — ${repoName}`, ''];
+  const sorted = [...paths].sort();
+  for (const p of sorted) {
+    const depth = (p.match(/\//g) || []).length;
+    lines.push('  '.repeat(depth) + '- ' + p.split('/').pop());
+  }
+  return lines.join('\n');
+}
+
+async function generateFileTreeForRow(row) {
+  const r = S.repos.find(x => String(x.id) === String(row.dataset.id));
+  if (!r) return;
+  const pane = row.querySelector('.tab-pane[data-pane="filetree"]');
+  if (!pane) return;
+  const btn = pane.querySelector('.tab-gen-filetree-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  resetPaneAfterToolbar(pane, `<div class="doc-file-pane"><div style="display:flex;align-items:center;gap:8px;color:var(--text-muted);font-size:13px;padding:var(--sp3) 0"><span class="spinner"></span> Fetching file tree…</div></div>`);
+  try {
+    const branch = r.default_branch || 'main';
+    const paths = await fetchRepoBlobPaths(r.full_name, branch);
+    if (!paths.length) throw new Error('No files found in repository tree');
+    const treeText = buildMarkdownFileTree(r.full_name, paths);
+    if (r.cloned) {
+      await writeRepoDocFile(r, 'file-tree.md', treeText);
+      if (!S.repoDocFileCache[String(r.id)]) S.repoDocFileCache[String(r.id)] = {};
+      S.repoDocFileCache[String(r.id)]['file-tree.md'] = { loaded: true, content: treeText };
+    }
+    resetPaneAfterToolbar(pane, `<div class="doc-file-pane"><div class="md-body">${parseMarkdown(treeText)}</div></div>`);
+  } catch (err) {
+    resetPaneAfterToolbar(pane, `<div class="doc-file-pane"><div class="empty-state">Could not generate file tree: ${esc(String(err.message || err))}</div></div>`);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Generate'; }
+  }
 }
 
 /* ── Build panes: README (lazy) ─────────────── */
@@ -3422,40 +3747,31 @@ function loadReadmeForRow(row) {
   if (!pane) return;
   const btn = pane.querySelector('.tab-get-readme-btn');
   if (btn) btn.disabled = true;
-  resetPaneAfterToolbar(
-    pane,
-    `<div class="readme-lazy" data-repo="${escAttr(r.full_name)}"><div style="display:flex;align-items:center;gap:8px;color:var(--text-muted);font-size:13px;padding:var(--sp3) 0"><span class="spinner"></span> Loading README…</div></div>`,
-  );
-  const lazy = pane.querySelector('.readme-lazy');
-  if (!lazy) {
-    if (btn) btn.disabled = false;
-    return;
-  }
-  lazy.dataset.loaded = '1';
-  const slug = lazy.dataset.repo;
-  fetchReadme(slug)
-    .then((md) => {
-      const rec = S.repos.find((x) => x.full_name === slug);
-      if (rec) {
-        rec.readme = md || '';
-        rec.readme_fetched = true;
-        persistProjectRepos();
+  resetPaneAfterToolbar(pane, `<div class="doc-file-pane"><div style="display:flex;align-items:center;gap:8px;color:var(--text-muted);font-size:13px;padding:var(--sp3) 0"><span class="spinner"></span> Loading README…</div></div>`);
+  fetchReadme(r.full_name)
+    .then(async (md) => {
+      const content = md || '';
+      if (Array.isArray(r.temp_files)) {
+        const entry = tempFileEntry(r.temp_files, 'readme');
+        if (entry) entry.text = content;
       }
-      resetPaneAfterToolbar(
-        pane,
-        md
-          ? `<div class="readme-wrap readme-preview" tabindex="0" role="button" data-readme-slug="${escAttr(slug)}" title="Click to open full README"><div class="md-body">${parseMarkdown(md)}</div></div>`
-          : '<div class="empty-state">README not available for this repository.</div>',
-      );
+      r.readme = content;
+      r.readme_fetched = true;
+      if (r.cloned) {
+        try { await writeRepoDocFile(r, 'readme.md', content); } catch { /* ignore */ }
+        if (!S.repoDocFileCache[String(r.id)]) S.repoDocFileCache[String(r.id)] = {};
+        S.repoDocFileCache[String(r.id)]['readme.md'] = { loaded: true, content };
+      }
+      persistProjectRepos();
+      resetPaneAfterToolbar(pane, content
+        ? `<div class="readme-wrap readme-preview" tabindex="0" role="button" data-readme-slug="${escAttr(r.full_name)}" title="Click to open full README"><div class="md-body">${parseMarkdown(content)}</div></div>`
+        : '<div class="doc-file-pane"><div class="empty-state">README not available for this repository.</div></div>');
     })
     .catch(() => {
-      const rec = S.repos.find((x) => x.full_name === slug);
-      if (rec) {
-        rec.readme = '';
-        rec.readme_fetched = true;
-        persistProjectRepos();
-      }
-      resetPaneAfterToolbar(pane, '<div class="empty-state">Could not load README.</div>');
+      r.readme = '';
+      r.readme_fetched = true;
+      persistProjectRepos();
+      resetPaneAfterToolbar(pane, '<div class="doc-file-pane"><div class="empty-state">Could not load README.</div></div>');
     })
     .finally(() => {
       if (btn) btn.disabled = false;
@@ -3469,25 +3785,68 @@ function loadStackForRow(row) {
   if (!pane) return;
   const btn = pane.querySelector('.tab-get-stack-btn');
   if (btn) btn.disabled = true;
-  resetPaneAfterToolbar(
-    pane,
-    `<div class="stack-lazy" data-repo="${escAttr(r.full_name)}" data-lang="${escAttr(r.language || '')}"><div style="display:flex;align-items:center;gap:8px;color:var(--text-muted);font-size:13px;padding:var(--sp3) 0"><span class="spinner"></span> Loading stack…</div></div>`,
-  );
+  resetPaneAfterToolbar(pane, `<div class="stack-lazy" data-repo="${escAttr(r.full_name)}" data-lang="${escAttr(r.language || '')}"><div style="display:flex;align-items:center;gap:8px;color:var(--text-muted);font-size:13px;padding:var(--sp3) 0"><span class="spinner"></span> Loading stack…</div></div>`);
   const lazy = pane.querySelector('.stack-lazy');
   if (!lazy) {
     if (btn) btn.disabled = false;
     return;
   }
   lazy.dataset.loaded = '1';
-  Promise.resolve(loadStackPane(lazy)).finally(() => {
+  Promise.resolve(loadStackPane(lazy)).then(async () => {
+    // Save to docs/stack.md for cloned repos
+    if (r.cloned && Array.isArray(r.packages) && r.packages.length) {
+      const stackText = packagesToStackFileText(r.packages);
+      try { await writeRepoDocFile(r, 'stack.md', stackText); } catch { /* ignore */ }
+      if (!S.repoDocFileCache[String(r.id)]) S.repoDocFileCache[String(r.id)] = {};
+      S.repoDocFileCache[String(r.id)]['stack.md'] = { loaded: true, content: stackText };
+    }
+  }).finally(() => {
     if (btn) btn.disabled = false;
   });
 }
 
+function ensureCoreDocFileForRow(row, r, docFile) {
+  const id = String(r.id);
+  if (!S.repoDocFileCache[id]) S.repoDocFileCache[id] = {};
+  if (S.repoDocFileCache[id][docFile]?.loaded) return;
+  if (S.repoDocFileCache[id][docFile]?.loading) return;
+  S.repoDocFileCache[id][docFile] = { loading: true };
+  const q = new URLSearchParams({ fullName: r.full_name, file: docFile });
+  if (r.github_collection) q.set('collection', r.github_collection);
+  fetch(`${apiUrl('/api/repos/docs/file')}?${q}`)
+    .then(res => res.json().then(d => ({ ok: res.ok, d })))
+    .then(({ ok, d }) => {
+      S.repoDocFileCache[id][docFile] = ok
+        ? { loaded: true, content: d.content || '' }
+        : { loaded: true, content: '', error: d.error || 'Not found' };
+      // Re-render core pane if this row is still open
+      const tabKey = Object.entries(CORE_DOC_FILE_MAP).find(([, f]) => f === docFile)?.[0];
+      if (tabKey) {
+        const pane = row.querySelector(`.tab-pane[data-pane="${CSS.escape(tabKey)}"]`);
+        if (pane) {
+          const isActive = pane.classList.contains('active');
+          pane.innerHTML = buildCoreTabPane(r, tabKey);
+          if (isActive) pane.classList.add('active');
+        }
+      }
+    })
+    .catch(err => {
+      S.repoDocFileCache[id][docFile] = { loaded: true, content: '', error: err.message };
+    });
+}
+
 function ensureLazyPanesForOpenRow(row) {
   if (!row || !row.classList.contains('open')) return;
+  const id = row.dataset.id;
+  const r = S.repos.find(x => String(x.id) === id);
   ensureSearchFileLoadedForRow(row);
   ensureRepoDocsListLoaded(row);
+  // Pre-load core doc files for cloned repos
+  if (r && r.cloned) {
+    for (const docFile of Object.values(CORE_DOC_FILE_MAP)) {
+      ensureCoreDocFileForRow(row, r, docFile);
+    }
+  }
   const docKeyOpen = docFileFromTabKey(activeTabForRow(row));
   if (docKeyOpen) ensureDocFileLoadedForRow(row, docKeyOpen);
 }
@@ -3527,6 +3886,22 @@ function ensureSearchFileLoadedForRow(row) {
     }
     lazy.innerHTML = '<div class="empty-state">Could not load file from GitHub.</div>';
   });
+}
+
+function deleteDocTabFromRow(row, tabKey, docFile) {
+  const id = row.dataset.id;
+  const r = S.repos.find(x => String(x.id) === id);
+  if (!r) return;
+  // Remove from docs cache so it no longer appears in repoDocTabFiles
+  if (docFile) {
+    if (S.repoDocsListCache[id]?.files) {
+      S.repoDocsListCache[id].files = S.repoDocsListCache[id].files.filter(f => f.name !== docFile);
+    }
+    delete (S.repoDocFileCache[id] || {})[docFile];
+  }
+  // Switch active tab if we just deleted the current one
+  if (S.openTabs[id] === tabKey) delete S.openTabs[id];
+  renderTable({ keepListChunk: true });
 }
 
 function maxOpenRowIndexInList(repos) {
@@ -3571,7 +3946,7 @@ function wireRepoRow(row) {
   if (!summary || summary.dataset.wired === '1') return;
   summary.dataset.wired = '1';
   summary.addEventListener('click', e => {
-    if (e.target.closest('.repo-list-actions')) return;
+    if (e.target.closest('.repo-list-actions') || e.target.closest('.repo-topics')) return;
     const r = summary.closest('.repo-row');
     const id = r.dataset.id;
     if (S.openRows.has(id)) {
@@ -3589,7 +3964,9 @@ function wireRepoRow(row) {
   row.querySelectorAll('.tab-btn').forEach(btn => {
     if (btn.dataset.wired === '1') return;
     btn.dataset.wired = '1';
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', (ev) => {
+      // Don't switch tabs when the delete × is clicked
+      if (ev.target.closest('.tab-btn-delete')) return;
       const r = btn.closest('.repo-row');
       const id = r.dataset.id;
       S.openTabs[id] = btn.dataset.tab;
@@ -3598,6 +3975,10 @@ function wireRepoRow(row) {
       if (btn.dataset.tab === 'matchfile') ensureSearchFileLoadedForRow(r);
       const docKeyTab = docFileFromTabKey(btn.dataset.tab);
       if (docKeyTab) ensureDocFileLoadedForRow(r, docKeyTab);
+      // Load core doc file when switching to a core tab on a cloned repo
+      const coreDocFile = CORE_DOC_FILE_MAP[btn.dataset.tab];
+      const rec = S.repos.find(x => String(x.id) === id);
+      if (coreDocFile && rec && rec.cloned) ensureCoreDocFileForRow(r, rec, coreDocFile);
     });
   });
   if (row.classList.contains('open')) ensureLazyPanesForOpenRow(row);
@@ -3805,6 +4186,169 @@ function updateModelMeta() {
   document.getElementById('mdOut').textContent=opt?.dataset.out||'—';
 }
 
+const DEFAULT_AI_SKILL_TEMPLATE = `# GitHub OSS Skill
+
+Use this skill when the user wants help with a GitHub OSS project.
+
+## Instructions
+
+- Read the user's prompt carefully.
+- Use the repository context when it is available.
+- Be concise, practical, and specific.
+- Call out assumptions and missing information.
+`;
+
+function sanitizeSkillFolderName(raw) {
+  return String(raw || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80);
+}
+
+function setAiSkillStatus(message, isError = false) {
+  const el = document.getElementById('aiSkillHint');
+  if (!el) return;
+  el.innerHTML = isError
+    ? `<span class="ai-error" style="display:block;padding:var(--sp2)">${esc(message)}</span>`
+    : message;
+}
+
+function populateAiSkillSelect() {
+  const sel = document.getElementById('aiSkillSelect');
+  if (!sel) return;
+  const current = S.activeAiSkillName || sel.value || '';
+  const opts = ['<option value="">No skill</option>'].concat(
+    S.aiSkills.map((sk) => `<option value="${esc(sk.name)}">${esc(sk.title || sk.name)}</option>`),
+  );
+  sel.innerHTML = opts.join('');
+  if (current && Array.from(sel.options).some((o) => o.value === current)) {
+    sel.value = current;
+  }
+}
+
+async function loadAiSkills(force = false) {
+  if (S.aiSkillsLoaded && !force) return;
+  const sel = document.getElementById('aiSkillSelect');
+  if (sel) sel.innerHTML = '<option value="">Loading skills…</option>';
+  try {
+    const res = await fetch(`${API_BASE}/api/ai/skills`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'skills');
+    S.aiSkills = Array.isArray(data.skills) ? data.skills : [];
+    S.aiSkillsLoaded = true;
+    S.aiSkillsError = null;
+    populateAiSkillSelect();
+    setAiSkillStatus('Only skills from <code>.claude/skills/github-oss</code> are listed. The editable text is included before your prompt.');
+  } catch (err) {
+    S.aiSkills = [];
+    S.aiSkillsLoaded = true;
+    S.aiSkillsError = err?.message || 'Failed to load skills';
+    populateAiSkillSelect();
+    setAiSkillStatus(`Could not load skills: ${S.aiSkillsError}`, true);
+  }
+}
+
+async function loadAiSkillContent(name) {
+  const text = document.getElementById('aiSkillText');
+  const nameRow = document.getElementById('aiSkillNameRow');
+  const nameInput = document.getElementById('aiSkillNameInput');
+  S.activeAiSkillName = name || '';
+  if (nameRow) nameRow.classList.remove('open');
+  if (nameInput) nameInput.value = name || '';
+  if (!name) {
+    if (text) text.value = '';
+    return;
+  }
+  if (text) text.value = 'Loading skill…';
+  try {
+    const res = await fetch(`${API_BASE}/api/ai/skills/${encodeURIComponent(name)}`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'skill');
+    if (text) text.value = data.content || '';
+    setAiSkillStatus(`Loaded <code>${esc(data.relativePath || name)}</code>. Edit the text before asking if needed.`);
+  } catch (err) {
+    if (text) text.value = '';
+    setAiSkillStatus(`Could not load skill: ${err.message}`, true);
+  }
+}
+
+function startNewAiSkill() {
+  S.activeAiSkillName = '';
+  const sel = document.getElementById('aiSkillSelect');
+  const nameRow = document.getElementById('aiSkillNameRow');
+  const nameInput = document.getElementById('aiSkillNameInput');
+  const text = document.getElementById('aiSkillText');
+  if (sel) sel.value = '';
+  if (nameRow) nameRow.classList.add('open');
+  if (nameInput) {
+    nameInput.value = 'new-skill';
+    nameInput.focus();
+    nameInput.select();
+  }
+  if (text) text.value = DEFAULT_AI_SKILL_TEMPLATE;
+  setAiSkillStatus('Edit the template, choose a folder name, then Save to <code>.claude/skills/github-oss</code>.');
+}
+
+async function saveAiSkill() {
+  const text = document.getElementById('aiSkillText');
+  const nameInput = document.getElementById('aiSkillNameInput');
+  const saveBtn = document.getElementById('aiSaveSkillBtn');
+  const selectName = document.getElementById('aiSkillSelect')?.value || '';
+  const name = sanitizeSkillFolderName(nameInput?.value || selectName);
+  const content = text?.value || '';
+  if (!name) {
+    if (nameInput) nameInput.focus();
+    setAiSkillStatus('Enter a valid skill folder name.', true);
+    return;
+  }
+  if (!content.trim()) {
+    if (text) text.focus();
+    setAiSkillStatus('Skill content is required.', true);
+    return;
+  }
+  if (saveBtn) saveBtn.disabled = true;
+  try {
+    const res = await fetch(`${API_BASE}/api/ai/skills`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, content }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'save skill');
+    S.aiSkills = Array.isArray(data.skills) ? data.skills : S.aiSkills;
+    S.aiSkillsLoaded = true;
+    S.activeAiSkillName = data.name || name;
+    populateAiSkillSelect();
+    const sel = document.getElementById('aiSkillSelect');
+    if (sel) sel.value = S.activeAiSkillName;
+    const nameRow = document.getElementById('aiSkillNameRow');
+    if (nameRow) nameRow.classList.remove('open');
+    if (nameInput) nameInput.value = S.activeAiSkillName;
+    setAiSkillStatus(`Saved <code>${esc(data.relativePath || `${S.activeAiSkillName}/SKILL.md`)}</code>.`);
+  } catch (err) {
+    setAiSkillStatus(`Could not save skill: ${err.message}`, true);
+  } finally {
+    if (saveBtn) saveBtn.disabled = false;
+  }
+}
+
+function promptWithSelectedSkill(prompt) {
+  const skillText = document.getElementById('aiSkillText')?.value.trim() || '';
+  if (!skillText) return prompt;
+  const skillName = document.getElementById('aiSkillSelect')?.value || document.getElementById('aiSkillNameInput')?.value || 'inline-skill';
+  return [
+    `## Skill: ${skillName}`,
+    '',
+    skillText,
+    '',
+    '## User prompt',
+    '',
+    prompt,
+  ].join('\n');
+}
+
 function getAiProvider() {
   return document.querySelector('input[name="aiProvider"]:checked')?.value || 'openrouter';
 }
@@ -3953,6 +4497,15 @@ function openModal(repoId, opts = {}) {
   document.getElementById('modalSubtitle').textContent = r.description || '';
   document.getElementById('modalStatus').textContent = '';
   document.getElementById('aiPrompt').value = '';
+  S.activeAiSkillName = '';
+  const skillSelect = document.getElementById('aiSkillSelect');
+  const skillText = document.getElementById('aiSkillText');
+  const skillNameRow = document.getElementById('aiSkillNameRow');
+  const skillNameInput = document.getElementById('aiSkillNameInput');
+  if (skillSelect) skillSelect.value = '';
+  if (skillText) skillText.value = '';
+  if (skillNameRow) skillNameRow.classList.remove('open');
+  if (skillNameInput) skillNameInput.value = '';
   document.getElementById('askBtn').disabled = false;
   const resBox = document.getElementById('aiModalResult');
   if (resBox) {
@@ -3964,6 +4517,7 @@ function openModal(repoId, opts = {}) {
   if (!S.modelsLoaded) loadModels();
   if (!S.cursorModelsLoaded) loadCursorModels();
   if (!S.claudeModelsLoaded) loadClaudeModels();
+  if (!S.aiSkillsLoaded) loadAiSkills();
 }
 function closeModal() {
   document.getElementById('aiModal').classList.remove('open');
@@ -4139,7 +4693,7 @@ async function submitAiQuery() {
   try {
     const body = {
       fullName: r.full_name,
-      prompt,
+      prompt: promptWithSelectedSkill(prompt),
       aiProvider: provider,
     };
     if (provider === 'openrouter') {
@@ -4252,6 +4806,13 @@ function setupEvents() {
     const h=document.documentElement; h.dataset.theme=h.dataset.theme==='dark'?'light':'dark';
   });
   document.getElementById('modelSelect').addEventListener('change', updateModelMeta);
+  document.getElementById('aiSkillSelect').addEventListener('change', e => {
+    void loadAiSkillContent(e.target.value);
+  });
+  document.getElementById('aiAddSkillBtn').addEventListener('click', startNewAiSkill);
+  document.getElementById('aiSaveSkillBtn').addEventListener('click', () => {
+    void saveAiSkill();
+  });
   document.querySelectorAll('input[name="aiProvider"]').forEach(rad => {
     rad.addEventListener('change', () => syncAiProviderUI());
   });
@@ -4276,6 +4837,17 @@ function setupEvents() {
     }
   });
   document.getElementById('repoList').addEventListener('keydown', e => {
+    const topicInput = e.target.closest && e.target.closest('.repo-topic-input');
+    if (topicInput) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        void addTopicToRepo(topicInput.dataset.repoId, topicInput.value);
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        cancelTopicEdit();
+      }
+      return;
+    }
     if (e.key !== 'Enter' && e.key !== ' ') return;
     if (e.target.closest && e.target.closest('a')) return;
     const prev = e.target.closest('.readme-preview');

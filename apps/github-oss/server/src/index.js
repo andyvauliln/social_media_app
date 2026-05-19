@@ -23,6 +23,8 @@ const RAGENT_CLAUDE_SH = path.join(REPO_ROOT, 'ragent.claude.sh');
 const RAGENT_CURSOR_SH = path.join(REPO_ROOT, 'ragent.cursor.sh');
 const AI_PROVIDERS = new Set(['openrouter', 'claude', 'cursor']);
 const GITHUB_INSTALLER_SKILL = 'agents/dev/.claude/skills/github-installer/SKILL.md';
+const GITHUB_OSS_SKILLS_DIR = path.join(REPO_ROOT, '.claude', 'skills', 'github-oss');
+const GITHUB_OSS_SKILLS_REL = '.claude/skills/github-oss';
 const AI_CLONE_LOG_DIR = path.join(APP_ROOT, 'data', 'ai-clone-logs');
 const INSTALL_TIMEOUT_MS = Number(process.env.AI_INSTALL_TIMEOUT_MS) || 45 * 60 * 1000;
 const START_CONFIG_PATH = path.join(REPO_ROOT, 'start.config.jsonc');
@@ -518,6 +520,61 @@ function normalizeAiProvider(raw) {
     .replace(/_/g, '-');
   if (p === 'claude-code') return 'claude';
   return p;
+}
+
+function assertSafeSkillName(name) {
+  const s = String(name || '').trim();
+  if (!/^[a-zA-Z0-9][a-zA-Z0-9._-]*$/.test(s)) {
+    const e = new Error('Invalid skill name');
+    e.statusCode = 400;
+    throw e;
+  }
+  return s;
+}
+
+function githubOssSkillPath(name) {
+  const safe = assertSafeSkillName(name);
+  const skillDir = path.join(GITHUB_OSS_SKILLS_DIR, safe);
+  const skillPath = path.join(skillDir, 'SKILL.md');
+  const rootNorm = path.normalize(GITHUB_OSS_SKILLS_DIR + path.sep);
+  const skillNorm = path.normalize(skillPath);
+  if (!skillNorm.startsWith(rootNorm)) {
+    const e = new Error('Skill path escapes github-oss skills folder');
+    e.statusCode = 400;
+    throw e;
+  }
+  return { name: safe, skillDir, skillPath };
+}
+
+function titleFromSkillContent(content, fallback) {
+  const text = String(content || '');
+  const frontmatterName = text.match(/^---\s*[\s\S]*?\bname:\s*["']?([^"'\n]+)["']?\s*[\s\S]*?---/);
+  if (frontmatterName) return frontmatterName[1].trim();
+  const heading = text.match(/^#\s+(.+)$/m);
+  return heading ? heading[1].trim() : fallback;
+}
+
+function readGithubOssSkills() {
+  if (!fs.existsSync(GITHUB_OSS_SKILLS_DIR)) return [];
+  return fs
+    .readdirSync(GITHUB_OSS_SKILLS_DIR, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => {
+      try {
+        const { name, skillPath } = githubOssSkillPath(entry.name);
+        if (!fs.existsSync(skillPath) || !fs.statSync(skillPath).isFile()) return null;
+        const content = fs.readFileSync(skillPath, 'utf8');
+        return {
+          name,
+          title: titleFromSkillContent(content, name),
+          relativePath: `${GITHUB_OSS_SKILLS_REL}/${name}/SKILL.md`,
+        };
+      } catch {
+        return null;
+      }
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.title.localeCompare(b.title) || a.name.localeCompare(b.name));
 }
 
 function ragentScriptBasename(which) {
@@ -1408,6 +1465,109 @@ app.get('/api/repos/docs/file', async (req, reply) => {
   }
 });
 
+/* ── GitHub API proxy (token stays server-side) ─────────────────────── */
+
+function ghHeaders() {
+  const h = { 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' };
+  if (GH_TOKEN) h['Authorization'] = `Bearer ${GH_TOKEN}`;
+  return h;
+}
+
+async function ghFetch(url) {
+  let res = await fetch(url, { headers: ghHeaders() });
+  // If token is bad/expired, retry without auth for public repos
+  if (res.status === 401 && GH_TOKEN) {
+    res = await fetch(url, { headers: { 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' } });
+  }
+  return res;
+}
+
+/** GET /api/github/readme?repo=owner/name */
+app.get('/api/github/readme', async (req, reply) => {
+  const repo = String(req.query.repo || '').trim();
+  if (!repo || !/^[^/\s]+\/[^/\s]+$/.test(repo)) { reply.code(400); return { error: 'repo required' }; }
+  const res = await ghFetch(`https://api.github.com/repos/${repo}/readme`);
+  if (!res.ok) { reply.code(res.status); return { error: `GitHub ${res.status}` }; }
+  const data = await res.json();
+  return { content: data.content || '', encoding: data.encoding || 'base64' };
+});
+
+/** GET /api/github/tree?repo=owner/name&branch=main */
+app.get('/api/github/tree', async (req, reply) => {
+  const repo   = String(req.query.repo   || '').trim();
+  const branch = String(req.query.branch || 'main').trim();
+  if (!repo || !/^[^/\s]+\/[^/\s]+$/.test(repo)) { reply.code(400); return { error: 'repo required' }; }
+  const commitRes = await ghFetch(`https://api.github.com/repos/${repo}/commits/${encodeURIComponent(branch)}`);
+  if (!commitRes.ok) { reply.code(commitRes.status); return { error: `GitHub ${commitRes.status}` }; }
+  const commit = await commitRes.json();
+  const treeSha = commit?.commit?.tree?.sha;
+  if (!treeSha) { reply.code(404); return { error: 'Tree SHA not found' }; }
+  const treeRes = await ghFetch(`https://api.github.com/repos/${repo}/git/trees/${treeSha}?recursive=1`);
+  if (!treeRes.ok) { reply.code(treeRes.status); return { error: `GitHub ${treeRes.status}` }; }
+  const tree = await treeRes.json();
+  const paths = (tree.tree || []).filter(x => x.type === 'blob' && x.path).map(x => x.path);
+  return { paths };
+});
+
+/** GET /api/github/commit-count?repo=owner/name&branch=main */
+app.get('/api/github/commit-count', async (req, reply) => {
+  const repo   = String(req.query.repo   || '').trim();
+  const branch = String(req.query.branch || 'main').trim();
+  if (!repo || !/^[^/\s]+\/[^/\s]+$/.test(repo)) { reply.code(400); return { error: 'repo required' }; }
+  const res = await ghFetch(`https://api.github.com/repos/${repo}/commits?per_page=1&sha=${encodeURIComponent(branch)}`);
+  if (!res.ok) { reply.code(res.status); return { error: `GitHub ${res.status}` }; }
+  const link = res.headers.get('link') || '';
+  const m = link.match(/page=(\d+)>; rel="last"/);
+  return { count: m ? parseInt(m[1]) : null };
+});
+
+/** GET /api/github/raw?repo=owner/name&branch=main&path=package.json */
+app.get('/api/github/raw', async (req, reply) => {
+  const repo   = String(req.query.repo   || '').trim();
+  const branch = String(req.query.branch || 'main').trim();
+  const fpath  = String(req.query.path   || '').trim();
+  if (!repo || !/^[^/\s]+\/[^/\s]+$/.test(repo) || !fpath) { reply.code(400); return { error: 'repo and path required' }; }
+  const rawUrl = `https://raw.githubusercontent.com/${repo}/${branch}/${fpath}`;
+  const authHeaders = GH_TOKEN ? { 'Authorization': `Bearer ${GH_TOKEN}` } : {};
+  let res = await fetch(rawUrl, { headers: authHeaders });
+  // raw.githubusercontent.com returns 404 (not 401) for bad/expired tokens — retry unauthenticated
+  if (!res.ok && GH_TOKEN) res = await fetch(rawUrl);
+  if (!res.ok) { reply.code(res.status); return { error: `GitHub ${res.status}` }; }
+  const text = await res.text();
+  reply.header('Content-Type', 'text/plain; charset=utf-8');
+  return reply.send(text);
+});
+
+/** Overwrite a specific doc file for a repo (create or replace). */
+app.post('/api/repos/docs/write', async (req, reply) => {
+  const body = req.body || {};
+  const fullName = String(body.fullName || '').trim();
+  const docFile = String(body.file || '').trim();
+  const content = String(body.content || '');
+  if (!fullName || !/^[^/\s]+\/[^/\s]+$/.test(fullName)) {
+    reply.code(400);
+    return { error: 'fullName (owner/repo) required' };
+  }
+  const safe = sanitizeDocFileName(docFile);
+  if (!safe) {
+    reply.code(400);
+    return { error: 'Invalid doc file name' };
+  }
+  try {
+    const { collection, projectDir } = resolveRepoDocsPlacement(fullName, {
+      collection: body.collection,
+      projectDir: body.projectDir,
+    });
+    const docsDir = repoDocsDir(collection, projectDir);
+    fs.mkdirSync(docsDir, { recursive: true });
+    fs.writeFileSync(path.join(docsDir, safe), content, 'utf8');
+    return { ok: true, fullName, collection, projectDir, file: safe, docsPath: docsDir };
+  } catch (e) {
+    reply.code(400);
+    return { error: e.message || 'Failed to write doc file' };
+  }
+});
+
 /**
  * Seed a cloned repo's docs/ folder with staged temp_files (readme/stack/notes).
  * Called by project.html right after a repo is cloned. Existing non-empty docs
@@ -1804,6 +1964,55 @@ app.get('/api/cursor-models', async () => ({
 app.get('/api/claude-models', async () => ({
   models: listAgentModels(CLAUDE_BUILTIN_MODEL_LABELS, CLAUDE_MODELS_EXTRA),
 }));
+
+app.get('/api/ai/skills', async () => ({
+  folder: GITHUB_OSS_SKILLS_REL,
+  skills: readGithubOssSkills(),
+}));
+
+app.get('/api/ai/skills/:name', async (req, reply) => {
+  try {
+    const { name, skillPath } = githubOssSkillPath(req.params.name);
+    if (!fs.existsSync(skillPath) || !fs.statSync(skillPath).isFile()) {
+      reply.code(404);
+      return { error: 'Skill not found' };
+    }
+    const content = fs.readFileSync(skillPath, 'utf8');
+    return {
+      name,
+      title: titleFromSkillContent(content, name),
+      relativePath: `${GITHUB_OSS_SKILLS_REL}/${name}/SKILL.md`,
+      content,
+    };
+  } catch (e) {
+    reply.code(e.statusCode || 500);
+    return { error: e.message || 'Failed to read skill' };
+  }
+});
+
+app.post('/api/ai/skills', async (req, reply) => {
+  const body = req.body || {};
+  try {
+    const { name, skillDir, skillPath } = githubOssSkillPath(body.name);
+    const content = String(body.content || '').trimEnd();
+    if (!content.trim()) {
+      reply.code(400);
+      return { error: 'content is required' };
+    }
+    fs.mkdirSync(skillDir, { recursive: true });
+    fs.writeFileSync(skillPath, `${content}\n`, 'utf8');
+    return {
+      ok: true,
+      name,
+      title: titleFromSkillContent(content, name),
+      relativePath: `${GITHUB_OSS_SKILLS_REL}/${name}/SKILL.md`,
+      skills: readGithubOssSkills(),
+    };
+  } catch (e) {
+    reply.code(e.statusCode || 500);
+    return { error: e.message || 'Failed to save skill' };
+  }
+});
 
 app.post('/api/ai/keywords', async (req, reply) => {
   if (!OR_KEY) {
