@@ -167,26 +167,42 @@
     return hay.indexOf(needle) !== -1;
   }
 
+  function decodeReadmePayload(data) {
+    if (!data || data.content == null || data.content === '') return null;
+    var enc = String(data.encoding || 'base64').toLowerCase();
+    if (enc === 'utf8' || enc === 'utf-8') return String(data.content);
+    if (data.encoding !== 'base64' && enc !== 'base64') return null;
+    var b64 = String(data.content).replace(/\s/g, '');
+    var binary = atob(b64);
+    if (typeof TextDecoder !== 'undefined') {
+      var bytes = new Uint8Array(binary.length);
+      for (var bi = 0; bi < binary.length; bi++) bytes[bi] = binary.charCodeAt(bi);
+      return new TextDecoder('utf-8', { fatal: false }).decode(bytes);
+    }
+    try {
+      return decodeURIComponent(escape(binary));
+    } catch (e) {
+      return binary;
+    }
+  }
+
   async function fetchReadmeTextDecoded(fullName, ghFetch) {
     var parts = String(fullName || '').split('/');
     if (parts.length < 2) return null;
-    var url =
-      'https://api.github.com/repos/' + parts.map(encodeURIComponent).join('/') + '/readme';
+    var repoPath = parts.map(encodeURIComponent).join('/');
     try {
-      var data = await ghFetch(url);
-      if (!data || !data.content || data.encoding !== 'base64') return null;
-      var b64 = String(data.content).replace(/\s/g, '');
-      var binary = atob(b64);
-      if (typeof TextDecoder !== 'undefined') {
-        var bytes = new Uint8Array(binary.length);
-        for (var bi = 0; bi < binary.length; bi++) bytes[bi] = binary.charCodeAt(bi);
-        return new TextDecoder('utf-8', { fatal: false }).decode(bytes);
+      var data = await ghFetch('https://api.github.com/repos/' + repoPath + '/readme');
+      var text = decodeReadmePayload(data);
+      if (text) return text;
+      var fallbacks = ['readme.md', 'README.md', 'Readme.md'];
+      for (var fi = 0; fi < fallbacks.length; fi++) {
+        var cdata = await ghFetch(
+          'https://api.github.com/repos/' + repoPath + '/contents/' + encodeURIComponent(fallbacks[fi]),
+        );
+        text = decodeReadmePayload(cdata);
+        if (text) return text;
       }
-      try {
-        return decodeURIComponent(escape(binary));
-      } catch (e) {
-        return binary;
-      }
+      return null;
     } catch (e) {
       return null;
     }
@@ -292,6 +308,10 @@
       var item = list[i];
       var repo = item && item.repository;
       if (!repo || repo.id == null || ctx.seenIds.has(repo.id)) continue;
+      // In file search mode, skip repos whose matched file is identical to one already seen
+      if (fileNameFallback != null && ctx.seenFileShas && item.sha) {
+        if (ctx.seenFileShas.has(item.sha)) continue;
+      }
       var mapped = fullRepoToSearchItem(repo);
       if (!mapped) continue;
       if (mapped.stargazers_count == null || mapped.fork == null) {
@@ -301,6 +321,7 @@
       if (ctx.seenIds.has(mapped.id)) continue;
       ctx.seenIds.add(mapped.id);
       if (fileNameFallback != null) {
+        if (ctx.seenFileShas && item.sha) ctx.seenFileShas.add(item.sha);
         var filePath = String((item && item.path) || fileNameFallback || '').trim();
         ctx.repos.push(Object.assign({}, mapped, { search_file_path: filePath }));
       } else {
@@ -351,6 +372,7 @@
       maxResults: maxResults,
       opt: opt,
       repoCache: new Map(),
+      seenFileShas: opt.excludeIdenticalFiles ? new Set() : null,
     };
 
     // Report a truncated/partial scan to the caller exactly once.
@@ -625,5 +647,6 @@
     includeFileSearch: false,
     fileName: '',
     fileContains: '',
+    excludeIdenticalFiles: true,
   };
 })(typeof window !== 'undefined' ? window : globalThis);

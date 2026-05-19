@@ -6,6 +6,7 @@
 2. Check plan for improvments
 3. skills for different requests
 4. tab requests
+5 symlink data to data
 
 ## LOGS
 ### LOGS REPORT
@@ -21,3 +22,8 @@
 ## DEV FLOW
 - don't create folder for task that not reqire changes like check
 - metadata for file that he know what to update after that
+
+
+## TODO
+- Connect browser with account
+- Connect google email

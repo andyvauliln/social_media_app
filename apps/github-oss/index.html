@@ -299,16 +299,51 @@ textarea.form-input { min-height:120px; resize:vertical; }
 .tag-input { border:none; outline:none; background:transparent; font-family:var(--font-body); font-size:var(--text-sm); color:var(--text); min-width:100px; flex:1; padding:2px 4px; }
 .tag-input::placeholder { color:var(--text-faint); }
 
-/* Keyword preview: shows file name that will be created */
-.filename-preview {
-  display:flex; align-items:center; gap:var(--sp2);
-  font-family:var(--font-mono); font-size:11px;
-  color:var(--text-faint); padding:var(--sp2) var(--sp3);
-  background:var(--surface-3); border-radius:var(--rad-md);
-  border:1px solid var(--border);
+/* Data file name (number + slug) on new search */
+.project-file-row {
+  display:flex; align-items:center; gap:var(--sp2); flex-wrap:wrap;
+  font-family:var(--font-mono); font-size:var(--text-sm);
 }
-.filename-preview .fname { color:var(--accent-text); font-weight:600; }
-.filename-preview.hidden { display:none; }
+.project-file-num {
+  width:4.5rem; padding:var(--sp2) var(--sp3);
+  background:var(--surface-3); border:1.5px solid var(--border-2);
+  border-radius:var(--rad-md); color:var(--text); font-family:var(--font-mono);
+  font-size:var(--text-sm); font-weight:700;
+}
+.project-file-sep, .project-file-ext { color:var(--text-muted); font-weight:600; }
+.project-file-slug {
+  flex:1; min-width:140px; padding:var(--sp2) var(--sp3);
+  background:var(--surface-3); border:1.5px solid var(--border-2);
+  border-radius:var(--rad-md); color:var(--accent-text); font-family:var(--font-mono);
+  font-size:var(--text-sm); font-weight:600;
+}
+.project-file-slug:focus, .project-file-num:focus { border-color:var(--accent); outline:none; }
+.project-file-actions { display:flex; flex-wrap:wrap; gap:var(--sp2); margin-top:var(--sp2); }
+.readme-fs-backdrop {
+  position:fixed; inset:0; background:rgba(0,0,0,.78); z-index:400;
+  display:flex; align-items:center; justify-content:center; padding:var(--sp6);
+  opacity:0; pointer-events:none; transition:opacity var(--trans);
+}
+.readme-fs-backdrop.open { opacity:1; pointer-events:all; }
+.readme-fs-panel {
+  background:var(--surface); border:1px solid var(--border-2); border-radius:var(--rad-xl);
+  width:100%; max-width:900px; height:90vh; display:flex; flex-direction:column;
+  box-shadow:var(--shadow-lg);
+}
+.readme-fs-header {
+  flex-shrink:0; padding:var(--sp4) var(--sp6); border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:var(--sp3);
+}
+.readme-fs-title { font-size:var(--text-sm); font-weight:700; font-family:var(--font-mono); flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.doc-editor-textarea {
+  flex:1; min-height:0; padding:var(--sp5) var(--sp6); background:var(--bg); color:var(--text);
+  border:none; resize:none; font-family:var(--font-mono); font-size:13px; line-height:1.65; outline:none;
+}
+.doc-editor-footer {
+  flex-shrink:0; padding:var(--sp3) var(--sp6); border-top:1px solid var(--border);
+  display:flex; align-items:center; gap:var(--sp3); flex-wrap:wrap;
+}
+.doc-editor-save-status { font-size:var(--text-xs); color:var(--text-muted); font-family:var(--font-mono); }
 
 .lang-chips { display:flex; flex-wrap:wrap; gap:var(--sp2); }
 .lang-toggle {
@@ -440,10 +475,17 @@ textarea.form-input { min-height:120px; resize:vertical; }
           <button type="button" class="btn-secondary" id="searchAiKeywordsBtn">Generate keywords with AI</button>
         </div>
         <span class="form-hint">Press Enter, comma, or click Add. Each keyword is searched separately then deduplicated.</span>
-        <!-- Live preview of the file name that will be created -->
-        <div class="filename-preview hidden" id="filenamePreview">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
-          File: <span class="fname" id="filenamePreviewText"></span>.json
+      </div>
+      <div class="form-group">
+        <label class="form-label">Data file</label>
+        <div class="project-file-row">
+          <input type="text" class="project-file-slug" id="projectFileSlug" placeholder="slug-from-keywords" spellcheck="false" title="File name (auto from first 3 keywords)" style="flex:1"/>
+          <span class="project-file-ext">.json</span>
+        </div>
+        <span class="form-hint" id="projectFileHint">Saved as <code>data/projects/&lt;name&gt;.json</code>. Must be unique — saving fails if that file already exists.</span>
+        <div class="project-file-actions">
+          <button type="button" class="btn-secondary" id="resetProjectFileSlugBtn">Reset slug from keywords</button>
+          <button type="button" class="btn-secondary" id="editDraftProjectJsonBtn">Edit data file</button>
         </div>
       </div>
       <div class="form-group">
@@ -475,10 +517,11 @@ textarea.form-input { min-height:120px; resize:vertical; }
         </fieldset>
         <div id="searchFileScopePanel" class="search-file-scope-panel">
           <label class="form-label" for="searchFileName">File name or path</label>
-          <input class="form-input" id="searchFileName" type="text" placeholder="e.g. package.json or docs/README.md" autocomplete="off"/>
-          <label class="form-label" for="searchFileContains">File must contain</label>
-          <input class="form-input" id="searchFileContains" type="text" placeholder="Phrase to find inside that file" autocomplete="off"/>
-          <span class="form-hint">Uses GitHub code search with a filename or path qualifier. You can also add keywords above; each keyword is searched in the same file.</span>
+          <input class="form-input" id="searchFileName" type="text" placeholder="e.g. SKILL.md or docs/README.md" autocomplete="off"/>
+          <span class="form-hint">Each keyword above is searched inside that file independently via GitHub code search.</span>
+          <label style="display:flex;align-items:center;gap:var(--sp2);font-size:var(--text-xs);color:var(--text-muted);cursor:pointer;margin-top:6px">
+            <input type="checkbox" id="searchExcludeIdenticalFiles" checked/> Skip repos with identical file content (deduplicate by SHA)
+          </label>
         </div>
       </div>
       <div class="form-group">
@@ -507,11 +550,31 @@ textarea.form-input { min-height:120px; resize:vertical; }
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn-secondary" onclick="cancelOrCloseModal()" id="cancelBtn">Cancel</button>
-      <button class="btn-primary" id="startBtn" onclick="startSearch()">
+      <button type="button" class="btn-secondary" onclick="cancelOrCloseModal()" id="cancelBtn">Cancel</button>
+      <button type="button" class="btn-secondary" id="saveDraftProjectBtn" title="Write project JSON to disk before searching (empty repos)">Save draft</button>
+      <button type="button" class="btn-primary" id="startBtn" onclick="startSearch()">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         Search GitHub
       </button>
+    </div>
+  </div>
+</div>
+
+
+<div class="readme-fs-backdrop modal-above" id="draftProjectJsonModal" onclick="if(event.target===this)closeDraftProjectJsonModal()">
+  <div class="readme-fs-panel" onclick="event.stopPropagation()">
+    <div class="readme-fs-header">
+      <div class="readme-fs-title" id="draftProjectJsonTitle">data/projects/draft.json</div>
+      <button type="button" class="modal-close" onclick="closeDraftProjectJsonModal()" aria-label="Close">✕</button>
+    </div>
+    <p class="form-hint" style="padding:0 var(--sp6) var(--sp2);flex-shrink:0">Edit the project file before or instead of running Search. Apply updates the form and file name fields; Save writes to <code>data/projects/</code>.</p>
+    <textarea class="doc-editor-textarea" id="draftProjectJsonTextarea" spellcheck="false"></textarea>
+    <div class="doc-editor-footer">
+      <button type="button" class="btn-secondary" id="draftProjectJsonReloadBtn">Reload from form</button>
+      <button type="button" class="btn-secondary" id="draftProjectJsonFormatBtn">Format</button>
+      <button type="button" class="btn-secondary" id="draftProjectJsonApplyBtn">Apply to form</button>
+      <button type="button" class="btn-primary" id="draftProjectJsonSaveBtn">Save to disk</button>
+      <span class="doc-editor-save-status" id="draftProjectJsonSaveStatus"></span>
     </div>
   </div>
 </div>
@@ -542,18 +605,29 @@ textarea.form-input { min-height:120px; resize:vertical; }
    Projects load from data/projects/*.json via GET /api/projects (local server).
 ═══════════════════════════════════════════════════════════ */
 
-function resolveGhToken() {
-  if (typeof window === 'undefined') return '';
-  if (Object.prototype.hasOwnProperty.call(window, 'GITHUB_TOKEN')) return String(window.GITHUB_TOKEN);
-  try {
-    return localStorage.getItem('GITHUB_TOKEN') || '';
-  } catch {
-    return '';
+function resolveApiBase() {
+  if (typeof window !== 'undefined' && Object.prototype.hasOwnProperty.call(window, 'OSS_API_BASE')) {
+    return String(window.OSS_API_BASE);
   }
+  return '';
 }
-const GH_TOKEN = resolveGhToken();
+function apiUrl(path) {
+  const p = path.startsWith('/') ? path : `/${path}`;
+  return `${resolveApiBase()}${p}`;
+}
 const MAX_PACKAGE_DEPS = 500;
 const MAX_MANIFEST_FILES = 25;
+
+async function fetchProjectListFromDisk() {
+  try {
+    const res = await fetch('/api/projects');
+    if (!res.ok) return null;
+    const data = await res.json();
+    return Array.isArray(data.projects) ? data.projects : null;
+  } catch {
+    return null;
+  }
+}
 
 const LANG_OPTIONS = [
   'Python','JavaScript','TypeScript','Go','Rust','Java','C++','C#',
@@ -579,58 +653,81 @@ let selectedLangs = new Set();
 let extraLangs    = [];
 let searching   = false;
 let searchAbort = null;  // AbortController for the in-flight search; null when idle
+let projectFileSlugTouched = false; // false = auto slug from keywords
 
-/** Slug built from the first 3 keywords — the keyword part of a project file name. */
+/** Slug built from the first 3 keywords. */
 function keywordSlug(keywords) {
   return keywords.slice(0, 3)
     .map(k => k.replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''))
     .join('_');
 }
 
-/** Build a canonical file name from keywords */
-function buildFileName(num, keywords) {
-  return `${num}_${keywordSlug(keywords)}`;
+function sanitizeProjectSlug(raw) {
+  return String(raw || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
 }
 
-/** Preview next file name (uses cachedMaxProjectNum from refreshProjectNumCache / loadProjects) */
-function previewFileName(keywords) {
-  if (!keywords.length) return null;
-  const nextNum = (cachedMaxProjectNum || 0) + 1;
-  return `${nextNum}_${keywordSlug(keywords)}`;
-}
-
-function maxNumFromProjects(list) {
-  let m = 0;
-  for (const p of list) {
-    const n = Number(p._num);
-    if (Number.isFinite(n) && n > m) m = n;
-    const mm = String(p._fname || '').match(/^(\d+)_/);
-    if (mm) m = Math.max(m, parseInt(mm[1], 10));
+/** Full basename (no .json) from the slug field / keywords. */
+function resolvedProjectFname() {
+  const slugEl = document.getElementById('projectFileSlug');
+  let slug = keywordSlug(keywords) || 'project';
+  if (projectFileSlugTouched && slugEl && slugEl.value.trim()) {
+    slug = sanitizeProjectSlug(slugEl.value) || slug;
   }
-  return m;
+  return slug;
 }
 
-let cachedMaxProjectNum = 0;
+function validateProjectFname(fname) {
+  if (!/^[a-z0-9][a-z0-9_-]*$/.test(fname)) {
+    return 'File name must use lowercase letters, digits, dashes, underscores (e.g. content-factory_oss).';
+  }
+  return '';
+}
 
-async function fetchProjectListFromDisk() {
-  try {
-    const res = await fetch('/api/projects');
-    if (!res.ok) return null;
-    const data = await res.json();
-    return Array.isArray(data.projects) ? data.projects : null;
-  } catch {
+function readProjectFileFromForm() {
+  syncProjectFileFields();
+  const fname = resolvedProjectFname();
+  const err = validateProjectFname(fname);
+  if (err) {
+    alert(err);
+    document.getElementById('projectFileSlug')?.focus();
     return null;
   }
+  return { fname };
 }
 
-async function refreshProjectNumCache() {
-  const api = await fetchProjectListFromDisk();
-  cachedMaxProjectNum = maxNumFromProjects(api || []);
+function syncProjectFileFields() {
+  const slugEl = document.getElementById('projectFileSlug');
+  const hint = document.getElementById('projectFileHint');
+  if (!slugEl) return;
+  if (!projectFileSlugTouched) {
+    slugEl.value = keywords.length ? keywordSlug(keywords) : '';
+    slugEl.placeholder = keywords.length ? '' : 'slug-from-keywords';
+  }
+  if (hint) {
+    hint.innerHTML =
+      `Slug auto-fills from the <strong>first 3 keywords</strong>. Full path: <code>data/projects/${esc(resolvedProjectFname())}.json</code>`;
+  }
 }
 
-async function nextAvailableProjectNum() {
-  await refreshProjectNumCache();
-  return cachedMaxProjectNum + 1;
+function updateFilenamePreview() {
+  syncProjectFileFields();
+}
+
+async function assertProjectFileAvailable(fname) {
+  const list = await fetchProjectListFromDisk();
+  if (!list) return;
+  const existing = list.find((p) => p._fname === fname);
+  if (!existing || existing.deleted) return;
+  // Allow re-running a search that produced 0 repos (e.g. was rate-limited immediately)
+  if (existing.repoCount === 0) return;
+  throw new Error(
+    `Project file already exists: ${fname}.json — change the file name or delete the existing project.`,
+  );
 }
 
 /* ── Lang color helper ───────────────────────── */
@@ -769,15 +866,22 @@ function buildCardKeywordCountsHtml(p) {
 }
 
 /* ── Persist project JSON on disk (same as trading) — requires local server ─── */
-async function saveProjectJsonFile(payload) {
+async function saveProjectJsonFile(payload, opts) {
+  const overwrite = !!(opts && opts.overwrite);
   const res = await fetch('/api/projects/save', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+    body: JSON.stringify({ ...payload, overwrite }),
   });
   if (!res.ok) {
-    const t = await res.text();
-    throw new Error(t || `Could not save project file (${res.status}). Run the server from server/ and open the app at its URL (not file://).`);
+    let msg = '';
+    try {
+      const j = await res.json();
+      msg = j.error || '';
+    } catch {
+      msg = await res.text();
+    }
+    throw new Error(msg || `Could not save project file (${res.status}). Run the server from server/ and open the app at its URL (not file://).`);
   }
 }
 
@@ -787,8 +891,8 @@ async function deleteProject(meta) {
   if (!fname) return;
   const label = (meta.name && String(meta.name).trim()) || fname;
   const msg = meta.seeded
-    ? `Delete bundled sample "${label}" (${fname}.json)? This removes the file from disk if the server is running.`
-    : `Delete "${label}" (${fname}.json)?`;
+    ? `Delete bundled sample "${label}" (${fname}.json)? This marks it as deleted (file kept on disk).`
+    : `Delete "${label}" (${fname}.json)? This marks it as deleted; repos will not reappear from Add search.`;
   if (!confirm(msg)) return;
   try {
     const res = await fetch('/api/projects/' + encodeURIComponent(fname), { method: 'DELETE' });
@@ -842,6 +946,8 @@ function applyDiscoveryForm(pfx, o) {
   const fcEl = document.getElementById(pfx + 'FileContains');
   if (fnEl) fnEl.value = d.fileName || '';
   if (fcEl) fcEl.value = d.fileContains || '';
+  const exclEl = document.getElementById(pfx + 'ExcludeIdenticalFiles');
+  if (exclEl) exclEl.checked = d.excludeIdenticalFiles !== false;
   const scope = scopeFromSaved(o);
   const rname = discoveryScopeRadioName(pfx);
   document.querySelectorAll(`input[name="${rname}"]`).forEach((r) => {
@@ -870,7 +976,8 @@ function readDiscoveryOptions(pfx) {
     file:   () => ({
       includeFileSearch: true,
       fileName: (document.getElementById(pfx + 'FileName')?.value || '').trim(),
-      fileContains: (document.getElementById(pfx + 'FileContains')?.value || '').trim(),
+      fileContains: '',
+      excludeIdenticalFiles: document.getElementById(pfx + 'ExcludeIdenticalFiles')?.checked ?? true,
     }),
   };
   return { ...base, ...(scopeOverrides[scope] || scopeOverrides.meta)() };
@@ -885,10 +992,9 @@ function validateDiscoveryBeforeSearch(pfx, keywords) {
       if (fnEl) fnEl.focus();
       return false;
     }
-    if (!opt.fileContains && !(keywords && keywords.length)) {
-      alert('Enter what the file must contain, or add at least one keyword.');
-      const fcEl = document.getElementById(pfx + 'FileContains');
-      if (fcEl) fcEl.focus();
+    if (!(keywords && keywords.length)) {
+      alert('Add at least one keyword to search for inside the file.');
+      document.getElementById(pfx + 'KeywordInput')?.focus();
       return false;
     }
     return true;
@@ -919,12 +1025,12 @@ async function openModal() {
   if (msd) { msd.textContent = ''; msd.style.display = 'none'; }
   document.getElementById('startBtn').disabled = false;
   document.getElementById('cancelBtn').textContent = 'Cancel';
-  document.getElementById('filenamePreview').classList.add('hidden');
+  projectFileSlugTouched = false;
   applyDiscoveryForm('search', null);
-  await refreshProjectNumCache();
   renderKeywordChips();
   renderLangChips();
   renderResultPresets();
+  syncProjectFileFields();
   document.getElementById('searchModal').classList.add('open');
   setTimeout(() => document.getElementById('projectName').focus(), 50);
 }
@@ -967,14 +1073,6 @@ function flushKeywordInput() {
   const input = document.getElementById('keywordInput');
   const val = input.value.trim();
   if (val) { addKeyword(val); input.value = ''; }
-}
-
-function updateFilenamePreview() {
-  const preview  = document.getElementById('filenamePreview');
-  const previewT = document.getElementById('filenamePreviewText');
-  if (!keywords.length) { preview.classList.add('hidden'); return; }
-  preview.classList.remove('hidden');
-  previewT.textContent = previewFileName(keywords);
 }
 
 function escAttr(s) {
@@ -1048,11 +1146,8 @@ function gatherSearchInputs() {
   const name = document.getElementById('projectName').value.trim();
   if (!name) { document.getElementById('projectName').focus(); return null; }
   if (!validateDiscoveryBeforeSearch('search', keywords)) return null;
-  if (!GH_TOKEN) {
-    alert('No GitHub token found. Set GITHUB_TOKEN in localStorage (or window.GITHUB_TOKEN) — ' +
-          'unauthenticated search hits GitHub rate limits almost immediately.');
-    return null;
-  }
+  const fileMeta = readProjectFileFromForm();
+  if (!fileMeta) return null;
   return {
     name,
     keywords: [...keywords],
@@ -1060,7 +1155,168 @@ function gatherSearchInputs() {
     maxResults: Math.min(parseInt(document.getElementById('maxResults').value) || 200, 1000),
     discoveryOpt: readDiscoveryOptions('search'),
     extractPkgs: readExtractPackages('search'),
+    _fname: fileMeta.fname,
   };
+}
+
+function buildDraftProjectJson() {
+  flushKeywordInput();
+  syncProjectFileFields();
+  const fname = resolvedProjectFname();
+  return {
+    _fname: fname,
+    schemaVersion: 1,
+    name: document.getElementById('projectName').value.trim() || 'Untitled',
+    keywords: [...keywords],
+    languages: [...selectedLangs],
+    repoCount: 0,
+    topLangs: [],
+    createdAt: new Date().toISOString(),
+    searchOptions: { ...readDiscoveryOptions('search'), extractPackagesOnSearch: readExtractPackages('search') },
+    keywordCounts: {},
+    partial: false,
+    searchError: '',
+    repos: [],
+  };
+}
+
+function openDraftProjectJsonModal() {
+  flushKeywordInput();
+  const name = document.getElementById('projectName').value.trim();
+  if (!name) {
+    document.getElementById('projectName').focus();
+    alert('Enter a project name first.');
+    return;
+  }
+  if (!keywords.length) {
+    alert('Add at least one keyword first (or type them in the JSON).');
+  }
+  const ta = document.getElementById('draftProjectJsonTextarea');
+  const title = document.getElementById('draftProjectJsonTitle');
+  const status = document.getElementById('draftProjectJsonSaveStatus');
+  if (!ta) return;
+  ta.value = JSON.stringify(buildDraftProjectJson(), null, 2);
+  if (title) title.textContent = `data/projects/${resolvedProjectFname()}.json`;
+  if (status) { status.textContent = ''; status.style.color = ''; }
+  document.getElementById('draftProjectJsonModal')?.classList.add('open');
+}
+
+function closeDraftProjectJsonModal() {
+  document.getElementById('draftProjectJsonModal')?.classList.remove('open');
+}
+
+function reloadDraftProjectJsonFromForm() {
+  const ta = document.getElementById('draftProjectJsonTextarea');
+  const status = document.getElementById('draftProjectJsonSaveStatus');
+  if (!ta) return;
+  ta.value = JSON.stringify(buildDraftProjectJson(), null, 2);
+  if (status) {
+    status.textContent = 'Reloaded from form.';
+    status.style.color = 'var(--text-muted)';
+  }
+}
+
+function formatDraftProjectJson() {
+  const ta = document.getElementById('draftProjectJsonTextarea');
+  const status = document.getElementById('draftProjectJsonSaveStatus');
+  if (!ta) return;
+  try {
+    ta.value = JSON.stringify(JSON.parse(ta.value), null, 2);
+    if (status) { status.textContent = 'Formatted.'; status.style.color = 'var(--text-muted)'; }
+  } catch (e) {
+    if (status) { status.textContent = `Invalid JSON: ${e.message}`; status.style.color = 'var(--red)'; }
+  }
+}
+
+function applyDraftProjectJsonToForm(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('Project JSON must be an object');
+  if (raw.name) document.getElementById('projectName').value = String(raw.name);
+  if (Array.isArray(raw.keywords)) {
+    keywords = raw.keywords.map((k) => String(k).trim().toLowerCase()).filter(Boolean);
+    renderKeywordChips();
+  }
+  if (Array.isArray(raw.languages)) {
+    selectedLangs.clear();
+    raw.languages.forEach((l) => { if (l) selectedLangs.add(String(l)); });
+    renderLangChips();
+  }
+  const fname = String(raw._fname || '').trim();
+  if (fname) {
+    projectFileSlugTouched = true;
+    const slugEl = document.getElementById('projectFileSlug');
+    if (slugEl) slugEl.value = fname;
+  }
+  syncProjectFileFields();
+}
+
+function applyDraftProjectJsonFromEditor() {
+  const ta = document.getElementById('draftProjectJsonTextarea');
+  const status = document.getElementById('draftProjectJsonSaveStatus');
+  if (!ta) return;
+  try {
+    applyDraftProjectJsonToForm(JSON.parse(ta.value));
+    if (status) { status.textContent = 'Applied to form.'; status.style.color = 'var(--green)'; }
+  } catch (e) {
+    if (status) { status.textContent = e.message || 'Apply failed'; status.style.color = 'var(--red)'; }
+  }
+}
+
+async function saveDraftProjectJsonFromEditor() {
+  const ta = document.getElementById('draftProjectJsonTextarea');
+  const status = document.getElementById('draftProjectJsonSaveStatus');
+  const btn = document.getElementById('draftProjectJsonSaveBtn');
+  if (!ta || !status || !btn) return;
+  btn.disabled = true;
+  status.textContent = 'Saving…';
+  status.style.color = 'var(--text-muted)';
+  try {
+    const raw = JSON.parse(ta.value);
+    applyDraftProjectJsonToForm(raw);
+    const fileMeta = readProjectFileFromForm();
+    if (!fileMeta) throw new Error('Invalid file name');
+    raw._fname = fileMeta.fname;
+    if (!Array.isArray(raw.repos)) raw.repos = [];
+    raw.repoCount = raw.repos.length;
+    const err = validateProjectFname(raw._fname);
+    if (err) throw new Error(err);
+    await assertProjectFileAvailable(raw._fname);
+    await saveProjectJsonFile(raw);
+    syncProjectFileFields();
+    if (document.getElementById('draftProjectJsonTitle')) {
+      document.getElementById('draftProjectJsonTitle').textContent = `data/projects/${raw._fname}.json`;
+    }
+    status.textContent = `Saved data/projects/${raw._fname}.json`;
+    status.style.color = 'var(--green)';
+    await loadProjects();
+  } catch (e) {
+    status.textContent = e.message || 'Save failed';
+    status.style.color = 'var(--red)';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function saveDraftProjectFromModal() {
+  flushKeywordInput();
+  const name = document.getElementById('projectName').value.trim();
+  if (!name) {
+    document.getElementById('projectName').focus();
+    alert('Enter a project name first.');
+    return;
+  }
+  if (!validateDiscoveryBeforeSearch('search', keywords)) return;
+  const fileMeta = readProjectFileFromForm();
+  if (!fileMeta) return;
+  const payload = buildDraftProjectJson();
+  try {
+    await assertProjectFileAvailable(payload._fname);
+    await saveProjectJsonFile(payload);
+    syncProjectFileFields();
+    alert(`Draft saved as data/projects/${payload._fname}.json (repos empty — run Search GitHub to fill results).`);
+    await loadProjects();
+  } catch (e) {
+    alert(e.message || 'Could not save draft. Is the server running?');
+  }
 }
 
 /** Run discovery + enrichment. Returns { enriched, keywordCounts, partialReason }. */
@@ -1100,19 +1356,21 @@ async function runDiscoveryAndEnrich(inp) {
   return { enriched, keywordCounts, partialReason };
 }
 
+function projectKeywordsWithFileContains(keywords) {
+  return [...(keywords || [])];
+}
+
 /** Persist a completed search as a project JSON file on disk. */
 async function persistProject(inp, result) {
   const langMap = {};
   result.enriched.forEach(r => { if (r.language) langMap[r.language] = (langMap[r.language] || 0) + 1; });
   const topLangs = Object.entries(langMap).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([l]) => l);
 
-  const nextNum = await nextAvailableProjectNum();
   await saveProjectJsonFile({
-    _fname: buildFileName(nextNum, inp.keywords),
-    _num: nextNum,
+    _fname: inp._fname,
     schemaVersion: 1,
     name: inp.name,
-    keywords: inp.keywords,
+    keywords: projectKeywordsWithFileContains(inp.keywords, inp.discoveryOpt),
     languages: inp.langs,
     repoCount: result.enriched.length,
     topLangs,
@@ -1145,6 +1403,12 @@ function cancelOrCloseModal() {
 async function startSearch() {
   const inp = gatherSearchInputs();
   if (!inp) return;
+  try {
+    await assertProjectFileAvailable(inp._fname);
+  } catch (e) {
+    alert(e.message || String(e));
+    return;
+  }
 
   searching = true;
   searchAbort = new AbortController();
@@ -1154,6 +1418,14 @@ async function startSearch() {
 
   try {
     const result = await runDiscoveryAndEnrich(inp);
+    if (result.enriched.length === 0) {
+      const reason = result.partialReason
+        ? `Rate limited before any results — ${result.partialReason}`
+        : 'No repositories found. Try different keywords or a broader search scope.';
+      setProgress(0, reason);
+      finishSearch();
+      return;
+    }
     await persistProject(inp, result);
     finishSearch();
     closeModal();
@@ -1182,20 +1454,7 @@ function setProgress(pct, msg, detail) {
   }
 }
 
-/* ── GitHub API helpers ─────────────────────── */
-/** Single source of truth for GitHub REST/Search request headers. */
-function ghHeaders() {
-  return {
-    'Authorization': `Bearer ${GH_TOKEN}`,
-    'Accept': 'application/vnd.github+json',
-    'X-GitHub-Api-Version': '2022-11-28',
-  };
-}
-
-/** raw.githubusercontent.com serves file bytes, not JSON — only auth is needed. */
-function ghAuthHeader() {
-  return { headers: { 'Authorization': `Bearer ${GH_TOKEN}` } };
-}
+/* ── GitHub API helpers (via server proxy — token stays on server) ── */
 
 function ghRateLimited(res) {
   return res.headers.get('retry-after') != null ||
@@ -1214,37 +1473,71 @@ function ghRetryAfterMs(res) {
   return 2000;
 }
 
-/** GitHub fetch with one automatic wait-and-retry when a 403 rate limit is hit. */
+function ghResetInfo(res) {
+  const allReset = res.headers.get('x-gh-all-tokens-reset');
+  const singleReset = res.headers.get('x-ratelimit-reset');
+  const resetSec = Number(allReset || singleReset || 0);
+  if (!resetSec) return { waitMs: 60000, label: 'waiting 60s' };
+  const resetMs = resetSec * 1000;
+  const diffMs = resetMs - Date.now();
+  const diffMin = Math.ceil(diffMs / 60000);
+  const atTime = new Date(resetMs).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const label = diffMs > 0
+    ? `try again at ${atTime} (in ${diffMin} min)`
+    : 'try again shortly';
+  return { waitMs: Math.max(diffMs, 5000), label, allTokens: !!allReset };
+}
+
+/** GitHub REST/Search via server proxy. Waits and retries on rate-limit 403s. */
 async function ghFetch(url) {
-  for (let attempt = 0; attempt < 2; attempt++) {
-    const res = await fetch(url, { headers: ghHeaders(), signal: searchAbort?.signal });
-    if (res.ok) return res.json();
+  const MAX_RATE_RETRIES = 3;
+  let rateLimitRetries = 0;
+  while (true) {
+    const q = new URLSearchParams({ url });
+    const res = await fetch(apiUrl(`/api/github/api?${q}`), { signal: searchAbort?.signal });
     const body = await res.text();
-    if (res.status === 403 && attempt === 0 && ghRateLimited(res)) {
-      await sleep(ghRetryAfterMs(res));
-      continue;
+    let data;
+    try {
+      data = body ? JSON.parse(body) : {};
+    } catch {
+      throw new Error(`GitHub API ${res.status}: ${body.slice(0, 200)}`);
     }
-    throw new Error(`GitHub API ${res.status}: ${body}`);
+    if (res.ok) return data;
+    if (res.status === 404 && String(data?.message || '').includes('Route GET')) {
+      throw new Error(
+        'GitHub search proxy is not available on this server. Restart github-oss (./apps/github-oss/run.sh) after updating.'
+      );
+    }
+    if (res.status === 403) {
+      const isRateLimit = ghRateLimited(res) || /rate.?limit/i.test(String(data?.message || ''));
+      if (isRateLimit) {
+        const { waitMs, label, allTokens } = ghResetInfo(res);
+        // If all tokens exhausted and reset is far away, give up and let caller handle it
+        if (allTokens && waitMs > 120_000) {
+          throw new Error(`GitHub API 403: all tokens rate-limited — ${label}`);
+        }
+        if (rateLimitRetries < MAX_RATE_RETRIES) {
+          rateLimitRetries++;
+          document.getElementById('modalStatus').textContent =
+            `GitHub rate limit — ${label} (retry ${rateLimitRetries}/${MAX_RATE_RETRIES})…`;
+          await sleep(Math.min(waitMs, 90_000));
+          continue;
+        }
+      }
+    }
+    const errMsg = data?.error || data?.message || body;
+    throw new Error(`GitHub API ${res.status}: ${errMsg}`);
   }
 }
 
 async function fetchRepoBlobPaths(full_name, branch) {
   try {
-    const cr = await fetch(
-      `https://api.github.com/repos/${full_name}/commits/${encodeURIComponent(branch)}`,
-      { headers: ghHeaders(), signal: searchAbort?.signal }
-    );
-    if (!cr.ok) return [];
-    const c = await cr.json();
-    const treeSha = c?.commit?.tree?.sha;
-    if (!treeSha) return [];
-    const tr = await fetch(
-      `https://api.github.com/repos/${full_name}/git/trees/${treeSha}?recursive=1`,
-      { headers: ghHeaders(), signal: searchAbort?.signal }
-    );
-    if (!tr.ok) return [];
-    const t = await tr.json();
-    return (t.tree || []).filter((x) => x.type === 'blob' && x.path).map((x) => x.path);
+    const q = new URLSearchParams({ repo: full_name });
+    if (branch) q.set('branch', branch);
+    const res = await fetch(apiUrl(`/api/github/tree?${q}`), { signal: searchAbort?.signal });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data.paths) ? data.paths : [];
   } catch {
     return [];
   }
@@ -1264,16 +1557,14 @@ function manifestPathsForBasename(paths, baseName) {
 async function packagesFromTreeNpm(full_name, branch) {
   const paths = await fetchRepoBlobPaths(full_name, branch);
   const rels = manifestPathsForBasename(paths, 'package.json').slice(0, MAX_MANIFEST_FILES);
-  const rawHdr = { ...ghAuthHeader(), signal: searchAbort?.signal };
   const byName = new Map();
   for (const rel of rels) {
     try {
-      const pkgRes = await fetch(
-        `https://raw.githubusercontent.com/${full_name}/${branch}/${rel}`,
-        rawHdr
-      );
+      const q = new URLSearchParams({ repo: full_name, branch, path: rel });
+      const pkgRes = await fetch(apiUrl(`/api/github/raw?${q}`), { signal: searchAbort?.signal });
       if (!pkgRes.ok) continue;
-      const pkg = await pkgRes.json();
+      const pkgText = await pkgRes.text();
+      const pkg = JSON.parse(pkgText);
       for (const [name, ver] of Object.entries(pkg.dependencies || {})) {
         byName.set(name, { ver, dev: false });
       }
@@ -1294,15 +1585,12 @@ async function packagesFromTreeNpm(full_name, branch) {
 async function packagesFromTreePypi(full_name, branch) {
   const paths = await fetchRepoBlobPaths(full_name, branch);
   const rels = manifestPathsForBasename(paths, 'requirements.txt').slice(0, MAX_MANIFEST_FILES);
-  const rawHdr = { ...ghAuthHeader(), signal: searchAbort?.signal };
   const seen = new Set();
   const out = [];
   for (const rel of rels) {
     try {
-      const reqRes = await fetch(
-        `https://raw.githubusercontent.com/${full_name}/${branch}/${rel}`,
-        rawHdr
-      );
+      const q = new URLSearchParams({ repo: full_name, branch, path: rel });
+      const reqRes = await fetch(apiUrl(`/api/github/raw?${q}`), { signal: searchAbort?.signal });
       if (!reqRes.ok) continue;
       const text = await reqRes.text();
       for (const line of text.split('\n')) {
@@ -1344,9 +1632,8 @@ function decodeBase64Utf8(b64) {
 
 async function ghFetchFile(slug, path) {
   try {
-    const res = await fetch(`https://api.github.com/repos/${slug}/contents/${path}`, {
-      headers: ghHeaders(), signal: searchAbort?.signal,
-    });
+    const q = new URLSearchParams({ url: `https://api.github.com/repos/${slug}/contents/${path}` });
+    const res = await fetch(apiUrl(`/api/github/api?${q}`), { signal: searchAbort?.signal });
     if (!res.ok) return null;
     const data = await res.json();
     if (!data.content) return null;
@@ -1409,20 +1696,12 @@ async function enrichRepos(rawRepos, onProgress, enrichOpts) {
     const readmeText = typeof r.readme === 'string' ? r.readme : '';
     let pkgs = [];
 
-    // Commit count via the Link header's last-page number.
     try {
-      const res = await fetch(
-        `https://api.github.com/repos/${r.full_name}/commits?per_page=1`,
-        { headers: ghHeaders(), signal: searchAbort?.signal }
-      );
-      const link = res.headers.get('link') || '';
-      const m = link.match(/page=(\d+)>; rel="last"/);
-      if (m) {
-        base.commit_count = parseInt(m[1]);
-      } else if (res.ok) {
-        // No "last" link → repo has 0 or 1 commits; the body length is the count.
-        const arr = await res.json().catch(() => []);
-        base.commit_count = Array.isArray(arr) ? arr.length : null;
+      const q = new URLSearchParams({ repo: r.full_name, branch: base.default_branch });
+      const res = await fetch(apiUrl(`/api/github/commit-count?${q}`), { signal: searchAbort?.signal });
+      if (res.ok) {
+        const data = await res.json();
+        base.commit_count = data.count ?? null;
       }
     } catch {}
 
@@ -1513,11 +1792,9 @@ async function loadProjects() {
     empty.textContent =
       'Could not load projects. Start the server (npm start) and open http://127.0.0.1:3847/';
     document.getElementById('projectCount').textContent = '0 projects';
-    cachedMaxProjectNum = 0;
     return;
   }
   renderCards(api);
-  cachedMaxProjectNum = maxNumFromProjects(api);
 }
 
 /* ── Theme toggle ───────────────────────────── */
@@ -1562,9 +1839,29 @@ document.getElementById('searchExtraLangInput').addEventListener('keydown', (e) 
   }
 });
 
+document.getElementById('projectFileSlug')?.addEventListener('input', () => {
+  projectFileSlugTouched = true;
+  syncProjectFileFields();
+});
+document.getElementById('resetProjectFileSlugBtn')?.addEventListener('click', () => {
+  projectFileSlugTouched = false;
+  syncProjectFileFields();
+});
+document.getElementById('editDraftProjectJsonBtn')?.addEventListener('click', () => openDraftProjectJsonModal());
+document.getElementById('saveDraftProjectBtn')?.addEventListener('click', () => void saveDraftProjectFromModal());
+document.getElementById('draftProjectJsonReloadBtn')?.addEventListener('click', () => reloadDraftProjectJsonFromForm());
+document.getElementById('draftProjectJsonFormatBtn')?.addEventListener('click', () => formatDraftProjectJson());
+document.getElementById('draftProjectJsonApplyBtn')?.addEventListener('click', () => applyDraftProjectJsonFromEditor());
+document.getElementById('draftProjectJsonSaveBtn')?.addEventListener('click', () => void saveDraftProjectJsonFromEditor());
+
 document.getElementById('newSearchBtn').addEventListener('click', openModal);
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
+  const jsonEd = document.getElementById('draftProjectJsonModal');
+  if (jsonEd && jsonEd.classList.contains('open')) {
+    closeDraftProjectJsonModal();
+    return;
+  }
   const ai = document.getElementById('searchAiKeywordsModal');
   if (ai && ai.classList.contains('open')) {
     closeSearchAiKeywordsModal();

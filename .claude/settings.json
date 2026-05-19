@@ -10,7 +10,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/turn-audit.sh"
+            "command": "bash -c 'exec \"$(git rev-parse --show-toplevel)\"/.claude/hooks/turn-audit.sh'"
           }
         ]
       }

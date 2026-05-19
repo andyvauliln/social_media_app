@@ -30,7 +30,8 @@ const INSTALL_TIMEOUT_MS = Number(process.env.AI_INSTALL_TIMEOUT_MS) || 45 * 60 
 const START_CONFIG_PATH = path.join(REPO_ROOT, 'start.config.jsonc');
 const PROJECT_INIT_TIMEOUT_MS = Number(process.env.PROJECT_INIT_TIMEOUT_MS) || 30 * 60 * 1000;
 const OR_KEY = process.env.OPENROUTER_API_KEY || process.env.OPEN_ROUTER_API_KEY || '';
-const GH_TOKEN = process.env.GITHUB_TOKEN || '';
+const GH_TOKENS = (process.env.GITHUB_TOKEN || '').split(',').map(s => s.trim()).filter(Boolean);
+const GH_TOKEN = GH_TOKENS[0] || ''; // legacy single-token compat
 const FILTER_MODEL = process.env.FILTER_MODEL || 'minimax/minimax-m2.5';
 const KEYWORDS_MODEL = process.env.OPENROUTER_KEYWORDS_MODEL || 'google/gemini-2.5-flash';
 const OR_API = 'https://openrouter.ai/api/v1';
@@ -111,11 +112,13 @@ const PROJECTS_INDEX_PATH = path.join(GITHUB_PROJECTS_ROOT, '!index.jsonc');
 const DEFAULT_CLONE_COLLECTION = 'favourite';
 const GP_COLLECTIONS_HIDDEN = new Set(['misc']);
 
-/** Matches client `buildFileName`: digits_slug.json base name */
+/** Safe basename for data/projects/<fname>.json (slug only, no path segments). */
 function assertSafeProjectFname(fname) {
   const s = String(fname || '').trim();
-  if (!/^\d+_[a-z0-9_-]+$/.test(s)) {
-    const e = new Error('Invalid project file name');
+  if (!/^[a-z0-9][a-z0-9_-]*$/.test(s)) {
+    const e = new Error(
+      'Invalid project file name — use lowercase letters, digits, dashes, underscores (e.g. content-factory_oss).',
+    );
     e.statusCode = 400;
     throw e;
   }
@@ -132,13 +135,13 @@ function assertSafeProjectFname(fname) {
 function projectCardMetaFromFileJson(raw, fnameNoExt) {
   if (!raw || typeof raw !== 'object') return null;
   const _fname = String(raw._fname || fnameNoExt).trim() || fnameNoExt;
-  const repoCount =
-    raw.repoCount != null ? Number(raw.repoCount) : Array.isArray(raw.repos) ? raw.repos.length : 0;
-  const prefixNum = parseInt(String(_fname).match(/^(\d+)_/)?.[1] || '', 10);
-  const _num = Number.isFinite(Number(raw._num)) ? Number(raw._num) : Number.isFinite(prefixNum) ? prefixNum : 0;
+  const repoCount = Array.isArray(raw.repos)
+    ? raw.repos.filter((r) => !(r && r.deleted)).length
+    : raw.repoCount != null
+      ? Number(raw.repoCount)
+      : 0;
   return {
     _fname,
-    _num,
     schemaVersion: raw.schemaVersion ?? 1,
     name: raw.name || _fname,
     keywords: Array.isArray(raw.keywords) ? raw.keywords : [],
@@ -154,6 +157,8 @@ function projectCardMetaFromFileJson(raw, fnameNoExt) {
         : {},
     partial: !!raw.partial,
     searchError: String(raw.searchError || ''),
+    deleted: !!raw.deleted,
+    deletedAt: raw.deletedAt || '',
   };
 }
 
@@ -925,9 +930,17 @@ function allocateNewRepoDocFile(collection, projectDir) {
 function readRepoDocFileContent(collection, projectDir, docFile) {
   const safe = sanitizeDocFileName(docFile);
   if (!safe) return null;
-  const p = path.join(repoDocsDir(collection, projectDir), safe);
-  if (!fs.existsSync(p)) return { name: safe, content: '' };
-  return { name: safe, content: fs.readFileSync(p, 'utf8') };
+  const docsDir = repoDocsDir(collection, projectDir);
+  const p = path.join(docsDir, safe);
+  if (fs.existsSync(p)) return { name: safe, content: fs.readFileSync(p, 'utf8') };
+  if (/^readme\.md$/i.test(safe) && fs.existsSync(docsDir)) {
+    for (const f of fs.readdirSync(docsDir)) {
+      if (/^readme\.md$/i.test(f)) {
+        return { name: f, content: fs.readFileSync(path.join(docsDir, f), 'utf8') };
+      }
+    }
+  }
+  return { name: safe, content: '' };
 }
 
 function appendRepoDocAiTurn(fullName, docFile, turn, opts = {}) {
@@ -1467,46 +1480,254 @@ app.get('/api/repos/docs/file', async (req, reply) => {
 
 /* ── GitHub API proxy (token stays server-side) ─────────────────────── */
 
-function ghHeaders() {
+// Per-token rate-limit reset timestamps (ms). Cleared once elapsed.
+const ghTokenResetAt = new Map();
+
+function ghMakeHeaders(token) {
   const h = { 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' };
-  if (GH_TOKEN) h['Authorization'] = `Bearer ${GH_TOKEN}`;
+  if (token) h['Authorization'] = `Bearer ${token}`;
   return h;
 }
 
-async function ghFetch(url) {
-  let res = await fetch(url, { headers: ghHeaders() });
-  // If token is bad/expired, retry without auth for public repos
-  if (res.status === 401 && GH_TOKEN) {
-    res = await fetch(url, { headers: { 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' } });
-  }
-  return res;
+function ghEarliestResetMs() {
+  let min = Infinity;
+  for (const ms of ghTokenResetAt.values()) if (ms < min) min = ms;
+  return min === Infinity ? 0 : min;
 }
 
-/** GET /api/github/readme?repo=owner/name */
+async function ghFetch(url) {
+  const now = Date.now();
+
+  // Separate available tokens from rate-limited ones
+  const available = GH_TOKENS.filter(t => (ghTokenResetAt.get(t) || 0) <= now);
+  // If all tokens are rate-limited, still try the one that resets soonest as a last resort
+  const tokensToTry = available.length > 0
+    ? available
+    : GH_TOKENS.length > 0
+      ? [GH_TOKENS.reduce((a, b) => ((ghTokenResetAt.get(a) || 0) < (ghTokenResetAt.get(b) || 0) ? a : b))]
+      : [null]; // no tokens configured — unauthenticated
+
+  let lastRes = null;
+
+  for (const token of tokensToTry) {
+    const signal = AbortSignal.timeout(55000);
+    let res = await fetch(url, { headers: ghMakeHeaders(token), signal });
+
+    // Bad/expired token — skip to next token rather than falling back to unauth mid-loop
+    if (res.status === 401 && token) {
+      lastRes = res;
+      continue;
+    }
+
+    if (res.status !== 403 && res.status !== 429) return res; // success or unrelated error
+
+    // Rate-limited — record reset time for this token and try the next one
+    const resetHeader = res.headers.get('x-ratelimit-reset');
+    const retryAfter = res.headers.get('retry-after');
+    const resetMs = retryAfter
+      ? Date.now() + Number(retryAfter) * 1000
+      : resetHeader
+        ? Number(resetHeader) * 1000
+        : Date.now() + 60_000;
+    if (token) ghTokenResetAt.set(token, resetMs);
+    lastRes = res;
+  }
+
+  // All tokens failed — try unauthenticated as final fallback (for public repos)
+  if (lastRes?.status === 401 && GH_TOKENS.length > 0) {
+    return fetch(url, { headers: ghMakeHeaders(null), signal: AbortSignal.timeout(55000) });
+  }
+
+  return lastRes; // all tokens exhausted — caller gets the 403/429
+}
+
+/** GET /api/github/api?url=https://api.github.com/... — proxy JSON GitHub REST (token server-side). */
+app.get('/api/github/api', async (req, reply) => {
+  const url = String(req.query.url || '').trim();
+  if (!url.startsWith('https://api.github.com/')) {
+    reply.code(400);
+    return { error: 'url must be a https://api.github.com/ API URL' };
+  }
+  let res;
+  try {
+    res = await ghFetch(url);
+  } catch (e) {
+    reply.code(502);
+    return { error: e.message || 'GitHub request failed' };
+  }
+  for (const h of ['retry-after', 'x-ratelimit-remaining', 'x-ratelimit-reset']) {
+    const v = res.headers.get(h);
+    if (v) reply.header(h, v);
+  }
+  // If all tokens are exhausted, expose the earliest reset so the client can show it
+  if ((res.status === 403 || res.status === 429) && GH_TOKENS.length > 1) {
+    const earliest = ghEarliestResetMs();
+    if (earliest > 0) reply.header('x-gh-all-tokens-reset', String(Math.ceil(earliest / 1000)));
+  }
+  const text = await res.text();
+  reply.code(res.status);
+  if (!text) return res.ok ? {} : { error: `GitHub ${res.status}` };
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { error: text.slice(0, 500) || `GitHub ${res.status}` };
+  }
+});
+
+/** Encode owner/repo for GitHub API paths (do not encode the slash). */
+function githubRepoApiPath(repo) {
+  const parts = String(repo || '').trim().split('/');
+  if (parts.length !== 2 || !parts[0] || !parts[1]) return null;
+  return parts.map((p) => encodeURIComponent(p)).join('/');
+}
+
+function decodeGitHubContentPayload(content, encoding) {
+  if (content == null || content === '') return '';
+  const enc = String(encoding || 'base64').toLowerCase();
+  if (enc === 'utf-8' || enc === 'utf8') return String(content);
+  const b64 = String(content).replace(/\s/g, '');
+  return Buffer.from(b64, 'base64').toString('utf8');
+}
+
+/** Root-level readme.md / README.md (case-insensitive). */
+function findRootReadmePath(paths) {
+  const candidates = (paths || []).filter((p) => p && !p.includes('/') && /^readme\.md$/i.test(p));
+  if (!candidates.length) return null;
+  const rank = (p) => (p === 'README.md' ? 0 : p === 'readme.md' ? 1 : 2);
+  candidates.sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
+  return candidates[0];
+}
+
+async function githubFetchRawFileText(repo, branch, fpath) {
+  const rawUrl = `https://raw.githubusercontent.com/${repo}/${branch}/${fpath}`;
+  const authHeaders = GH_TOKEN ? { Authorization: `Bearer ${GH_TOKEN}` } : {};
+  let res = await fetch(rawUrl, { headers: authHeaders });
+  if (!res.ok && GH_TOKEN) res = await fetch(rawUrl);
+  if (!res.ok) return null;
+  return res.text();
+}
+
+async function githubFetchRepoReadmeText(repo, branchHint) {
+  const repoPath = githubRepoApiPath(repo);
+  if (!repoPath) return { error: 'Invalid repo slug' };
+  const res = await ghFetch(`https://api.github.com/repos/${repoPath}/readme`);
+  if (res.ok) {
+    const data = await res.json();
+    return {
+      text: decodeGitHubContentPayload(data.content || '', data.encoding || 'base64'),
+      path: data.path || 'README.md',
+    };
+  }
+  if (res.status !== 404) return { error: `GitHub ${res.status}` };
+
+  const tree = await githubRepoTreePaths(repo, branchHint);
+  const readmePath = findRootReadmePath(tree.paths);
+  if (!readmePath) return { error: 'No README found in repository root' };
+
+  const branch = tree.branch || branchHint || 'main';
+  const contentsRes = await ghFetch(
+    `https://api.github.com/repos/${repoPath}/contents/${encodeURIComponent(readmePath)}?ref=${encodeURIComponent(branch)}`,
+  );
+  if (contentsRes.ok) {
+    const data = await contentsRes.json();
+    if (data.content) {
+      return {
+        text: decodeGitHubContentPayload(data.content, data.encoding || 'base64'),
+        path: data.path || readmePath,
+      };
+    }
+  }
+
+  const rawText = await githubFetchRawFileText(repo, branch, readmePath);
+  if (rawText != null) return { text: rawText, path: readmePath };
+  return { error: 'Could not load README file' };
+}
+
+/** GET /api/github/readme?repo=owner/name&branch=main */
 app.get('/api/github/readme', async (req, reply) => {
   const repo = String(req.query.repo || '').trim();
+  const branchHint = String(req.query.branch || '').trim();
   if (!repo || !/^[^/\s]+\/[^/\s]+$/.test(repo)) { reply.code(400); return { error: 'repo required' }; }
-  const res = await ghFetch(`https://api.github.com/repos/${repo}/readme`);
-  if (!res.ok) { reply.code(res.status); return { error: `GitHub ${res.status}` }; }
-  const data = await res.json();
-  return { content: data.content || '', encoding: data.encoding || 'base64' };
+  const result = await githubFetchRepoReadmeText(repo, branchHint);
+  if (result.error) {
+    reply.code(result.error.includes('404') ? 404 : 502);
+    return { error: result.error };
+  }
+  return { content: result.text || '', encoding: 'utf8', path: result.path || 'README.md' };
 });
+
+/** Resolve blob paths via GitHub commits + recursive git trees API. Tries hinted branch, repo default, main, master. */
+async function githubRepoTreePaths(repo, branchHint) {
+  const branchesToTry = [];
+  const hint = String(branchHint || '').trim();
+  if (hint) branchesToTry.push(hint);
+
+  const repoPath = githubRepoApiPath(repo);
+  if (!repoPath) return { paths: [], branch: branchHint || 'main', truncated: false, error: 'Invalid repo slug' };
+
+  const repoRes = await ghFetch(`https://api.github.com/repos/${repoPath}`);
+  if (repoRes.ok) {
+    const repoData = await repoRes.json();
+    const def = String(repoData.default_branch || '').trim();
+    if (def && !branchesToTry.includes(def)) branchesToTry.push(def);
+  }
+  for (const fallback of ['main', 'master']) {
+    if (!branchesToTry.includes(fallback)) branchesToTry.push(fallback);
+  }
+
+  let lastError = 'Could not load repository tree from GitHub';
+  for (const branch of branchesToTry) {
+    const commitRes = await ghFetch(
+      `https://api.github.com/repos/${repoPath}/commits/${encodeURIComponent(branch)}`,
+    );
+    if (!commitRes.ok) {
+      let msg = `GitHub ${commitRes.status} for branch "${branch}"`;
+      try {
+        const errBody = await commitRes.json();
+        if (errBody && errBody.message) msg = `${msg}: ${errBody.message}`;
+      } catch { /* ignore */ }
+      lastError = msg;
+      continue;
+    }
+    const commit = await commitRes.json();
+    const treeSha = commit?.commit?.tree?.sha;
+    if (!treeSha) {
+      lastError = `No tree SHA for branch "${branch}"`;
+      continue;
+    }
+    const treeRes = await ghFetch(
+      `https://api.github.com/repos/${repoPath}/git/trees/${treeSha}?recursive=1`,
+    );
+    if (!treeRes.ok) {
+      let msg = `GitHub ${treeRes.status} loading tree for "${branch}"`;
+      try {
+        const errBody = await treeRes.json();
+        if (errBody && errBody.message) msg = `${msg}: ${errBody.message}`;
+      } catch { /* ignore */ }
+      lastError = msg;
+      continue;
+    }
+    const tree = await treeRes.json();
+    const paths = (tree.tree || []).filter((x) => x.type === 'blob' && x.path).map((x) => x.path);
+    return { paths, branch, truncated: !!tree.truncated };
+  }
+  return { paths: [], branch: hint || 'main', truncated: false, error: lastError };
+}
 
 /** GET /api/github/tree?repo=owner/name&branch=main */
 app.get('/api/github/tree', async (req, reply) => {
-  const repo   = String(req.query.repo   || '').trim();
-  const branch = String(req.query.branch || 'main').trim();
-  if (!repo || !/^[^/\s]+\/[^/\s]+$/.test(repo)) { reply.code(400); return { error: 'repo required' }; }
-  const commitRes = await ghFetch(`https://api.github.com/repos/${repo}/commits/${encodeURIComponent(branch)}`);
-  if (!commitRes.ok) { reply.code(commitRes.status); return { error: `GitHub ${commitRes.status}` }; }
-  const commit = await commitRes.json();
-  const treeSha = commit?.commit?.tree?.sha;
-  if (!treeSha) { reply.code(404); return { error: 'Tree SHA not found' }; }
-  const treeRes = await ghFetch(`https://api.github.com/repos/${repo}/git/trees/${treeSha}?recursive=1`);
-  if (!treeRes.ok) { reply.code(treeRes.status); return { error: `GitHub ${treeRes.status}` }; }
-  const tree = await treeRes.json();
-  const paths = (tree.tree || []).filter(x => x.type === 'blob' && x.path).map(x => x.path);
-  return { paths };
+  const repo = String(req.query.repo || '').trim();
+  const branchHint = String(req.query.branch || '').trim();
+  if (!repo || !/^[^/\s]+\/[^/\s]+$/.test(repo)) {
+    reply.code(400);
+    return { error: 'repo required' };
+  }
+  const result = await githubRepoTreePaths(repo, branchHint);
+  if (result.error && !result.paths.length) {
+    reply.code(result.error.includes('404') ? 404 : 502);
+    return { error: result.error, paths: [], branch: result.branch, truncated: false };
+  }
+  return result;
 });
 
 /** GET /api/github/commit-count?repo=owner/name&branch=main */
@@ -1514,11 +1735,15 @@ app.get('/api/github/commit-count', async (req, reply) => {
   const repo   = String(req.query.repo   || '').trim();
   const branch = String(req.query.branch || 'main').trim();
   if (!repo || !/^[^/\s]+\/[^/\s]+$/.test(repo)) { reply.code(400); return { error: 'repo required' }; }
-  const res = await ghFetch(`https://api.github.com/repos/${repo}/commits?per_page=1&sha=${encodeURIComponent(branch)}`);
+  const repoPath = githubRepoApiPath(repo);
+  if (!repoPath) { reply.code(400); return { error: 'repo required' }; }
+  const res = await ghFetch(`https://api.github.com/repos/${repoPath}/commits?per_page=1&sha=${encodeURIComponent(branch)}`);
   if (!res.ok) { reply.code(res.status); return { error: `GitHub ${res.status}` }; }
   const link = res.headers.get('link') || '';
   const m = link.match(/page=(\d+)>; rel="last"/);
-  return { count: m ? parseInt(m[1]) : null };
+  if (m) return { count: parseInt(m[1], 10) };
+  const arr = await res.json().catch(() => []);
+  return { count: Array.isArray(arr) ? arr.length : null };
 });
 
 /** GET /api/github/raw?repo=owner/name&branch=main&path=package.json */
@@ -1536,6 +1761,27 @@ app.get('/api/github/raw', async (req, reply) => {
   const text = await res.text();
   reply.header('Content-Type', 'text/plain; charset=utf-8');
   return reply.send(text);
+});
+
+/** DELETE /api/repos/docs/file — remove a doc file from disk. */
+app.delete('/api/repos/docs/file', async (req, reply) => {
+  const body = req.body || {};
+  const fullName = String(body.fullName || '').trim();
+  const docFile = String(body.file || '').trim();
+  if (!fullName || !/^[^/\s]+\/[^/\s]+$/.test(fullName)) { reply.code(400); return { error: 'fullName required' }; }
+  const safe = sanitizeDocFileName(docFile);
+  if (!safe) { reply.code(400); return { error: 'Invalid doc file name' }; }
+  try {
+    const { collection, projectDir } = resolveRepoDocsPlacement(fullName, {
+      collection: body.collection, projectDir: body.projectDir,
+    });
+    const filePath = path.join(repoDocsDir(collection, projectDir), safe);
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    return { ok: true, fullName, file: safe };
+  } catch (e) {
+    reply.code(400);
+    return { error: e.message || 'Failed to delete doc file' };
+  }
 });
 
 /** Overwrite a specific doc file for a repo (create or replace). */
@@ -1679,13 +1925,14 @@ app.get('/api/projects', async () => {
     }
     try {
       const raw = JSON.parse(fs.readFileSync(path.join(PROJECTS_DIR, name), 'utf8'));
+      if (raw && raw.deleted) continue;
       const meta = projectCardMetaFromFileJson(raw, base);
       if (meta) projects.push(meta);
     } catch {
       /* skip broken file */
     }
   }
-  projects.sort((a, b) => (a._num || 0) - (b._num || 0));
+  projects.sort((a, b) => String(a._fname || '').localeCompare(String(b._fname || '')));
   return { projects };
 });
 
@@ -1695,15 +1942,24 @@ app.post('/api/projects/save', async (req, reply) => {
     reply.code(400);
     return { error: 'JSON body required' };
   }
+  const overwrite = !!body.overwrite;
+  const toWrite = { ...body };
+  delete toWrite.overwrite;
   let safe;
   try {
-    safe = assertSafeProjectFname(body._fname);
+    safe = assertSafeProjectFname(toWrite._fname);
   } catch (e) {
     reply.code(e.statusCode || 400);
     return { error: e.message };
   }
   fs.mkdirSync(PROJECTS_DIR, { recursive: true });
-  fs.writeFileSync(safe.filePath, JSON.stringify(body), 'utf8');
+  if (fs.existsSync(safe.filePath) && !overwrite) {
+    reply.code(409);
+    return {
+      error: `Project file already exists: ${safe.fname}.json — pick another name or delete the existing project.`,
+    };
+  }
+  fs.writeFileSync(safe.filePath, JSON.stringify(toWrite), 'utf8');
   return { ok: true, file: `data/projects/${safe.fname}.json` };
 });
 
@@ -1719,8 +1975,21 @@ app.delete('/api/projects/:fname', async (req, reply) => {
     reply.code(404);
     return { error: 'Not found' };
   }
-  fs.unlinkSync(safe.filePath);
-  return { ok: true };
+  let raw;
+  try {
+    raw = JSON.parse(fs.readFileSync(safe.filePath, 'utf8'));
+  } catch (e) {
+    reply.code(500);
+    return { error: 'Could not read project file' };
+  }
+  if (!raw || typeof raw !== 'object') {
+    reply.code(500);
+    return { error: 'Invalid project file' };
+  }
+  raw.deleted = true;
+  raw.deletedAt = new Date().toISOString();
+  fs.writeFileSync(safe.filePath, JSON.stringify(raw), 'utf8');
+  return { ok: true, deleted: true };
 });
 
 app.get('/api/models', async (req, reply) => {

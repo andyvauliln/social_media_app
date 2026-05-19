@@ -166,65 +166,117 @@ a:hover { text-decoration:underline; }
 .main { flex:1; padding:var(--sp4) var(--sp6) var(--sp10); max-width:1600px; margin:0 auto; width:100%; }
 .results-bar { display:flex; justify-content:flex-start; align-items:center; margin-bottom:var(--sp3); font-size:var(--text-xs); font-family:var(--font-mono); color:var(--text-muted); }
 
-.list-tabs-bar { display:flex; align-items:center; gap:var(--sp3); flex-wrap:wrap; margin-bottom:var(--sp3); }
-.list-tabs { display:flex; align-items:center; gap:var(--sp2); flex-wrap:wrap; flex:1; min-width:0; }
-.list-tabs .tab-add-btn { align-self:center; }
+.list-tabs-bar {
+  display:flex; align-items:flex-start; gap:var(--sp2) var(--sp3);
+  flex-wrap:wrap; margin-bottom:var(--sp3); width:100%;
+}
+.list-tabs {
+  display:flex; align-items:center; gap:var(--sp2); flex-wrap:wrap;
+  flex:1 1 auto; min-width:0;
+}
+.list-tabs-actions {
+  display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp2);
+  flex:0 0 auto; margin-left:auto;
+}
+.list-tab-sep {
+  width:1px; height:1.1rem; background:var(--border-2); flex-shrink:0; align-self:center;
+  margin:0 2px;
+}
 .list-tab {
   padding:var(--sp2) var(--sp4); border-radius:var(--rad-md);
   font-family:var(--font-mono); font-size:var(--text-xs); font-weight:600;
   border:1px solid var(--border-2); background:var(--surface);
   color:var(--text-muted); transition:all var(--trans);
+  flex-shrink:0;
+}
+.list-tab.list-tab-compact {
+  padding:4px 10px; font-size:11px; font-weight:700;
+  max-width:9.5rem; min-width:4rem;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
 }
 .list-tab:hover { border-color:var(--accent); color:var(--accent-text); }
 .list-tab.active { border-color:var(--accent); background:var(--accent-dim); color:var(--accent-text); }
-.tab-add-btn {
+.list-action-btn {
   padding:var(--sp2) var(--sp4); border-radius:var(--rad-md);
-  border:1px dashed var(--border-2); color:var(--text-muted);
-  font-family:var(--font-mono); font-size:var(--text-xs); font-weight:700;
-  flex-shrink:0; white-space:nowrap;
+  font-family:var(--font-mono); font-size:10px; font-weight:700;
+  border:1px solid; cursor:pointer; transition:all var(--trans);
+  white-space:nowrap; flex-shrink:0;
 }
-.tab-add-btn:hover { border-color:var(--accent); color:var(--accent-text); background:var(--accent-dim); }
+.list-action-btn--add-collection {
+  color:var(--accent-text); border-color:color-mix(in srgb, var(--accent) 45%, transparent);
+  background:var(--accent-dim);
+}
+.list-action-btn--add-collection:hover {
+  background:var(--accent); color:var(--surface); border-color:var(--accent);
+}
+.list-action-btn--ask-collection {
+  color:var(--purple); border-color:color-mix(in srgb, var(--purple) 45%, transparent);
+  background:var(--purple-dim);
+}
+.list-action-btn--ask-collection:hover {
+  background:var(--purple); color:var(--surface); border-color:var(--purple);
+}
 .repo-list-actions {
   grid-column:1 / -1;
-  display:grid;
-  grid-template-columns:minmax(0, 1fr) auto;
-  align-items:center;
-  gap:var(--sp2) var(--sp3);
+  display:flex; flex-direction:column; align-items:stretch;
+  gap:var(--sp2);
   margin-top:var(--sp2);
   padding-top:var(--sp2);
   border-top:1px dashed var(--border);
   width:100%;
 }
-.repo-list-actions-collections {
-  display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp2);
-  min-width:0;
-}
 .repo-list-actions-primary {
-  display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-end; gap:var(--sp2);
-  flex-shrink:0;
+  display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-end;
+  gap:var(--sp2); width:100%;
 }
-@media (max-width: 720px) {
-  .repo-list-actions {
-    grid-template-columns:1fr;
-    gap:var(--sp2);
-  }
-  .repo-list-actions-primary { justify-self:end; }
+.repo-list-actions-collections {
+  display:flex; flex-wrap:wrap; align-items:flex-start; align-content:flex-start;
+  gap:var(--sp2); width:100%; min-width:0;
 }
 .repo-list-btn {
-  padding:3px 8px; border-radius:var(--rad-sm); font-size:10px;
-  font-family:var(--font-mono); font-weight:600; border:1px solid var(--border-2);
-  background:var(--surface-3); color:var(--text-muted); transition:all var(--trans);
+  padding:5px 11px; border-radius:var(--rad-md); font-size:11px;
+  font-family:var(--font-mono); font-weight:700; border:1px solid;
+  transition:all var(--trans); flex-shrink:0; max-width:13rem;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
 }
-.repo-list-btn:hover { border-color:var(--accent); color:var(--accent-text); background:var(--accent-dim); }
-.repo-list-btn.danger:hover { border-color:var(--red); color:var(--red); background:var(--red-dim); }
-.repo-list-btn.repo-ask-ai-btn { color:var(--purple); border-color:color-mix(in srgb, var(--purple) 40%, transparent); background:var(--purple-dim); }
-.repo-list-btn.repo-ask-ai-btn:hover { background:var(--purple); color:var(--surface); }
+.repo-list-btn.repo-action-muted {
+  color:var(--text-muted); border-color:var(--border-2); background:var(--surface-3);
+}
+.repo-list-btn.repo-action-muted:hover {
+  border-color:var(--accent); color:var(--accent-text); background:var(--accent-dim);
+}
+.repo-list-btn.danger {
+  color:var(--red); border-color:color-mix(in srgb, var(--red) 40%, transparent);
+  background:color-mix(in srgb, var(--red) 10%, transparent);
+}
+.repo-list-btn.danger:hover { border-color:var(--red); color:var(--surface); background:var(--red); }
+.repo-list-btn.repo-ask-ai-btn {
+  color:var(--purple); border-color:color-mix(in srgb, var(--purple) 45%, transparent);
+  background:var(--purple-dim);
+}
+.repo-list-btn.repo-ask-ai-btn:hover { background:var(--purple); color:var(--surface); border-color:var(--purple); }
 .repo-list-btn.repo-clone-btn { color:var(--green); border-color:color-mix(in srgb, var(--green) 40%, transparent); background:color-mix(in srgb, var(--green) 12%, transparent); }
 .repo-list-btn.repo-clone-btn:hover { background:var(--green); color:var(--surface); }
 .repo-list-btn.repo-clone-btn:disabled { opacity:0.55; cursor:wait; }
 .repo-list-btn.repo-clone-btn.is-cloned { opacity:0.85; }
-.repo-list-btn.repo-add-to-favourite { color:var(--gold); border-color:color-mix(in srgb, var(--gold) 40%, transparent); background:color-mix(in srgb, var(--gold) 10%, transparent); }
-.repo-list-btn.repo-add-to-favourite:hover { background:var(--gold-dim); border-color:var(--gold); }
+.repo-list-btn.repo-add-to-favourite {
+  color:var(--gold); border-color:color-mix(in srgb, var(--gold) 45%, transparent);
+  background:color-mix(in srgb, var(--gold) 12%, transparent);
+}
+.repo-list-btn.repo-add-to-favourite:hover { background:var(--gold); color:var(--surface); border-color:var(--gold); }
+.repo-list-btn.repo-add-to-collection {
+  color:var(--accent-text); border-color:color-mix(in srgb, var(--accent) 40%, transparent);
+  background:var(--accent-dim);
+}
+.repo-list-btn.repo-add-to-collection:hover { background:var(--accent); color:var(--surface); border-color:var(--accent); }
+.repo-list-btn.repo-add-to-list {
+  color:var(--blue-text); border-color:color-mix(in srgb, var(--blue) 40%, transparent);
+  background:var(--blue-dim);
+}
+.repo-list-btn.repo-add-to-list:hover { background:var(--blue); color:var(--surface); border-color:var(--blue); }
+.repo-list-btn.repo-remove-from-list {
+  color:var(--text-muted); border-color:var(--border-2); background:var(--surface-2);
+}
 .ai-docs-pane { padding:var(--sp3) 0; }
 .ai-docs-meta { font-size:11px; font-family:var(--font-mono); color:var(--text-faint); margin-bottom:var(--sp3); }
 .ai-docs-turn { border:1px solid var(--border); border-radius:var(--rad-md); padding:var(--sp3); margin-bottom:var(--sp3); background:var(--surface-2); }
@@ -253,6 +305,42 @@ a:hover { text-decoration:underline; }
 .repo-row { border-bottom:1px solid var(--border); background:var(--surface); transition:background var(--trans); }
 .repo-row:last-child { border-bottom:none; }
 .repo-row.archived { opacity:.55; }
+.repo-row.repo-deleted > .repo-summary {
+  background:color-mix(in srgb, var(--red) 7%, var(--surface));
+  border-left:3px solid var(--red);
+}
+.repo-row.repo-deleted .repo-owner,
+.repo-row.repo-deleted .repo-name,
+.repo-row.repo-deleted .repo-desc,
+.repo-row.repo-deleted .col-lang,
+.repo-row.repo-deleted .col-num {
+  color:color-mix(in srgb, var(--red) 82%, var(--text));
+}
+.repo-row.repo-deleted .repo-desc { opacity:.88; }
+.repo-deleted-badge {
+  font-family:var(--font-mono); font-size:10px; font-weight:700;
+  color:var(--red); padding:4px 10px; border-radius:var(--rad-md);
+  border:1px solid color-mix(in srgb, var(--red) 35%, transparent);
+  background:color-mix(in srgb, var(--red) 10%, transparent);
+}
+.repo-row.repo-favourite > .repo-summary {
+  background:color-mix(in srgb, var(--green) 7%, var(--surface));
+  border-left:3px solid var(--green);
+}
+.repo-row.repo-favourite .repo-owner,
+.repo-row.repo-favourite .repo-name,
+.repo-row.repo-favourite .repo-desc,
+.repo-row.repo-favourite .col-lang,
+.repo-row.repo-favourite .col-num {
+  color:color-mix(in srgb, var(--green) 82%, var(--text));
+}
+.repo-row.repo-favourite .repo-desc { opacity:.88; }
+.repo-favourite-badge {
+  font-size:10px; font-family:var(--font-mono); font-weight:700;
+  color:var(--green); border:1px solid color-mix(in srgb, var(--green) 40%, transparent);
+  background:color-mix(in srgb, var(--green) 10%, transparent); border-radius:var(--rad-full);
+  padding:1px 6px;
+}
 .repo-summary { cursor:pointer; transition:background var(--trans); }
 .repo-summary:hover { background:var(--surface-2); }
 .repo-row.open > .repo-summary { background:var(--surface-2); }
@@ -394,6 +482,13 @@ a:hover { text-decoration:underline; }
 }
 .header-add-search-btn:hover { background:color-mix(in srgb, var(--accent) 85%, black); }
 .header-add-search-btn:disabled { opacity:.45; cursor:not-allowed; }
+.header-edit-json-btn {
+  margin-right:var(--sp2); padding:var(--sp2) var(--sp4); font-size:10px; font-family:var(--font-mono); font-weight:700;
+  border-radius:var(--rad-md); border:1px solid var(--border-2); background:var(--surface-3); color:var(--text-muted);
+  cursor:pointer; transition:all var(--trans); white-space:nowrap; display:inline-flex; align-items:center; gap:var(--sp2);
+}
+.header-edit-json-btn:hover { border-color:var(--accent); color:var(--accent-text); background:var(--accent-dim); }
+.project-json-editor-hint { font-size:11px; color:var(--text-faint); font-family:var(--font-mono); padding:0 var(--sp6) var(--sp2); flex-shrink:0; }
 /* Extend search modal (mirrors index.html search modal pieces) */
 .form-hint { font-size:11px; color:var(--text-faint); font-family:var(--font-mono); }
 .keyword-row { display:flex; gap:var(--sp2); align-items:stretch; }
@@ -459,15 +554,37 @@ a:hover { text-decoration:underline; }
   color:var(--text-muted); border-bottom:1px solid var(--border);
   background:var(--surface-3); word-break:break-all;
 }
+.tab-file-preview {
+  margin:var(--sp2) 0 0; border:1px solid var(--border-2); border-radius:var(--rad-md);
+  background:var(--surface-3); max-height:7.5rem; overflow:hidden; position:relative;
+  padding:var(--sp3) var(--sp4) calc(var(--sp4) + 14px);
+}
+.doc-pane-clickable .tab-file-preview { transition:border-color var(--trans); }
+.doc-pane-clickable:hover .tab-file-preview { border-color:var(--accent); }
+.tab-file-preview-text {
+  margin:0; font-family:var(--font-mono); font-size:11px; line-height:1.45;
+  color:var(--text-muted); white-space:pre-wrap; word-break:break-word; overflow:hidden;
+}
+.tab-file-preview-hint {
+  position:absolute; left:0; right:0; bottom:0; padding:var(--sp2) var(--sp4);
+  font-family:var(--font-mono); font-size:10px; font-weight:700; text-align:center;
+  color:var(--accent-text);
+  background:linear-gradient(to bottom, transparent, var(--surface-3) 50%, var(--surface-3));
+  pointer-events:none;
+}
 .search-file-code {
   margin:0; padding:var(--sp4); overflow:auto; max-height:min(70vh, 640px);
   font-size:12px; line-height:1.5; font-family:var(--font-mono); color:var(--text);
   white-space:pre-wrap; word-break:break-word;
 }
 .search-file-body { padding:var(--sp4); overflow:auto; max-height:min(70vh, 640px); }
+.kw-highlight {
+  background:color-mix(in srgb, var(--gold) 38%, transparent);
+  color:inherit; border-radius:2px; padding:0 2px; box-decoration-break:clone;
+}
 
 /* README tab */
-.readme-wrap { background:var(--surface); border:1px solid var(--border); border-radius:var(--rad-md); padding:var(--sp5) var(--sp6); max-height:600px; overflow-y:auto; }
+.readme-wrap { background:var(--surface); border:1px solid var(--border); border-radius:var(--rad-md); padding:var(--sp5) var(--sp6); }
 .readme-wrap.readme-preview { cursor:pointer; transition:border-color var(--trans), box-shadow var(--trans); }
 .readme-wrap.readme-preview:hover { border-color:var(--accent); box-shadow:0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent); }
 .readme-wrap.readme-preview:focus { outline:2px solid var(--accent); outline-offset:2px; }
@@ -479,15 +596,23 @@ a:hover { text-decoration:underline; }
 .readme-fs-backdrop.open { opacity:1; pointer-events:all; }
 .readme-fs-panel {
   background:var(--surface); border:1px solid var(--border-2); border-radius:var(--rad-xl);
-  width:100%; max-width:900px; max-height:90vh; display:flex; flex-direction:column;
+  width:100%; max-width:900px; height:90vh; display:flex; flex-direction:column;
   box-shadow:0 24px 80px rgba(0,0,0,.45);
 }
 .readme-fs-header {
   flex-shrink:0; padding:var(--sp4) var(--sp6); border-bottom:1px solid var(--border);
-  display:flex; align-items:center; justify-content:space-between; gap:var(--sp4);
+  display:flex; align-items:center; gap:var(--sp3);
 }
 .readme-fs-title { font-size:var(--text-sm); font-weight:700; font-family:var(--font-mono); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; min-width:0; }
 .readme-fs-body { padding:var(--sp5) var(--sp6); overflow-y:auto; flex:1; min-height:0; }
+.doc-editor-mode-btns { display:flex; gap:4px; flex-shrink:0; }
+.doc-editor-mode-btn { padding:2px 10px; border-radius:var(--rad); border:1px solid var(--border-2); background:transparent; color:var(--text-muted); font-size:var(--text-xs); cursor:pointer; transition:all var(--trans); }
+.doc-editor-mode-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+.doc-editor-textarea { flex:1; min-height:0; padding:var(--sp5) var(--sp6); background:var(--bg); color:var(--text); border:none; resize:none; font-family:var(--font-mono); font-size:13px; line-height:1.65; outline:none; }
+.doc-editor-footer { flex-shrink:0; padding:var(--sp3) var(--sp6); border-top:1px solid var(--border); display:flex; align-items:center; gap:var(--sp3); }
+.doc-editor-save-status { font-size:var(--text-xs); color:var(--text-muted); }
+.doc-pane-clickable { cursor:pointer; }
+.doc-pane-clickable:hover { outline:1px solid var(--border-2); border-radius:2px; }
 
 /* Markdown */
 .md-body { color:var(--text); font-size:var(--text-sm); line-height:1.75; }
@@ -513,11 +638,71 @@ a:hover { text-decoration:underline; }
 .md-body strong { color:var(--text); font-weight:600; }
 .md-body em { color:var(--text-muted); }
 
+/* File tree preview */
+.file-tree-view { font-family:var(--font-mono); font-size:var(--text-xs); line-height:1.45; }
+.file-tree-view .ft-title { font-family:var(--font-body); font-size:var(--text-sm); font-weight:700; margin:0 0 var(--sp3); padding-bottom:var(--sp2); border-bottom:1px solid var(--border); color:var(--text); }
+.file-tree-view .ft-body { background:var(--surface-3); border:1px solid var(--border); border-radius:var(--rad-md); padding:var(--sp2) var(--sp3); overflow:auto; max-height:min(70vh,640px); }
+.file-tree-view .ft-tree { list-style:none; margin:0; padding:0; }
+.file-tree-view .ft-tree .ft-tree { margin-left:var(--sp3); padding-left:var(--sp2); border-left:1px solid var(--border); }
+.file-tree-view .ft-node { margin:0; }
+.file-tree-view .ft-row { display:flex; align-items:center; gap:2px; min-height:22px; padding:1px 0; border-radius:var(--rad-sm); }
+.file-tree-view .ft-row:hover { background:var(--surface-2); }
+.file-tree-view .ft-toggle { width:18px; flex-shrink:0; font-size:9px; line-height:1; color:var(--text-faint); padding:0; text-align:center; }
+.file-tree-view .ft-toggle:hover { color:var(--text); }
+.file-tree-view .ft-toggle-spacer { width:18px; flex-shrink:0; }
+.file-tree-view .ft-folder-label { font-weight:700; color:var(--gold); background:none; border:none; padding:0 2px; text-align:left; cursor:pointer; }
+.file-tree-view .ft-folder-label:hover { text-decoration:underline; }
+.file-tree-view .ft-file-btn { background:none; border:none; padding:0 2px; text-align:left; cursor:pointer; font-family:inherit; font-size:inherit; }
+.file-tree-view .ft-file-btn:hover { text-decoration:underline; }
+.file-tree-view .ft-node.ft-collapsed > .ft-tree { display:none; }
+.file-tree-view .ft-ext-default { color:var(--text-muted); }
+.file-tree-view .ft-ext-code { color:var(--accent-text); }
+.file-tree-view .ft-ext-dotfile { color:var(--text-faint); }
+.file-tree-view .ft-ext-md { color:var(--blue-text); }
+.file-tree-view .ft-ext-js { color:var(--gold); }
+.file-tree-view .ft-ext-ts { color:var(--teal); }
+.file-tree-view .ft-ext-json { color:var(--orange); }
+.file-tree-view .ft-ext-web { color:var(--orange); }
+.file-tree-view .ft-ext-css { color:var(--purple); }
+.file-tree-view .ft-ext-py { color:var(--teal); }
+.file-tree-view .ft-ext-go { color:var(--accent-text); }
+.file-tree-view .ft-ext-rs { color:var(--orange); }
+.file-tree-view .ft-ext-java { color:var(--red); }
+.file-tree-view .ft-ext-c { color:var(--blue-text); }
+.file-tree-view .ft-ext-php { color:var(--purple); }
+.file-tree-view .ft-ext-ruby { color:var(--red); }
+.file-tree-view .ft-ext-swift { color:var(--orange); }
+.file-tree-view .ft-ext-dart { color:var(--teal); }
+.file-tree-view .ft-ext-yml { color:var(--purple); }
+.file-tree-view .ft-ext-sh { color:var(--green); }
+.file-tree-view .ft-ext-img { color:var(--purple); }
+.file-tree-view .ft-ext-lock { color:var(--text-faint); }
+.file-tree-view .ft-ext-data { color:var(--gold); }
+.modal.file-tree-file-modal { max-width:min(960px,96vw); }
+.file-tree-file-pre { margin:0; padding:var(--sp4); background:var(--surface-3); border:1px solid var(--border); border-radius:var(--rad-md); overflow:auto; max-height:min(65vh,560px); font-family:var(--font-mono); font-size:11px; line-height:1.55; white-space:pre; tab-size:2; }
+.file-tree-file-pre .ftf-line { display:block; }
+.file-tree-file-pre .ftf-n { display:inline-block; width:3.5em; margin-right:1em; color:var(--text-faint); user-select:none; text-align:right; }
+.file-tree-file-img { max-width:100%; max-height:min(60vh,480px); border-radius:var(--rad-md); border:1px solid var(--border); }
+.readme-fs-body.doc-editor-filetree-preview {
+  padding:var(--sp4) var(--sp5);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  min-height:0;
+}
+.readme-fs-body.doc-editor-filetree-preview .file-tree-view {
+  flex:1; min-height:0; display:flex; flex-direction:column;
+}
+.readme-fs-body.doc-editor-filetree-preview .file-tree-view .ft-body {
+  flex:1; min-height:0; max-height:min(calc(100dvh - 240px), 72vh); overflow:auto;
+}
+
 /* AI Modal */
 .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:1000; display:flex; align-items:center; justify-content:center; padding:var(--sp6); opacity:0; pointer-events:none; transition:opacity var(--trans); }
 .modal-backdrop.open { opacity:1; pointer-events:all; }
 /* Stacked on top of another open modal (e.g. Generate keywords over Add repositories). */
 .modal-backdrop.modal-above { z-index:1100; }
+.modal-backdrop.modal-above-doc { z-index:2100; }
 .modal { background:var(--surface); border:1px solid var(--border-2); border-radius:var(--rad-xl); width:100%; max-width:760px; max-height:90vh; display:flex; flex-direction:column; box-shadow:var(--shadow-lg); transform:translateY(20px); transition:transform var(--trans); }
 .modal-backdrop.open .modal { transform:translateY(0); }
 .modal-header { padding:var(--sp4) var(--sp6); border-bottom:1px solid var(--border); display:flex; align-items:flex-start; justify-content:space-between; flex-shrink:0; }
@@ -554,10 +739,29 @@ a:hover { text-decoration:underline; }
 .form-textarea { width:100%; padding:var(--sp3); background:var(--surface-3); border:1.5px solid var(--border-2); border-radius:var(--rad-md); color:var(--text); font-size:var(--text-sm); font-family:var(--font-body); outline:none; resize:vertical; min-height:120px; line-height:1.6; transition:border-color var(--trans); }
 .form-textarea:focus { border-color:var(--accent); }
 .form-textarea::placeholder { color:var(--text-faint); }
-.skill-picker-row { display:grid; grid-template-columns:1fr auto auto; gap:var(--sp2); align-items:center; }
-.skill-name-row { display:none; grid-template-columns:110px 1fr; gap:var(--sp2); align-items:center; }
-.skill-name-row.open { display:grid; }
-.skill-editor { min-height:180px; font-family:var(--font-mono); font-size:12px; line-height:1.5; }
+.skill-picker-row { display:flex; flex-wrap:wrap; gap:var(--sp2); align-items:center; margin-top:var(--sp2); }
+.ai-skill-chips { display:flex; flex-wrap:wrap; gap:var(--sp2); min-height:28px; }
+.ai-skill-chip {
+  font-family:var(--font-mono); font-size:11px; font-weight:600;
+  padding:4px 10px; border-radius:var(--rad-full);
+  border:1px solid var(--border); background:var(--surface-2); color:var(--text-muted);
+  cursor:pointer; transition:all var(--trans); max-width:220px;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.ai-skill-chip:hover { border-color:var(--purple); color:var(--text); background:var(--purple-dim); }
+.ai-skill-chip.active { border-color:var(--purple); background:var(--purple-dim); color:var(--purple); }
+.ai-skill-chip-add { border-style:dashed; color:var(--accent-text); }
+.skill-editor-wrap {
+  margin-top:var(--sp2); min-height:100px; max-height:200px; overflow-y:auto;
+  background:var(--surface-2); border:1px solid var(--border); border-radius:var(--rad-md);
+  padding:var(--sp3) var(--sp4); cursor:pointer; transition:border-color var(--trans), box-shadow var(--trans);
+}
+.skill-editor-wrap:hover { border-color:var(--accent); box-shadow:0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent); }
+.skill-editor-placeholder { font-size:var(--text-xs); color:var(--text-faint); font-family:var(--font-mono); }
+.skill-editor-preview { font-size:var(--text-xs); }
+.skill-editor-preview:empty { display:none; }
+.ai-skill-editor-folder { display:none; grid-template-columns:72px 1fr; gap:var(--sp2); align-items:center; padding:0 var(--sp6) var(--sp3); flex-shrink:0; }
+.ai-skill-editor-folder.open { display:grid; }
 .model-meta-row { display:flex; gap:var(--sp4); flex-wrap:wrap; margin-top:var(--sp2); }
 .model-meta-pill { font-size:10px; font-family:var(--font-mono); background:var(--surface-3); border:1px solid var(--border); border-radius:var(--rad-full); padding:2px 8px; color:var(--text-muted); }
 .model-meta-pill strong { color:var(--text); }
@@ -644,6 +848,7 @@ a:hover { text-decoration:underline; }
       <div class="stat-pill"><strong id="statShown">0</strong>&nbsp;loaded</div>
       <div class="stat-pill"><strong id="statAI">0</strong>&nbsp;AI</div>
     </div>
+    <button type="button" class="header-edit-json-btn" id="editProjectJsonBtn" title="Edit data/projects JSON for this search">Edit data file</button>
     <button type="button" class="header-add-search-btn" id="extendSearchHeaderBtn" title="Search GitHub and add repos to this project">Add search</button>
     <button class="icon-btn" id="themeBtn" title="Toggle theme">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -743,20 +948,21 @@ a:hover { text-decoration:underline; }
       </div>
       <div class="form-group">
         <label class="form-label">Skill</label>
+        <div class="ai-skill-chips" id="aiSkillChips" role="listbox" aria-label="Skills"></div>
         <div class="skill-picker-row">
-          <select class="form-select" id="aiSkillSelect">
+          <select class="form-select" id="aiSkillSelect" style="display:none" aria-hidden="true" tabindex="-1">
             <option value="">No skill</option>
           </select>
-          <button type="button" class="btn-secondary" id="aiAddSkillBtn">Add skill</button>
-          <button type="button" class="btn-primary" id="aiSaveSkillBtn">Save</button>
+          <button type="button" class="btn-secondary ai-skill-chip-add" id="aiAddSkillBtn">+ Add skill</button>
         </div>
-        <div class="skill-name-row" id="aiSkillNameRow">
-          <span class="form-label">Folder</span>
-          <input type="text" class="form-select" id="aiSkillNameInput" placeholder="my-skill" autocomplete="off" style="cursor:text"/>
+        <div class="skill-editor-wrap" id="aiSkillPreviewWrap" title="Click to preview and edit skill" role="button" tabindex="0">
+          <div class="skill-editor-placeholder" id="aiSkillPlaceholder">No skill selected — click a skill above or add one.</div>
+          <div class="md-body skill-editor-preview" id="aiSkillPreview"></div>
         </div>
-        <textarea class="form-textarea skill-editor" id="aiSkillText" placeholder="Select or add a skill to include it in the prompt."></textarea>
-        <p class="form-hint" id="aiSkillHint">Only skills from <code>.claude/skills/github-oss</code> are listed. The editable text is included before your prompt.</p>
+        <textarea id="aiSkillText" style="display:none" aria-hidden="true"></textarea>
+        <p class="form-hint" id="aiSkillHint">Skills are stored in <code>.claude/skills/github-oss/&lt;name&gt;/SKILL.md</code>. Click a skill to edit. <strong>Save</strong> writes the file to disk. <strong>Ask AI</strong> uses your latest edits (even if not saved); only Save persists them.</p>
       </div>
+
       <div class="form-group">
         <label class="form-label">Your Question / Prompt</label>
         <textarea class="form-textarea" id="aiPrompt" placeholder="e.g. What are the main modules and architecture of this project?"></textarea>
@@ -881,17 +1087,19 @@ a:hover { text-decoration:underline; }
       <div class="form-group">
         <label class="form-label">Search scope</label>
         <fieldset class="search-scope-grid">
-          <label><input type="radio" name="extendDiscoveryScope" id="extendScopeMeta" value="meta" checked/> Repository name, description, and topics (GitHub index)</label>
-          <label><input type="radio" name="extendDiscoveryScope" id="extendScopeReadme" value="readme"/> README — verify phrase in fetched README body</label>
+          <label><input type="radio" name="extendDiscoveryScope" id="extendScopeMeta" value="meta" checked/> Name, description, and topics (GitHub index)</label>
+          <label><input type="radio" name="extendDiscoveryScope" id="extendScopeMetaReadme" value="meta+readme"/> Name, description, topics + README <span style="color:var(--text-faint);font-weight:400">(broader, same speed)</span></label>
+          <label><input type="radio" name="extendDiscoveryScope" id="extendScopeReadme" value="readme"/> README only — verify phrase in fetched README body <span style="color:var(--text-faint);font-weight:400">(slower)</span></label>
           <label><input type="radio" name="extendDiscoveryScope" id="extendScopeCode" value="code"/> Files / code <span style="color:var(--text-faint);font-weight:400">(slower; strict rate limits)</span></label>
           <label><input type="radio" name="extendDiscoveryScope" id="extendScopeFile" value="file"/> Search in file <span style="color:var(--text-faint);font-weight:400">(filename + body phrase)</span></label>
         </fieldset>
         <div id="extendFileScopePanel" class="search-file-scope-panel">
           <label class="form-label" for="extendFileName">File name or path</label>
-          <input class="form-input" id="extendFileName" type="text" placeholder="e.g. package.json or docs/README.md" autocomplete="off"/>
-          <label class="form-label" for="extendFileContains">File must contain</label>
-          <input class="form-input" id="extendFileContains" type="text" placeholder="Phrase to find inside that file" autocomplete="off"/>
-          <span class="form-hint">Uses GitHub code search with a filename or path qualifier. You can also add keywords above; each keyword is searched in the same file.</span>
+          <input class="form-input" id="extendFileName" type="text" placeholder="e.g. SKILL.md or docs/README.md" autocomplete="off"/>
+          <span class="form-hint">Each keyword above is searched inside that file independently via GitHub code search.</span>
+          <label style="display:flex;align-items:center;gap:var(--sp2);font-size:var(--text-xs);color:var(--text-muted);cursor:pointer;margin-top:6px">
+            <input type="checkbox" id="extendExcludeIdenticalFiles" checked/> Skip repos with identical file content (deduplicate by SHA)
+          </label>
         </div>
       </div>
       <div class="form-group">
@@ -947,13 +1155,83 @@ a:hover { text-decoration:underline; }
   </div>
 </div>
 
-<div class="readme-fs-backdrop" id="readmeFullscreenModal" onclick="if(event.target===this)closeReadmeFullscreenModal()">
+
+<div class="readme-fs-backdrop" id="aiSkillEditorModal" onclick="if(event.target===this)closeAiSkillEditorModal()">
   <div class="readme-fs-panel" onclick="event.stopPropagation()">
     <div class="readme-fs-header">
-      <div class="readme-fs-title" id="readmeFsTitle">README</div>
-      <button type="button" class="modal-close" onclick="closeReadmeFullscreenModal()" aria-label="Close">✕</button>
+      <div class="readme-fs-title" id="aiSkillEditorTitle">Skill</div>
+      <div class="doc-editor-mode-btns">
+        <button type="button" class="doc-editor-mode-btn" id="aiSkillEditorPreviewBtn" onclick="setAiSkillEditorMode('preview')">Preview</button>
+        <button type="button" class="doc-editor-mode-btn active" id="aiSkillEditorEditBtn" onclick="setAiSkillEditorMode('edit')">Edit</button>
+      </div>
+      <button type="button" class="modal-close" onclick="closeAiSkillEditorModal()" aria-label="Close">✕</button>
     </div>
-    <div class="readme-fs-body md-body" id="readmeFsBody"></div>
+    <div class="ai-skill-editor-folder" id="aiSkillEditorFolderRow">
+      <span class="form-label">Folder</span>
+      <input type="text" class="form-select" id="aiSkillEditorNameInput" placeholder="my-skill" autocomplete="off" style="cursor:text"/>
+    </div>
+    <div class="readme-fs-body md-body" id="aiSkillEditorPreview" style="display:none"></div>
+    <textarea class="doc-editor-textarea" id="aiSkillEditorTextarea" placeholder="SKILL.md content…"></textarea>
+    <div class="doc-editor-footer">
+      <button type="button" class="btn-primary" id="aiSkillEditorSaveBtn" onclick="saveAiSkillFromEditor()">Save</button>
+      <span class="doc-editor-save-status" id="aiSkillEditorSaveStatus"></span>
+    </div>
+  </div>
+</div>
+
+<div class="readme-fs-backdrop" id="projectJsonEditorModal" onclick="if(event.target===this)closeProjectJsonEditorModal()">
+  <div class="readme-fs-panel" onclick="event.stopPropagation()">
+    <div class="readme-fs-header">
+      <div class="readme-fs-title" id="projectJsonEditorTitle">project.json</div>
+      <button type="button" class="modal-close" onclick="closeProjectJsonEditorModal()" aria-label="Close">✕</button>
+    </div>
+    <p class="project-json-editor-hint">Edits <code>data/projects/&lt;file&gt;.json</code>. Save validates JSON, reloads the repo list, and writes to disk when the server is running.</p>
+    <textarea class="doc-editor-textarea" id="projectJsonEditorTextarea" spellcheck="false" placeholder="{ }"></textarea>
+    <div class="doc-editor-footer">
+      <button type="button" class="btn-secondary" id="projectJsonEditorReloadBtn">Reload</button>
+      <button type="button" class="btn-secondary" id="projectJsonEditorFormatBtn">Format</button>
+      <button type="button" class="btn-primary" id="projectJsonEditorSaveBtn">Save</button>
+      <span class="doc-editor-save-status" id="projectJsonEditorSaveStatus"></span>
+    </div>
+  </div>
+</div>
+
+<div class="readme-fs-backdrop" id="docEditorModal" onclick="if(event.target===this)closeDocEditorModal()">
+  <div class="readme-fs-panel" onclick="event.stopPropagation()">
+    <div class="readme-fs-header">
+      <div class="readme-fs-title" id="docEditorTitle">Document</div>
+      <div class="doc-editor-mode-btns">
+        <button type="button" class="doc-editor-mode-btn" id="docEditorPreviewBtn" onclick="setDocEditorMode('preview')">Preview</button>
+        <button type="button" class="doc-editor-mode-btn active" id="docEditorEditBtn" onclick="setDocEditorMode('edit')">Edit</button>
+      </div>
+      <button type="button" class="modal-close" onclick="closeDocEditorModal()" aria-label="Close">✕</button>
+    </div>
+    <div class="readme-fs-body md-body" id="docEditorPreview" style="display:none"></div>
+    <textarea class="doc-editor-textarea" id="docEditorTextarea" placeholder="No content yet — start typing to add notes."></textarea>
+    <div class="doc-editor-footer">
+      <button type="button" class="btn-primary" id="docEditorSaveBtn" onclick="saveDocEditorContent()">Save</button>
+      <span class="doc-editor-save-status" id="docEditorSaveStatus"></span>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal-backdrop" id="fileTreeFileModal" onclick="handleFileTreeFileBackdrop(event)">
+  <div class="modal file-tree-file-modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="fileTreeFileModalTitle">File</div>
+        <div class="modal-subtitle" id="fileTreeFileModalSubtitle"></div>
+      </div>
+      <button type="button" class="modal-close" onclick="closeFileTreeFileModal()" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body" id="fileTreeFileModalBody">
+      <div style="display:flex;align-items:center;gap:8px;color:var(--text-muted)"><span class="spinner"></span> Loading…</div>
+    </div>
+    <div class="modal-footer">
+      <a class="btn-secondary" id="fileTreeFileModalGhLink" href="#" target="_blank" rel="noopener noreferrer" style="margin-right:auto;text-decoration:none">View on GitHub</a>
+      <button type="button" class="btn-secondary" onclick="closeFileTreeFileModal()">Close</button>
+    </div>
   </div>
 </div>
 
@@ -1013,6 +1291,7 @@ function scopeFromSaved(o) {
   if (o.includeFileSearch && !anyIn) return 'file';
   if (o.includeCodeSearch && !anyIn) return 'code';
   if (o.inReadme && !o.inName && !o.inDescription && !o.inTopics) return 'readme';
+  if (o.inReadme && (o.inName || o.inDescription || o.inTopics)) return 'meta+readme';
   return 'meta';
 }
 
@@ -1041,9 +1320,9 @@ function applyDiscoveryForm(pfx, o) {
   const ex = document.getElementById(pfx + 'ExtractPackages');
   if (ex) ex.checked = !!d.extractPackagesOnSearch;
   const fnEl = document.getElementById(pfx + 'FileName');
-  const fcEl = document.getElementById(pfx + 'FileContains');
   if (fnEl) fnEl.value = d.fileName || '';
-  if (fcEl) fcEl.value = d.fileContains || '';
+  const exclEl = document.getElementById(pfx + 'ExcludeIdenticalFiles');
+  if (exclEl) exclEl.checked = d.excludeIdenticalFiles !== false;
   const scope = scopeFromSaved(o);
   const rname = discoveryScopeRadioName(pfx);
   document.querySelectorAll(`input[name="${rname}"]`).forEach((r) => {
@@ -1084,6 +1363,19 @@ function readDiscoveryOptions(pfx) {
       fileContains: '',
     };
   }
+  if (scope === 'meta+readme') {
+    return {
+      ...base,
+      inName: true,
+      inDescription: true,
+      inTopics: true,
+      inReadme: true,
+      includeCodeSearch: false,
+      includeFileSearch: false,
+      fileName: '',
+      fileContains: '',
+    };
+  }
   if (scope === 'readme') {
     return {
       ...base,
@@ -1093,13 +1385,14 @@ function readDiscoveryOptions(pfx) {
   }
   if (scope === 'file') {
     const fnEl = document.getElementById(pfx + 'FileName');
-    const fcEl = document.getElementById(pfx + 'FileContains');
+    const exclEl = document.getElementById(pfx + 'ExcludeIdenticalFiles');
     return {
       ...base,
       ...emptyRepoFields,
       includeFileSearch: true,
       fileName: fnEl ? fnEl.value.trim() : '',
-      fileContains: fcEl ? fcEl.value.trim() : '',
+      fileContains: '',
+      excludeIdenticalFiles: exclEl ? exclEl.checked : true,
     };
   }
   return {
@@ -1118,10 +1411,9 @@ function validateDiscoveryBeforeSearch(pfx, keywords) {
       if (fnEl) fnEl.focus();
       return false;
     }
-    if (!opt.fileContains && !(keywords && keywords.length)) {
-      alert('Enter what the file must contain, or add at least one keyword.');
-      const fcEl = document.getElementById(pfx + 'FileContains');
-      if (fcEl) fcEl.focus();
+    if (!(keywords && keywords.length)) {
+      alert('Add at least one keyword to search for inside the file.');
+      document.getElementById(pfx + 'KeywordInput')?.focus();
       return false;
     }
     return true;
@@ -1138,16 +1430,81 @@ function readExtractPackages(pfx) {
   return el ? el.checked : false;
 }
 
+function ghRateLimited(res) {
+  return res.headers.get('retry-after') != null ||
+    res.headers.get('x-ratelimit-remaining') === '0';
+}
+
+function ghResetInfo(res) {
+  const allReset = res.headers.get('x-gh-all-tokens-reset');
+  const singleReset = res.headers.get('x-ratelimit-reset');
+  const resetSec = Number(allReset || singleReset || 0);
+  if (!resetSec) return { waitMs: 60000, label: 'waiting 60s' };
+  const resetMs = resetSec * 1000;
+  const diffMs = resetMs - Date.now();
+  const diffMin = Math.ceil(diffMs / 60000);
+  const atTime = new Date(resetMs).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const label = diffMs > 0
+    ? `try again at ${atTime} (in ${diffMin} min)`
+    : 'try again shortly';
+  return { waitMs: Math.max(diffMs, 5000), label, allTokens: !!allReset };
+}
+
+/** GitHub REST/Search via server proxy (token stays on server). Waits and retries on rate-limit 403s. */
 async function ghFetch(url) {
-  const res = await fetch(url, {
-    headers: {
-      'Authorization': `Bearer ${GH_TOKEN}`,
-      'Accept': 'application/vnd.github+json',
-      'X-GitHub-Api-Version': '2022-11-28',
+  const MAX_RATE_RETRIES = 3;
+  let rateLimitRetries = 0;
+  let netAttempt = 0;
+  while (true) {
+    const q = new URLSearchParams({ url });
+    let res;
+    try {
+      res = await fetch(apiUrl(`/api/github/api?${q}`), {
+        signal: AbortSignal.timeout(60000),
+      });
+    } catch (netErr) {
+      if (netAttempt < 2) {
+        netAttempt++;
+        await sleep(1500 * netAttempt);
+        continue;
+      }
+      throw new Error(
+        'Cannot reach github-oss server — check it is running (./apps/github-oss/run.sh). ' +
+        `Detail: ${netErr.message}`
+      );
     }
-  });
-  if (!res.ok) throw new Error(`GitHub API ${res.status}: ${await res.text()}`);
-  return res.json();
+    const body = await res.text();
+    let data;
+    try {
+      data = body ? JSON.parse(body) : {};
+    } catch {
+      throw new Error(`GitHub API ${res.status}: ${body.slice(0, 200)}`);
+    }
+    if (res.ok) return data;
+    if (res.status === 404 && String(data?.message || '').includes('Route GET')) {
+      throw new Error(
+        'GitHub search proxy is not available on this server. Restart github-oss (./apps/github-oss/run.sh) after updating.'
+      );
+    }
+    if (res.status === 403) {
+      const isRateLimit = ghRateLimited(res) || /rate.?limit/i.test(String(data?.message || ''));
+      if (isRateLimit) {
+        const { waitMs, label, allTokens } = ghResetInfo(res);
+        if (allTokens && waitMs > 120_000) {
+          throw new Error(`GitHub API 403: all tokens rate-limited — ${label}`);
+        }
+        if (rateLimitRetries < MAX_RATE_RETRIES) {
+          rateLimitRetries++;
+          const msgEl = document.getElementById('extendModalStatus');
+          if (msgEl) msgEl.textContent = `GitHub rate limit — ${label} (retry ${rateLimitRetries}/${MAX_RATE_RETRIES})…`;
+          await sleep(Math.min(waitMs, 90_000));
+          continue;
+        }
+      }
+    }
+    const errMsg = data?.error || data?.message || body;
+    throw new Error(`GitHub API ${res.status}: ${errMsg}`);
+  }
 }
 
 function ghRestHeaders() {
@@ -1158,17 +1515,39 @@ function ghRestHeaders() {
   };
 }
 
-/** Blob paths via server-side GitHub proxy. */
+/** Blob paths via server-side GitHub proxy. Returns [] on failure (legacy callers). */
 async function fetchRepoBlobPaths(full_name, branch) {
   try {
-    const q = new URLSearchParams({ repo: full_name, branch: branch || 'main' });
-    const res = await fetch(apiUrl(`/api/github/tree?${q}`));
-    if (!res.ok) return [];
-    const data = await res.json();
-    return Array.isArray(data.paths) ? data.paths : [];
+    const detail = await fetchRepoBlobPathsDetailed(full_name, branch);
+    return detail.paths;
   } catch {
     return [];
   }
+}
+
+/** Blob paths with branch resolution and error details (for file-tree generate). */
+async function fetchRepoBlobPathsDetailed(full_name, branch) {
+  const q = new URLSearchParams({ repo: full_name });
+  if (branch) q.set('branch', branch);
+  const res = await fetch(apiUrl(`/api/github/tree?${q}`));
+  let data = {};
+  try {
+    data = await res.json();
+  } catch {
+    data = {};
+  }
+  if (!res.ok) {
+    throw new Error(data.error || `GitHub tree request failed (HTTP ${res.status})`);
+  }
+  const paths = Array.isArray(data.paths) ? data.paths : [];
+  if (!paths.length && data.error) {
+    throw new Error(data.error);
+  }
+  return {
+    paths,
+    branch: data.branch || branch || 'main',
+    truncated: !!data.truncated,
+  };
 }
 
 function manifestPathsForBasename(paths, baseName) {
@@ -1360,6 +1739,16 @@ async function ghFetchFile(slug, filePath) {
   } catch(e) { return null; }
 }
 
+function decodeBase64Utf8(b64) {
+  const binary = atob(String(b64).replace(/\s/g, ''));
+  if (typeof TextDecoder !== 'undefined') {
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return new TextDecoder('utf-8', { fatal: false }).decode(bytes);
+  }
+  try { return decodeURIComponent(escape(binary)); } catch { return binary; }
+}
+
 // Fetch README markdown. Returns string or null.
 async function fetchReadme(slug) {
   try {
@@ -1367,9 +1756,10 @@ async function fetchReadme(slug) {
     const res = await fetch(apiUrl(`/api/github/readme?${q}`));
     if (!res.ok) return null;
     const data = await res.json();
-    if (!data.content) return null;
-    const bytes = atob(data.content.replace(/\n/g, ''));
-    return decodeURIComponent(escape(bytes));
+    if (data.content == null || data.content === '') return null;
+    const enc = String(data.encoding || 'base64').toLowerCase();
+    if (enc === 'utf8' || enc === 'utf-8') return String(data.content);
+    return decodeBase64Utf8(data.content);
   } catch(e) { return null; }
 }
 
@@ -1468,6 +1858,23 @@ function parsePyproject(text) {
   }
   return results.slice(0, 40);
 }
+/* ── Repo delete / active helpers ─────────────────────────────────── */
+function isRepoDeleted(r) {
+  return !!(r && r.deleted);
+}
+
+function isRepoFavourite(r) {
+  return !!(r && r.isFavourite && !isRepoDeleted(r));
+}
+
+function activeRepos(repos) {
+  return (repos || []).filter((r) => !isRepoDeleted(r));
+}
+
+function activeRepoCount(repos) {
+  return activeRepos(repos).length;
+}
+
 function reposForPersistence(repos) {
   return (repos || []).map((r) => {
     const out = { ...r };
@@ -1510,7 +1917,7 @@ async function persistProjectFileOnServer() {
     const res = await fetch(`${API_BASE}/api/projects/save`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ ...payload, overwrite: true }),
     });
     if (!res.ok) {
       console.warn('data/projects save:', await res.text());
@@ -1520,6 +1927,110 @@ async function persistProjectFileOnServer() {
   } catch (e) {
     console.warn('data/projects save failed', e);
     return false;
+  }
+}
+
+function projectJsonEditorText() {
+  const snap = snapshotProjectForDisk();
+  return snap ? JSON.stringify(snap, null, 2) : '{}';
+}
+
+function openProjectJsonEditorModal() {
+  if (!S.projectFname || !S.projectLoaded) return;
+  const ta = document.getElementById('projectJsonEditorTextarea');
+  const title = document.getElementById('projectJsonEditorTitle');
+  const status = document.getElementById('projectJsonEditorSaveStatus');
+  if (!ta) return;
+  ta.value = projectJsonEditorText();
+  if (title) title.textContent = `${S.projectFname}.json`;
+  if (status) {
+    status.textContent = '';
+    status.style.color = '';
+  }
+  document.getElementById('projectJsonEditorModal')?.classList.add('open');
+}
+
+function closeProjectJsonEditorModal() {
+  document.getElementById('projectJsonEditorModal')?.classList.remove('open');
+}
+
+function reloadProjectJsonEditorFromState() {
+  const ta = document.getElementById('projectJsonEditorTextarea');
+  const status = document.getElementById('projectJsonEditorSaveStatus');
+  if (!ta) return;
+  ta.value = projectJsonEditorText();
+  if (status) {
+    status.textContent = 'Reloaded from current project state.';
+    status.style.color = 'var(--text-muted)';
+  }
+}
+
+function formatProjectJsonEditor() {
+  const ta = document.getElementById('projectJsonEditorTextarea');
+  const status = document.getElementById('projectJsonEditorSaveStatus');
+  if (!ta) return;
+  try {
+    ta.value = JSON.stringify(JSON.parse(ta.value), null, 2);
+    if (status) {
+      status.textContent = 'Formatted.';
+      status.style.color = 'var(--text-muted)';
+    }
+  } catch (e) {
+    if (status) {
+      status.textContent = `Invalid JSON: ${e.message}`;
+      status.style.color = 'var(--red)';
+    }
+  }
+}
+
+function applyProjectFromParsedJson(raw) {
+  const fname = S.projectFname;
+  if (!fname) throw new Error('No project file loaded');
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+    throw new Error('Project JSON must be an object');
+  }
+  raw._fname = fname;
+  const project = normalizeProjectMeta(raw, fname);
+  if (!project) throw new Error('Could not normalize project');
+  if (!Array.isArray(project.repos)) throw new Error('Project must include a repos array');
+  project.repoCount = activeRepoCount(project.repos);
+  project.keywords = mergeProjectKeywords(project.keywords || [], [], project.searchOptions || {});
+  S.projectLoaded = project;
+  S.repos = project.repos;
+  S.openRows.clear();
+  document.getElementById('projectTitle').textContent = project.name || fname;
+  document.getElementById('projectKw').textContent =
+    `${fname}.json · ${(project.keywords || []).slice(0, 3).join(', ')}`;
+  document.title = `${project.name || fname} — OSS Intelligence`;
+  renderLangFilter();
+  renderTable();
+}
+
+async function saveProjectJsonFromEditor() {
+  const ta = document.getElementById('projectJsonEditorTextarea');
+  const status = document.getElementById('projectJsonEditorSaveStatus');
+  const btn = document.getElementById('projectJsonEditorSaveBtn');
+  if (!ta || !status || !btn) return;
+  btn.disabled = true;
+  status.textContent = 'Validating…';
+  status.style.color = 'var(--text-muted)';
+  try {
+    const raw = JSON.parse(ta.value);
+    applyProjectFromParsedJson(raw);
+    status.textContent = 'Saving…';
+    const ok = await persistProjectFileOnServer();
+    if (ok) {
+      status.textContent = `Saved data/projects/${S.projectFname}.json`;
+      status.style.color = 'var(--green)';
+    } else {
+      status.textContent = 'Applied in UI; could not write file (is the server running?)';
+      status.style.color = 'var(--orange)';
+    }
+  } catch (e) {
+    status.textContent = e.message || 'Save failed';
+    status.style.color = 'var(--red)';
+  } finally {
+    btn.disabled = false;
   }
 }
 
@@ -1632,7 +2143,7 @@ function wireExtendResultPresets() {
 
 function openExtendSearchModal() {
   if (!S.projectFname) return;
-  extendKeywords = [];
+  extendKeywords = [...(S.projectLoaded && S.projectLoaded.keywords ? S.projectLoaded.keywords : [])];
   extendSelectedLangs.clear();
   extendExtraLangs = [];
   const elx = document.getElementById('extendExtraLangInput');
@@ -1720,12 +2231,12 @@ async function runExtendAiKeywordsGenerate() {
 function persistMergedProjectMeta() {
   if (!S.projectFname || !S.projectLoaded) return;
   const langMap = {};
-  S.repos.forEach(r => { if (r.language) langMap[r.language]=(langMap[r.language]||0)+1; });
+  activeRepos(S.repos).forEach(r => { if (r.language) langMap[r.language]=(langMap[r.language]||0)+1; });
   const topLangs = Object.entries(langMap).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([l])=>l);
   S.projectLoaded.keywords = S.projectLoaded.keywords || [];
   S.projectLoaded.languages = S.projectLoaded.languages || [];
   S.projectLoaded.topLangs = topLangs;
-  S.projectLoaded.repoCount = S.repos.length;
+  S.projectLoaded.repoCount = activeRepoCount(S.repos);
   S.projectLoaded.repos = reposForPersistence(S.repos);
   void persistProjectFileOnServer();
 }
@@ -1751,6 +2262,7 @@ async function runExtendSearchMerge() {
     const progressCtx = (detail) => (detail ? `${ctxName}\n${detail}` : ctxName);
     const extendDiscoveryProgress = (pct, msg, detail) =>
       setExtendProgress(pct, msg, progressCtx(detail));
+    let extendPartialReason = '';
     const reposRaw = await runGitHubRepoDiscovery({
       keywords: extendKeywords,
       langs: [...extendSelectedLangs],
@@ -1759,6 +2271,7 @@ async function runExtendSearchMerge() {
       ghFetch,
       sleep,
       onProgress: extendDiscoveryProgress,
+      onPartial: (reason) => { if (!extendPartialReason) extendPartialReason = reason; },
     });
     setExtendProgress(
       90,
@@ -1780,10 +2293,11 @@ async function runExtendSearchMerge() {
       progressCtx('Skipping repos already in this project (by id or full name)')
     );
 
-    const seenId = new Set(S.repos.map(r => r.id));
+    const seenId = new Set(S.repos.map((r) => r.id));
     const seenSlug = new Set(
-      S.repos.map(r => (r.full_name || '').toLowerCase()).filter(Boolean)
+      S.repos.map((r) => (r.full_name || '').toLowerCase()).filter(Boolean)
     );
+    // Includes soft-deleted repos so Add search does not re-import them.
     const added = [];
     for (const row of enriched) {
       const slug = (row.full_name || '').toLowerCase();
@@ -1795,13 +2309,13 @@ async function runExtendSearchMerge() {
     }
 
     const prevKw = S.projectLoaded.keywords || [];
-    const mergedKw = [...prevKw];
-    extendKeywords.forEach(k => { if (!mergedKw.includes(k)) mergedKw.push(k); });
-    S.projectLoaded.keywords = mergedKw;
+    const mergedSo = mergeSearchOptions(S.projectLoaded.searchOptions, { ...discoveryOpt, extractPackagesOnSearch: extractPkgs });
+    S.projectLoaded.searchOptions = mergedSo;
+    S.projectLoaded.keywords = mergeProjectKeywords(prevKw, extendKeywords, mergedSo);
+    const mergedKw = S.projectLoaded.keywords;
 
     const langUnion = new Set([...(S.projectLoaded.languages || []), ...extendSelectedLangs]);
     S.projectLoaded.languages = [...langUnion];
-    S.projectLoaded.searchOptions = { ...discoveryOpt, extractPackagesOnSearch: extractPkgs };
 
     S.repos = S.repos.concat(added);
     persistMergedProjectMeta();
@@ -1809,14 +2323,24 @@ async function runExtendSearchMerge() {
     document.getElementById('projectKw').textContent =
       `${S.projectFname}.json · ${mergedKw.slice(0, 3).join(', ')}`;
 
-    setExtendProgress(
-      100,
-      `Done. Added ${added.length} new repo${added.length === 1 ? '' : 's'} (${enriched.length} from search, ${enriched.length - added.length} already in project).`,
-      progressCtx('Search finished')
-    );
     extendSearching = false;
     document.getElementById('extendRunBtn').disabled = false;
     document.getElementById('extendCancelBtn').textContent = 'Cancel';
+
+    if (added.length === 0) {
+      const reason = extendPartialReason
+        ? `GitHub rate-limited the scan before any results — ${extendPartialReason}. Wait a minute then try again.`
+        : enriched.length > 0
+          ? `Found ${enriched.length} repo${enriched.length === 1 ? '' : 's'} but all already in this project.`
+          : 'No new repositories found. Try different keywords or search criteria.';
+      setExtendProgress(0, reason, progressCtx(''));
+      return;
+    }
+
+    const doneMsg = extendPartialReason
+      ? `Added ${added.length} repo${added.length === 1 ? '' : 's'} (scan was partial — ${extendPartialReason})`
+      : `Done. Added ${added.length} new repo${added.length === 1 ? '' : 's'} (${enriched.length} from search, ${enriched.length - added.length} already in project).`;
+    setExtendProgress(100, doneMsg, progressCtx('Search finished'));
     renderLangFilter();
     renderTable();
     closeExtendSearchModal();
@@ -1880,10 +2404,13 @@ function normalizeRepoRecord(r) {
     search_file_path: typeof r.search_file_path === 'string' ? r.search_file_path : '',
     search_file_text,
     search_file_fetched,
+    file_tree_text: typeof r.file_tree_text === 'string' ? r.file_tree_text : '',
     cloned,
     cloned_at: typeof r.cloned_at === 'string' ? r.cloned_at : '',
     github_collection: typeof r.github_collection === 'string' ? r.github_collection : '',
     isFavourite: !!r.isFavourite,
+    deleted: !!r.deleted,
+    deletedAt: typeof r.deletedAt === 'string' ? r.deletedAt : '',
   };
   if (temp_files) rec.temp_files = temp_files;
   return rec;
@@ -2106,8 +2633,18 @@ function normalizeCollProject(p) {
 function collectionTabLabel(coll) {
   const name = typeof coll === 'string' ? coll : coll.name;
   const n = typeof coll === 'object' && Array.isArray(coll.projects) ? coll.projects.length : 0;
-  const base = name === S.defaultCloneCollection ? 'Favourite' : name;
+  const base = name === S.defaultCloneCollection ? 'Favorite' : name;
   return n ? `${base} (${n})` : base;
+}
+
+function truncateTabLabel(label, maxLen = 18) {
+  const s = String(label || '');
+  if (s.length <= maxLen) return s;
+  return `${s.slice(0, Math.max(1, maxLen - 1))}…`;
+}
+
+function collectionDisplayName(collName) {
+  return collName === S.defaultCloneCollection ? 'Favorite' : collName;
 }
 
 function diskRepoNumericId(collection, projectDir) {
@@ -2151,6 +2688,7 @@ function reposForCollectionTab(collName) {
   const projects = (coll.projects || []).map(normalizeCollProject);
   const matched = [];
   for (const r of S.repos) {
+    if (isRepoDeleted(r)) continue;
     const dir = (r.full_name || '').split('/')[1];
     const hit = projects.some(
       (p) =>
@@ -2171,70 +2709,94 @@ function reposForCollectionTab(collName) {
 }
 
 function repoListAddButtonsHtml(slugAttr, r) {
+  if (isRepoDeleted(r)) return '';
   const b = getRepoListBucket();
   const tab = b.activeTab;
   let h = '';
-  // Favourite button — always present unless on favourite tab or already marked
   const favTabId = repoListTabForCollection(S.defaultCloneCollection);
   if (tab !== favTabId && !(r && r.isFavourite)) {
-    h += `<button type="button" class="repo-list-btn repo-add-to-favourite" data-slug="${slugAttr}" title="Add to Favourites">★ Favourite</button>`;
+    h += `<button type="button" class="repo-list-btn repo-add-to-favourite" data-slug="${slugAttr}" title="Add to Favorite">Add to Favorite</button>`;
   }
-  // Other disk collections (skip favourite — handled above)
   for (const coll of S.githubCollections) {
     if (coll.name === S.defaultCloneCollection) continue;
     const tabId = repoListTabForCollection(coll.name);
     if (tab === tabId) continue;
-    const label = collectionTabLabel(coll.name);
-    h += `<button type="button" class="repo-list-btn repo-add-to-collection" data-slug="${slugAttr}" data-collection="${escAttr(coll.name)}" title="Clone into github-projects/${escAttr(coll.name)}/">+ ${esc(label)}</button>`;
+    const label = collectionDisplayName(coll.name);
+    const btnText = `Clone to ${label}`;
+    h += `<button type="button" class="repo-list-btn repo-add-to-collection" data-slug="${slugAttr}" data-collection="${escAttr(coll.name)}" title="${escAttr(btnText)} — github-projects/${escAttr(coll.name)}/">${esc(truncateTabLabel(btnText, 26))}</button>`;
   }
-  b.customLists.forEach(c => {
+  b.customLists.forEach((c) => {
     const target = REPO_LIST_CUSTOM_PREFIX + c.id;
     if (tab === target) return;
-    h += `<button type="button" class="repo-list-btn repo-add-to-list" data-slug="${slugAttr}" data-list-target="${escAttr(target)}" title="Add to ${escAttr(c.name)}">+ ${esc(c.name)}</button>`;
+    const btnText = `Add to ${c.name}`;
+    h += `<button type="button" class="repo-list-btn repo-add-to-list" data-slug="${slugAttr}" data-list-target="${escAttr(target)}" title="Add to ${escAttr(c.name)}">${esc(truncateTabLabel(btnText, 26))}</button>`;
   });
   return h;
 }
 
+function appendRepoListTabSeparator(parent) {
+  const sep = document.createElement('span');
+  sep.className = 'list-tab-sep';
+  sep.setAttribute('aria-hidden', 'true');
+  parent.appendChild(sep);
+}
+
 function renderRepoListTabs() {
   const wrap = document.getElementById('repoListTabs');
+  const actionsWrap = document.getElementById('repoListTabActions');
   if (!wrap) return;
   wrap.replaceChildren();
+  if (actionsWrap) actionsWrap.replaceChildren();
+
   const b = getRepoListBucket();
   const cur = b.activeTab;
-  function addTab(tabId, label) {
+
+  function addTab(tabId, label, opts) {
+    const compact = !!(opts && opts.compact);
+    const full = String(label);
     const el = document.createElement('button');
     el.type = 'button';
-    el.className = 'list-tab' + (cur === tabId ? ' active' : '');
-    el.textContent = label;
+    el.className = 'list-tab' + (compact ? ' list-tab-compact' : '') + (cur === tabId ? ' active' : '');
+    el.textContent = compact ? truncateTabLabel(full) : full;
+    el.title = full;
     el.dataset.repoListTab = tabId;
     el.addEventListener('click', () => setActiveRepoListTab(tabId));
     wrap.appendChild(el);
   }
+
   addTab('all', 'All');
-  // Favourite is always the first collection tab; count derived from isFavourite field
+
+  appendRepoListTabSeparator(wrap);
+
   const favTabId = repoListTabForCollection(S.defaultCloneCollection);
-  const favCount = S.repos.filter(r => !!r.isFavourite).length;
-  addTab(favTabId, favCount ? `Favourite (${favCount})` : 'Favourite');
-  // Other disk collections (skip favourite — already added above)
+  const favCount = activeRepos(S.repos).filter((r) => isRepoFavourite(r)).length;
+  addTab(favTabId, favCount ? `Favorite (${favCount})` : 'Favorite');
+
+  appendRepoListTabSeparator(wrap);
+
   for (const coll of S.githubCollections) {
     if (coll.name === S.defaultCloneCollection) continue;
-    addTab(repoListTabForCollection(coll.name), collectionTabLabel(coll));
+    addTab(repoListTabForCollection(coll.name), collectionTabLabel(coll), { compact: true });
   }
-  const addListBtn = document.createElement('button');
-  addListBtn.type = 'button';
-  addListBtn.className = 'tab-add-btn';
-  addListBtn.textContent = 'Add Collection';
-  addListBtn.title = 'Create a folder under github-projects/';
-  addListBtn.addEventListener('click', () => promptAndAddGithubCollection());
-  wrap.appendChild(addListBtn);
-  const askCollBtn = document.createElement('button');
-  askCollBtn.type = 'button';
-  askCollBtn.className = 'tab-add-btn';
-  askCollBtn.textContent = 'Ask AI For Collection';
-  askCollBtn.title = 'Ask AI about the active collection tab; saves markdown under research/docs by default';
-  askCollBtn.addEventListener('click', () => openCollectionAiModal());
-  wrap.appendChild(askCollBtn);
-  b.customLists.forEach(c => addTab(REPO_LIST_CUSTOM_PREFIX + c.id, c.name));
+  b.customLists.forEach((c) => addTab(REPO_LIST_CUSTOM_PREFIX + c.id, c.name, { compact: true }));
+
+  if (actionsWrap) {
+    const addListBtn = document.createElement('button');
+    addListBtn.type = 'button';
+    addListBtn.className = 'list-action-btn list-action-btn--add-collection';
+    addListBtn.textContent = 'Add collection';
+    addListBtn.title = 'Create a folder under github-projects/';
+    addListBtn.addEventListener('click', () => promptAndAddGithubCollection());
+    actionsWrap.appendChild(addListBtn);
+
+    const askCollBtn = document.createElement('button');
+    askCollBtn.type = 'button';
+    askCollBtn.className = 'list-action-btn list-action-btn--ask-collection';
+    askCollBtn.textContent = 'Ask AI';
+    askCollBtn.title = 'Ask AI about the active collection tab';
+    askCollBtn.addEventListener('click', () => openCollectionAiModal());
+    actionsWrap.appendChild(askCollBtn);
+  }
 }
 
 function filterReposByListTab(repos, tab, b) {
@@ -2242,19 +2804,19 @@ function filterReposByListTab(repos, tab, b) {
   if (tab.startsWith(REPO_LIST_GP_PREFIX)) {
     const collName = tab.slice(REPO_LIST_GP_PREFIX.length);
     if (collName === S.defaultCloneCollection) {
-      return repos.filter(r => !!r.isFavourite);
+      return repos.filter((r) => !!r.isFavourite && !isRepoDeleted(r));
     }
     return reposForCollectionTab(collName);
   }
   if (tab === 'favourite') {
-    return repos.filter(r => !!r.isFavourite);
+    return repos.filter((r) => !!r.isFavourite && !isRepoDeleted(r));
   }
   if (tab.startsWith(REPO_LIST_CUSTOM_PREFIX)) {
     const id = tab.slice(REPO_LIST_CUSTOM_PREFIX.length);
     const list = b.customLists.find(c => c.id === id);
     if (!list) return [];
     const set = new Set(list.items);
-    return repos.filter(r => set.has(r.full_name));
+    return repos.filter((r) => set.has(r.full_name) && !isRepoDeleted(r));
   }
   return repos;
 }
@@ -2354,7 +2916,7 @@ function addCustomRepoList(name) {
 function persistProjectRepos() {
   if (!S.projectFname || !S.projectLoaded) return Promise.resolve(false);
   S.projectLoaded.repos = reposForPersistence(S.repos);
-  S.projectLoaded.repoCount = S.repos.length;
+  S.projectLoaded.repoCount = activeRepoCount(S.repos);
   return persistProjectFileOnServer();
 }
 
@@ -2473,9 +3035,9 @@ function applyCloneStatusMap(statusMap) {
 }
 
 async function refreshCloneStatusForProject() {
-  if (!S.repos.length) return;
+  if (!activeRepoCount(S.repos)) return;
   try {
-    const statusMap = await fetchCloneStatuses(S.repos.map((r) => r.full_name));
+    const statusMap = await fetchCloneStatuses(activeRepos(S.repos).map((r) => r.full_name));
     if (applyCloneStatusMap(statusMap)) renderTable();
     await seedPendingClonedRepos();
   } catch (e) {
@@ -2623,14 +3185,15 @@ async function addRepoToGithubCollection(fullName, collection) {
 function deleteRepoFromProject(fullName) {
   if (!confirm(`Remove "${fullName}" from this project?`)) return;
   const r = S.repos.find(x => x.full_name === fullName);
-  if (r) {
-    const rid = String(r.id);
-    S.openRows.delete(rid);
-    delete S.openTabs[rid];
-    delete S.aiSessions[rid];
-    invalidateRepoDocsCache(rid);
-  }
-  S.repos = S.repos.filter(x => x.full_name !== fullName);
+  if (!r) return;
+  const rid = String(r.id);
+  S.openRows.delete(rid);
+  delete S.openTabs[rid];
+  delete S.aiSessions[rid];
+  invalidateRepoDocsCache(rid);
+  r.deleted = true;
+  r.deletedAt = new Date().toISOString();
+  r.isFavourite = false;
   removeRepoSlugFromAllStoredLists(fullName);
   persistProjectRepos();
   renderLangFilter();
@@ -2748,6 +3311,33 @@ async function onAiCloneClick(repoId) {
   }
 }
 
+function handleFileTreeInteraction(e, scopeEl) {
+  if (scopeEl && !scopeEl.contains(e.target)) return false;
+  const ftToggle = e.target.closest('.ft-toggle, .ft-folder-label');
+  if (ftToggle) {
+    const dirNode = ftToggle.closest('.ft-node.ft-dir');
+    if (dirNode && (!scopeEl || scopeEl.contains(dirNode))) {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleFileTreeDir(dirNode);
+      return true;
+    }
+  }
+  const ftFileBtn = e.target.closest('.ft-file-btn');
+  if (ftFileBtn && (!scopeEl || scopeEl.contains(ftFileBtn))) {
+    e.preventDefault();
+    e.stopPropagation();
+    const view = ftFileBtn.closest('.file-tree-view');
+    if (view) void openFileTreeFileModal(view.dataset.repo, view.dataset.branch, ftFileBtn.dataset.path);
+    return true;
+  }
+  return false;
+}
+
+function handleDocEditorModalClick(e) {
+  handleFileTreeInteraction(e, e.currentTarget);
+}
+
 function handleRepoListClick(e) {
   const topicBtn = e.target.closest('.repo-topic-add-btn');
   if (topicBtn) {
@@ -2812,6 +3402,7 @@ function handleRepoListClick(e) {
     if (row) void generateFileTreeForRow(row);
     return;
   }
+  if (handleFileTreeInteraction(e)) return;
   const tabDelBtn = e.target.closest('.tab-btn-delete');
   if (tabDelBtn) {
     e.preventDefault();
@@ -2832,14 +3423,21 @@ function handleRepoListClick(e) {
     if (repoId) onAiRowButtonClick(repoId, { tabKey, docFile });
     return;
   }
-  const readmePrev = e.target.closest('.readme-preview');
-  if (readmePrev) {
-    if (e.target.closest('a')) return;
+  const docPane = e.target.closest('.doc-pane-clickable');
+  if (docPane) {
+    if (e.target.closest('.file-tree-interactive')) return;
+    if (e.target.closest('a') || e.target.closest('button')) return;
     e.preventDefault();
     e.stopPropagation();
-    const slug = readmePrev.dataset.readmeSlug;
-    const r = S.repos.find(x => x.full_name === slug);
-    if (r && r.readme) openReadmeFullscreenModal(slug, r.readme);
+    const repoId = docPane.dataset.docOpen;
+    const tabKey = docPane.dataset.docTab;
+    const docFile = docPane.dataset.docFile || '';
+    const r = S.repos.find(x => String(x.id) === repoId);
+    if (!r) return;
+    const content = CORE_DOC_FILE_MAP[tabKey]
+      ? getDocContent(r, tabKey)
+      : getDocContentForDocTab(r, docFile);
+    openDocEditorModal(r, tabKey, docFile, content);
     return;
   }
   const favBtn = e.target.closest('.repo-add-to-favourite');
@@ -2996,14 +3594,33 @@ function matchesSearch(r, q) {
   }
   return true;
 }
+function sortReposForDisplay(repos, sortFn) {
+  const fn = sortFn || SORT_FNS.composite;
+  const regular = [];
+  const favourite = [];
+  const deleted = [];
+  for (const r of repos) {
+    if (isRepoDeleted(r)) deleted.push(r);
+    else if (isRepoFavourite(r)) favourite.push(r);
+    else regular.push(r);
+  }
+  regular.sort(fn);
+  favourite.sort(fn);
+  deleted.sort(fn);
+  return regular.concat(favourite, deleted);
+}
+
 function filteredRepos() {
   const q = S.search.trim();
   const b = getRepoListBucket();
   const listTab = b.activeTab;
-  const byList = filterReposByListTab([...S.repos], listTab, b);
-  return byList
-    .filter((r) => matchesSearch(r, q) && (S.langFilter.size === 0 || S.langFilter.has(r.language)))
-    .sort(SORT_FNS[S.sortKey] || SORT_FNS.composite);
+  const source = listTab === 'all' ? [...S.repos] : activeRepos(S.repos);
+  const byList = filterReposByListTab(source, listTab, b);
+  const sortFn = SORT_FNS[S.sortKey] || SORT_FNS.composite;
+  return sortReposForDisplay(
+    byList.filter((r) => matchesSearch(r, q) && (S.langFilter.size === 0 || S.langFilter.has(r.language))),
+    sortFn
+  );
 }
 
 /* ── Format helpers ─────────────────────────── */
@@ -3029,20 +3646,283 @@ function parseMarkdown(src) {
   return marked.parse(src).replace(/<a href="/g,'<a target="_blank" rel="noopener noreferrer" href="');
 }
 
-function openReadmeFullscreenModal(slug, md) {
-  if (!md) return;
-  const backdrop = document.getElementById('readmeFullscreenModal');
-  document.getElementById('readmeFsTitle').textContent = slug || 'README';
-  document.getElementById('readmeFsBody').innerHTML = parseMarkdown(md);
-  backdrop.classList.add('open');
+function escapeRegex(s) {
+  return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-function closeReadmeFullscreenModal() {
-  const backdrop = document.getElementById('readmeFullscreenModal');
-  if (!backdrop) return;
-  backdrop.classList.remove('open');
-  const body = document.getElementById('readmeFsBody');
-  if (body) body.innerHTML = '';
+function getProjectHighlightTerms() {
+  const pl = S.projectLoaded;
+  if (!pl) return [];
+  const terms = new Set();
+  (pl.keywords || []).forEach((k) => {
+    const t = String(k).trim();
+    if (t.length >= 2) terms.add(t);
+  });
+  const fc = pl.searchOptions && pl.searchOptions.fileContains;
+  if (fc) {
+    String(fc).split(',').map((s) => s.trim()).filter((t) => t.length >= 2).forEach((t) => terms.add(t));
+  }
+  return [...terms].sort((a, b) => b.length - a.length);
+}
+
+function highlightPlainText(text, terms) {
+  const raw = text == null ? '' : String(text);
+  if (!raw || !terms || !terms.length) return esc(raw);
+  const filtered = terms.filter((t) => t && String(t).trim().length >= 2).map((t) => String(t).trim());
+  if (!filtered.length) return esc(raw);
+  const pattern = filtered.map(escapeRegex).join('|');
+  const re = new RegExp(`(${pattern})`, 'gi');
+  return esc(raw).replace(re, (m) => `<mark class="kw-highlight">${m}</mark>`);
+}
+
+function highlightMarkdownSource(src, terms) {
+  const raw = src == null ? '' : String(src);
+  if (!raw || !terms || !terms.length) return raw;
+  const filtered = terms.filter((t) => t && String(t).trim().length >= 2).map((t) => String(t).trim());
+  if (!filtered.length) return raw;
+  const pattern = filtered.map(escapeRegex).join('|');
+  const re = new RegExp(`(${pattern})`, 'gi');
+  return raw.replace(re, (m) => `<mark class="kw-highlight">${m}</mark>`);
+}
+
+function parseMarkdownWithHighlights(src, terms) {
+  if (!src) return parseMarkdown('_No content yet._');
+  const termsList = terms || getProjectHighlightTerms();
+  const withHl = termsList.length ? highlightMarkdownSource(src, termsList) : src;
+  return parseMarkdown(withHl);
+}
+
+const TAB_PREVIEW_MAX_CHARS = 360;
+const TAB_PREVIEW_MAX_LINES = 7;
+
+function tabFilePlainExcerpt(text, maxChars = TAB_PREVIEW_MAX_CHARS, maxLines = TAB_PREVIEW_MAX_LINES) {
+  const raw = String(text || '').replace(/\r\n/g, '\n').trim();
+  if (!raw) return '';
+  const allLines = raw.split('\n');
+  let out = allLines.slice(0, maxLines).join('\n');
+  if (allLines.length > maxLines) out += '\n…';
+  if (out.length > maxChars) out = `${out.slice(0, Math.max(1, maxChars - 1))}…`;
+  return out;
+}
+
+function tabFilePreviewHtml(text, opts) {
+  const excerpt = tabFilePlainExcerpt(text);
+  if (!excerpt) return '';
+  const o = opts || {};
+  const inner = o.highlight && getProjectHighlightTerms().length
+    ? highlightPlainText(excerpt, getProjectHighlightTerms())
+    : esc(excerpt);
+  const hint = o.hint || 'Click to open full file';
+  return `<div class="tab-file-preview" title="${escAttr(hint)}"><pre class="tab-file-preview-text">${inner}</pre><span class="tab-file-preview-hint">${esc(hint)}</span></div>`;
+}
+
+function stackPreviewText(r) {
+  const pkgs = Array.isArray(r?.packages) ? r.packages : [];
+  if (!pkgs.length) return '';
+  const lines = pkgs.slice(0, 10).map((p) => {
+    const ver = p.version ? `@${p.version}` : '';
+    return `${p.name || ''}${ver}`.trim();
+  }).filter(Boolean);
+  if (pkgs.length > 10) lines.push(`… +${pkgs.length - 10} more`);
+  return lines.join('\n');
+}
+
+function stackTabPaneHtml(r) {
+  const id = String(r.id);
+  const openAttr = `data-doc-open="${escAttr(id)}" data-doc-tab="stack" data-doc-file="stack.md"`;
+  const preview = stackPreviewText(r);
+  if (!preview) return '<div class="empty-state">No dependencies found.</div>';
+  return `<div class="doc-file-pane doc-pane-clickable" ${openAttr} title="Click to open stack">${tabFilePreviewHtml(preview, { hint: 'Click to open stack' })}</div>`;
+}
+
+function fileTreeTabPaneHtml(r, treeText) {
+  const id = String(r.id);
+  const openAttr = `data-doc-open="${escAttr(id)}" data-doc-tab="filetree" data-doc-file="file-tree.md"`;
+  return `<div class="doc-file-pane doc-pane-clickable" ${openAttr} title="Click to open file tree">${tabFilePreviewHtml(fileTreeTextExcerpt(treeText), { hint: 'Click to open file tree' })}</div>`;
+}
+
+function fileTreeTextExcerpt(markdown) {
+  const blockMatch = String(markdown || '').match(/```(?:text)?\n([\s\S]*?)```/);
+  return blockMatch ? blockMatch[1] : String(markdown || '');
+}
+
+function mergeCsvField(a, b) {
+  const parts = new Set();
+  [a, b].forEach((v) => {
+    if (!v) return;
+    String(v).split(',').map((s) => s.trim()).filter(Boolean).forEach((x) => parts.add(x));
+  });
+  return [...parts].join(', ');
+}
+
+function mergeSearchOptions(prev, next) {
+  const p = prev && typeof prev === 'object' ? prev : {};
+  const n = next && typeof next === 'object' ? next : {};
+  return {
+    minStars: Math.max(p.minStars || 0, n.minStars || 0),
+    excludeForks: p.excludeForks !== false && n.excludeForks !== false,
+    inName: !!(p.inName || n.inName),
+    inDescription: !!(p.inDescription || n.inDescription),
+    inTopics: !!(p.inTopics || n.inTopics),
+    inReadme: !!(p.inReadme || n.inReadme),
+    includeCodeSearch: !!(p.includeCodeSearch || n.includeCodeSearch),
+    includeFileSearch: !!(p.includeFileSearch || n.includeFileSearch),
+    fileName: mergeCsvField(p.fileName, n.fileName),
+    fileContains: mergeCsvField(p.fileContains, n.fileContains),
+    excludeIdenticalFiles: p.excludeIdenticalFiles !== false && n.excludeIdenticalFiles !== false,
+    extractPackagesOnSearch: !!(p.extractPackagesOnSearch || n.extractPackagesOnSearch),
+  };
+}
+
+function mergeProjectKeywords(prev, next, searchOptions) {
+  const merged = [...(prev || [])];
+  const add = (term) => {
+    const t = String(term || '').trim();
+    if (t.length >= 2 && !merged.includes(t)) merged.push(t);
+  };
+  (next || []).forEach(add);
+  const fc = searchOptions && searchOptions.fileContains;
+  if (fc) String(fc).split(',').map((s) => s.trim()).filter(Boolean).forEach(add);
+  return merged;
+}
+
+/* ── Unified doc editor modal ──────────────────────────────────────── */
+const docEditorState = { r: null, tabKey: '', docFile: '' };
+
+function getDocContent(r, tabKey) {
+  const id = String(r.id);
+  const docFile = CORE_DOC_FILE_MAP[tabKey];
+  if (r.cloned) {
+    return S.repoDocFileCache[id]?.[docFile]?.content || '';
+  }
+  if (tabKey === 'readme') return r.readme || '';
+  if (tabKey === 'stack') return packagesToStackFileText(r.packages || []);
+  if (tabKey === 'filetree') return r.file_tree_text || '';
+  if (tabKey === 'notes') return tempFileEntry(r.temp_files, 'notes')?.text || '';
+  if (tabKey === 'matchfile') return r.search_file_text || '';
+  return '';
+}
+
+function getDocContentForDocTab(r, docFile) {
+  const id = String(r.id);
+  return S.repoDocFileCache[id]?.[docFile]?.content || '';
+}
+
+function openDocEditorModal(r, tabKey, docFile, content) {
+  docEditorState.r = r;
+  docEditorState.tabKey = tabKey;
+  docEditorState.docFile = docFile;
+  const label = tabKey === 'readme' ? 'README'
+    : tabKey === 'stack' ? 'Stack'
+    : tabKey === 'filetree' ? 'File Tree'
+    : tabKey === 'notes' ? 'Notes'
+    : tabKey === 'matchfile' ? (searchFileTabLabel(r) || 'Matched file')
+    : docFile || tabKey;
+  document.getElementById('docEditorTitle').textContent = `${r.name} — ${label}`;
+  document.getElementById('docEditorTextarea').value = content || '';
+  document.getElementById('docEditorSaveStatus').textContent = '';
+  setDocEditorMode('preview');
+  document.getElementById('docEditorModal').classList.add('open');
+}
+
+function closeDocEditorModal() {
+  document.getElementById('docEditorModal').classList.remove('open');
+  const preview = document.getElementById('docEditorPreview');
+  preview.innerHTML = '';
+  preview.classList.remove('doc-editor-filetree-preview');
+}
+
+function renderDocEditorPreview() {
+  const preview = document.getElementById('docEditorPreview');
+  const textarea = document.getElementById('docEditorTextarea');
+  const { r, tabKey } = docEditorState;
+  const content = textarea ? textarea.value : '';
+  if (tabKey === 'filetree' && r) {
+    preview.innerHTML = renderFileTreePreview(content, r);
+    preview.classList.add('doc-editor-filetree-preview');
+    return;
+  }
+  preview.classList.remove('doc-editor-filetree-preview');
+  preview.innerHTML = parseMarkdownWithHighlights(content || '_No content yet._');
+}
+
+function setDocEditorMode(mode) {
+  const preview = document.getElementById('docEditorPreview');
+  const textarea = document.getElementById('docEditorTextarea');
+  const previewBtn = document.getElementById('docEditorPreviewBtn');
+  const editBtn = document.getElementById('docEditorEditBtn');
+  if (mode === 'preview') {
+    renderDocEditorPreview();
+    preview.style.display = '';
+    textarea.style.display = 'none';
+    previewBtn.classList.add('active');
+    editBtn.classList.remove('active');
+  } else {
+    preview.style.display = 'none';
+    textarea.style.display = '';
+    textarea.focus();
+    previewBtn.classList.remove('active');
+    editBtn.classList.add('active');
+  }
+}
+
+async function saveDocEditorContent() {
+  const { r, tabKey, docFile } = docEditorState;
+  if (!r) return;
+  const content = document.getElementById('docEditorTextarea').value;
+  const statusEl = document.getElementById('docEditorSaveStatus');
+  const saveBtn = document.getElementById('docEditorSaveBtn');
+  saveBtn.disabled = true;
+  statusEl.textContent = 'Saving…';
+  try {
+    const id = String(r.id);
+    if (r.cloned && docFile) {
+      await writeRepoDocFile(r, docFile, content);
+      if (!S.repoDocFileCache[id]) S.repoDocFileCache[id] = {};
+      S.repoDocFileCache[id][docFile] = { loaded: true, content };
+    } else {
+      if (tabKey === 'readme') {
+        r.readme = content; r.readme_fetched = true;
+        const entry = tempFileEntry(r.temp_files, 'readme');
+        if (entry) entry.text = content;
+      } else if (tabKey === 'stack') {
+        r.packages = packagesFromStackFile(content); r.stack_fetched = true;
+        const entry = tempFileEntry(r.temp_files, 'stack');
+        if (entry) entry.text = content;
+      } else if (tabKey === 'filetree') {
+        r.file_tree_text = content;
+      } else if (tabKey === 'notes') {
+        const entry = tempFileEntry(r.temp_files, 'notes');
+        if (entry) entry.text = content;
+        else if (Array.isArray(r.temp_files)) r.temp_files.push({ name: 'notes', text: content });
+      }
+      persistProjectRepos();
+    }
+    // Re-render the pane in the row
+    const row = document.querySelector(`.repo-row[data-id="${CSS.escape(id)}"]`);
+    if (row) {
+      const paneKey = CORE_DOC_FILE_MAP[tabKey] ? tabKey : docTabKey(docFile);
+      const pane = row.querySelector(`.tab-pane[data-pane="${CSS.escape(paneKey)}"]`);
+      if (pane) {
+        const wasActive = pane.classList.contains('active');
+        if (CORE_DOC_FILE_MAP[tabKey]) pane.innerHTML = buildCoreTabPane(r, tabKey);
+        else { const f = S.repoDocsListCache[id]?.files?.find(x => x.name === docFile); if (f) pane.innerHTML = tabPaneToolbarHtml(r, paneKey, '') + buildDocFilePane(r, docFile); }
+        if (wasActive) pane.classList.add('active');
+      }
+    }
+    statusEl.textContent = 'Saved!';
+    setTimeout(() => { statusEl.textContent = ''; }, 2000);
+  } catch (e) {
+    statusEl.textContent = `Error: ${e.message}`;
+  } finally {
+    saveBtn.disabled = false;
+  }
+}
+
+function openReadmeFullscreenModal(slug, md) {
+  const r = S.repos.find(x => x.full_name === slug);
+  if (!r) return;
+  openDocEditorModal(r, 'readme', 'readme.md', md || r.readme || '');
 }
 
 function projectUsesFileSearch() {
@@ -3071,25 +3951,32 @@ function isMarkdownFilePath(path) {
   return /\.(md|markdown)$/i.test(path || '');
 }
 
+function renderSearchFileTabPreview(path, text) {
+  return tabFilePreviewHtml(text, { highlight: true, hint: 'Click to open full file' });
+}
+
 function renderSearchFileContent(path, text) {
+  const terms = getProjectHighlightTerms();
   if (isMarkdownFilePath(path)) {
-    return `<div class="search-file-body md-body">${parseMarkdown(text)}</div>`;
+    return `<div class="search-file-body md-body">${parseMarkdownWithHighlights(text, terms)}</div>`;
   }
-  return `<pre class="search-file-code"><code>${esc(text)}</code></pre>`;
+  return `<pre class="search-file-code"><code>${highlightPlainText(text, terms)}</code></pre>`;
 }
 
 function buildSearchFilePane(r) {
   if (!repoShowsSearchFileTab(r)) return '';
+  const id = String(r.id);
   const path = searchFilePathForRepo(r);
+  const openAttr = `data-doc-open="${escAttr(id)}" data-doc-tab="matchfile" data-doc-file="${escAttr(path)}"`;
   const header = path
     ? `<div class="search-file-path" title="${escAttr(path)}">${esc(path)}</div>`
     : '';
   const fetched = !!r.search_file_fetched || (typeof r.search_file_text === 'string' && r.search_file_text.length > 0);
   if (fetched) {
     if (r.search_file_text) {
-      return `<div class="search-file-wrap">${header}${renderSearchFileContent(path, r.search_file_text)}</div>`;
+      return `<div class="doc-file-pane doc-pane-clickable" ${openAttr} title="Click to open full file">${header}${renderSearchFileTabPreview(path, r.search_file_text)}</div>`;
     }
-    return `<div class="search-file-wrap">${header}<div class="empty-state">File not available for this repository.</div></div>`;
+    return `<div class="doc-file-pane">${header}<div class="empty-state">File not available for this repository.</div></div>`;
   }
   return `<div class="search-file-lazy" data-repo="${escAttr(r.full_name)}" data-path="${escAttr(path)}"></div>`;
 }
@@ -3136,17 +4023,18 @@ function buildDocFilePane(r, fileName) {
   const tabKey = docTabKey(fileName);
   const toolbar = tabPaneToolbarHtml(r, tabKey, fileName);
   const cached = S.repoDocFileCache[id]?.[fileName];
+  const openAttr = `data-doc-open="${escAttr(id)}" data-doc-tab="${escAttr(tabKey)}" data-doc-file="${escAttr(fileName)}"`;
   if (cached?.loading) {
     return `${toolbar}<div class="doc-file-pane empty-state">Loading docs/${esc(fileName)}…</div>`;
   }
   if (cached?.error) {
-    return `${toolbar}<div class="doc-file-pane empty-state">${esc(cached.error)}</div>`;
+    return `${toolbar}<div class="doc-file-pane doc-pane-clickable" ${openAttr} title="Click to open editor"><div class="empty-state">${esc(cached.error)}</div></div>`;
   }
   const content = cached?.content ?? '';
   if (!String(content).trim()) {
-    return `${toolbar}<div class="doc-file-pane"><div class="doc-file-meta"><code>docs/${esc(fileName)}</code></div><div class="empty-state">Empty — use <strong>Ask AI</strong> to start this document.</div></div>`;
+    return `${toolbar}<div class="doc-file-pane doc-pane-clickable" ${openAttr} title="Click to open editor"><div class="doc-file-meta"><code>docs/${esc(fileName)}</code></div><div class="empty-state">Empty — click to edit.</div></div>`;
   }
-  return `${toolbar}<div class="doc-file-pane"><div class="doc-file-meta"><code>docs/${esc(fileName)}</code></div><div class="md-body">${parseMarkdown(content)}</div></div>`;
+  return `${toolbar}<div class="doc-file-pane doc-pane-clickable" ${openAttr} title="Click to open editor"><div class="doc-file-meta"><code>docs/${esc(fileName)}</code></div>${tabFilePreviewHtml(content, { highlight: true, hint: 'Click to open full file' })}</div>`;
 }
 
 function refreshDocFilePaneInRow(row, r, fileName) {
@@ -3294,7 +4182,9 @@ function repoDocFileCount(r) {
 function renderRow(r) {
   const id        = String(r.id);
   const isOpen    = S.openRows.has(id);
-  const canGithub = repoHasValidGithubSlug(r);
+  const deleted   = isRepoDeleted(r);
+  const favourite = isRepoFavourite(r);
+  const canGithub = repoHasValidGithubSlug(r) && !deleted;
   const showFileTab = repoShowsSearchFileTab(r);
   // README + Stack are dedicated tabs only while the repo is still staged
   // (temp_files). Once cloned + seeded, that content lives in docs/ files and
@@ -3311,20 +4201,22 @@ function renderRow(r) {
         <button type="button" class="repo-topic-save-btn" data-repo-id="${escAttr(id)}">Save</button>
         <button type="button" class="repo-topic-cancel-btn" data-repo-id="${escAttr(id)}">Cancel</button>
       </span>`
-    : `<button type="button" class="repo-topic-add-btn" data-repo-id="${escAttr(id)}" title="Add topic to this project">+ Topic</button>`;
+    : (deleted ? '' : `<button type="button" class="repo-topic-add-btn" data-repo-id="${escAttr(id)}" title="Add topic to this project">+ Topic</button>`);
 
   const listTab = getRepoListBucket().activeTab;
-  const showListRemove = listTab !== 'all';
+  const showListRemove = listTab !== 'all' && !deleted;
   const slugAttr = escAttr(r.full_name);
-  const listRow = `
+  const listRow = deleted
+    ? `<div class="repo-list-actions"><div class="repo-list-actions-primary"><span class="repo-deleted-badge">Removed from project</span></div></div>`
+    : `
       <div class="repo-list-actions">
-        <div class="repo-list-actions-collections">
-          ${repoListAddButtonsHtml(slugAttr, r)}
-          ${showListRemove ? `<button type="button" class="repo-list-btn repo-remove-from-list" data-slug="${slugAttr}">Remove from list</button>` : ''}
-        </div>
         <div class="repo-list-actions-primary">
           ${canGithub ? `<button type="button" class="repo-list-btn danger repo-delete-from-project" data-slug="${slugAttr}">Delete</button>` : ''}
           ${canGithub ? `<button type="button" class="repo-list-btn repo-ask-ai-btn" data-ask-ai-id="${id}">Ask AI</button>` : ''}
+        </div>
+        <div class="repo-list-actions-collections">
+          ${repoListAddButtonsHtml(slugAttr, r)}
+          ${showListRemove ? `<button type="button" class="repo-list-btn repo-action-muted repo-remove-from-list" data-slug="${slugAttr}">Remove from list</button>` : ''}
         </div>
       </div>`;
 
@@ -3340,16 +4232,17 @@ function renderRow(r) {
   const CORE_DOC_FILES_SET = new Set(['readme.md', 'stack.md', 'notes.md', 'file-tree.md']);
 
   const tabs = [];
-  // 4 core tabs always present first
-  tabs.push({ key: 'readme',    label: 'README' });
-  tabs.push({ key: 'stack',     label: 'Stack' });
-  tabs.push({ key: 'filetree',  label: 'File Tree' });
-  tabs.push({ key: 'notes',     label: 'Notes' });
+  // 4 core tabs always present first; deletable when file exists in docs/
+  const coreDocCache = S.repoDocFileCache[id] || {};
+  for (const [key, label, file] of [['readme','README','readme.md'],['stack','Stack','stack.md'],['filetree','File Tree','file-tree.md'],['notes','Notes','notes.md']]) {
+    const hasDoc = r.cloned && coreDocCache[file]?.loaded && !coreDocCache[file]?.error;
+    tabs.push({ key, label, deletable: hasDoc, docFile: file });
+  }
   if (showFileTab) tabs.push({ key: 'matchfile', label: searchFileTabLabel(r) });
   // Additional doc tabs (non-core files only, with delete button)
   for (const f of repoDocTabFiles(r)) {
     if (CORE_DOC_FILES_SET.has(f.name.toLowerCase())) continue;
-    tabs.push({ key: docTabKey(f.name), label: tabLabelForDocFile(f.name), doc: true, deletable: true });
+    tabs.push({ key: docTabKey(f.name), label: tabLabelForDocFile(f.name), doc: true, deletable: true, docFile: f.name });
   }
 
   let activeTab = S.openTabs[id];
@@ -3361,7 +4254,7 @@ function renderRow(r) {
   const tabBtns = tabs.map((t) => {
     const cls = `tab-btn${activeTab === t.key ? ' active' : ''}${t.doc ? ' tab-doc' : ''}`;
     const delBtn = t.deletable
-      ? `<span class="tab-btn-delete" data-tab-del="${escAttr(t.key)}" data-doc-file="${escAttr(docFileFromTabKey(t.key))}" title="Delete tab">×</span>`
+      ? `<span class="tab-btn-delete" data-tab-del="${escAttr(t.key)}" data-doc-file="${escAttr(t.docFile || '')}" title="Delete file">×</span>`
       : '';
     return `<button type="button" class="${cls}" data-tab="${escAttr(t.key)}">${esc(t.label)}${delBtn}</button>`;
   }).join('');
@@ -3378,12 +4271,12 @@ function renderRow(r) {
     `<div class="tab-pane${activeTab === 'stack'    ? ' active' : ''}" data-pane="stack">${buildCoreTabPane(r, 'stack')}</div>`,
     `<div class="tab-pane${activeTab === 'filetree' ? ' active' : ''}" data-pane="filetree">${buildCoreTabPane(r, 'filetree')}</div>`,
     `<div class="tab-pane${activeTab === 'notes'    ? ' active' : ''}" data-pane="notes">${buildCoreTabPane(r, 'notes')}</div>`,
-    showFileTab ? `<div class="tab-pane${activeTab === 'matchfile' ? ' active' : ''}" data-pane="matchfile">${tabPaneToolbarHtml(r, 'matchfile', '')}${buildSearchFilePane(r)}</div>` : '',
+    showFileTab ? `<div class="tab-pane${activeTab === 'matchfile' ? ' active' : ''}" data-pane="matchfile">${buildSearchFilePane(r)}</div>` : '',
     docPanes,
   ].join('');
 
   return `
-<div class="repo-row${r.archived?' archived':''}${isOpen?' open':''}" data-id="${id}">
+<div class="repo-row${r.archived?' archived':''}${favourite?' repo-favourite':''}${deleted?' repo-deleted':''}${isOpen?' open':''}" data-id="${id}">
   <div class="repo-summary">
     <div class="col-toggle"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M4 2l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
     <div class="col-main">
@@ -3391,7 +4284,9 @@ function renderRow(r) {
         <span class="repo-owner">${esc(r.full_name.split('/')[0])}/</span>
         <span class="repo-name">${esc(r.name)}</span>
         ${cloneIndicatorHtml(r)}
-        ${r.archived?'<span class="archived-badge">archived</span>':''}
+        ${favourite ? '<span class="repo-favourite-badge">favorite</span>' : ''}
+        ${deleted ? '<span class="archived-badge" style="color:var(--red);border-color:color-mix(in srgb,var(--red) 40%,transparent)">removed</span>' : ''}
+        ${!deleted && !favourite && r.archived?'<span class="archived-badge">archived</span>':''}
       </div>
       <div class="repo-desc">${esc(r.description||'No description')}</div>
       <div class="repo-topics">${topicsHtml}${topicAction}</div>
@@ -3430,6 +4325,7 @@ function buildCoreTabPane(r, tabKey) {
   const id = String(r.id);
   const docFile = CORE_DOC_FILE_MAP[tabKey];
   const toolbar = buildCorePaneToolbar(r, tabKey, docFile);
+  const openAttr = `data-doc-open="${escAttr(id)}" data-doc-tab="${escAttr(tabKey)}" data-doc-file="${escAttr(docFile||'')}"`;
 
   if (r.cloned) {
     const cached = docFile ? S.repoDocFileCache[id]?.[docFile] : null;
@@ -3443,48 +4339,53 @@ function buildCoreTabPane(r, tabKey) {
       const hint = tabKey === 'readme' ? 'Click <strong>Get README</strong> to fetch from GitHub.'
         : tabKey === 'stack'    ? 'Click <strong>Get Stack</strong> to scan dependencies.'
         : tabKey === 'filetree' ? 'Click <strong>Generate</strong> to fetch from GitHub.'
-        : '';
-      return `${toolbar}<div class="doc-file-pane"><div class="empty-state">${hint || esc(cached.error)}</div></div>`;
+        : 'Click <strong>Edit</strong> to add notes.';
+      return `${toolbar}<div class="doc-file-pane doc-pane-clickable" ${openAttr} title="Click to open editor"><div class="empty-state">${hint}</div></div>`;
     }
     const content = cached.content ?? '';
     if (!content.trim()) {
       const hint = tabKey === 'readme' ? 'Click <strong>Get README</strong> to fetch from GitHub.'
         : tabKey === 'stack'    ? 'Click <strong>Get Stack</strong> to scan dependencies.'
         : tabKey === 'filetree' ? 'Click <strong>Generate</strong> to fetch the file tree from GitHub.'
-        : 'Add notes using <strong>Ask AI</strong> or the server-side docs editor.';
-      return `${toolbar}<div class="doc-file-pane"><div class="empty-state">${hint}</div></div>`;
+        : 'Click to add notes.';
+      return `${toolbar}<div class="doc-file-pane doc-pane-clickable" ${openAttr} title="Click to open editor"><div class="empty-state">${hint}</div></div>`;
     }
-    return `${toolbar}<div class="doc-file-pane"><div class="md-body">${parseMarkdown(content)}</div></div>`;
+    return `${toolbar}<div class="doc-file-pane doc-pane-clickable" ${openAttr} title="Click empty area to edit markdown">${renderCoreDocBody(tabKey, content, r)}</div>`;
   }
 
-  // Uncloned — use temp_files hydration
+  // Uncloned — temp_files hydration
   if (tabKey === 'readme') {
     const fetched = !!r.readme_fetched || (typeof r.readme === 'string' && r.readme.length > 0);
     if (fetched && r.readme) {
-      return `${toolbar}<div class="readme-wrap readme-preview" tabindex="0" role="button" data-readme-slug="${escAttr(r.full_name)}" title="Click to open full README"><div class="md-body">${parseMarkdown(r.readme)}</div></div>`;
+      return `${toolbar}<div class="doc-file-pane doc-pane-clickable" ${openAttr} tabindex="0" role="button" title="Click to open editor">${tabFilePreviewHtml(r.readme, { highlight: true, hint: 'Click to open README' })}</div>`;
     }
-    if (fetched) return `${toolbar}<div class="empty-state">README not available.</div>`;
+    if (fetched) return `${toolbar}<div class="doc-file-pane doc-pane-clickable" ${openAttr} title="Click to open editor"><div class="empty-state">README not available — click to add content.</div></div>`;
     return `${toolbar}<div class="readme-lazy" data-repo="${escAttr(r.full_name)}"><div class="empty-state">Click <strong>Get README</strong> to load from GitHub.</div></div>`;
   }
   if (tabKey === 'stack') {
     const stackReady = !!r.stack_fetched || (Array.isArray(r.packages) && r.packages.length > 0);
     if (stackReady) {
-      const inner = stackSectionsHtmlFromPackages(r);
-      return inner ? `${toolbar}<div class="stack-cached">${inner}</div>` : `${toolbar}<div class="empty-state">No dependencies found.</div>`;
+      const preview = stackPreviewText(r);
+      return preview
+        ? `${toolbar}<div class="doc-file-pane doc-pane-clickable" ${openAttr} title="Click to open editor">${tabFilePreviewHtml(preview, { hint: 'Click to open stack' })}</div>`
+        : `${toolbar}<div class="empty-state">No dependencies found.</div>`;
     }
     return `${toolbar}<div class="stack-lazy" data-repo="${escAttr(r.full_name)}" data-lang="${escAttr(r.language||'')}"><div class="empty-state">Click <strong>Get Stack</strong> to scan dependencies.</div></div>`;
   }
   if (tabKey === 'filetree') {
-    return `${toolbar}<div class="doc-file-pane"><div class="empty-state">Click <strong>Generate</strong> to fetch the file tree from GitHub.</div></div>`;
+    if (r.file_tree_text && r.file_tree_text.trim()) {
+      return `${toolbar}<div class="doc-file-pane doc-pane-clickable" ${openAttr} title="Click to open editor">${tabFilePreviewHtml(fileTreeTextExcerpt(r.file_tree_text), { hint: 'Click to open file tree' })}</div>`;
+    }
+    return `${toolbar}<div class="doc-file-pane doc-pane-clickable" ${openAttr} title="Click to open editor"><div class="empty-state">Click <strong>Generate</strong> to fetch the file tree from GitHub.</div></div>`;
   }
   if (tabKey === 'notes') {
     const notesText = Array.isArray(r.temp_files) ? (tempFileEntry(r.temp_files, 'notes')?.text || '') : '';
     if (notesText.trim()) {
-      return `${toolbar}<div class="doc-file-pane"><div class="md-body">${parseMarkdown(notesText)}</div></div>`;
+      return `${toolbar}<div class="doc-file-pane doc-pane-clickable" ${openAttr} title="Click to open editor">${tabFilePreviewHtml(notesText, { highlight: true, hint: 'Click to open notes' })}</div>`;
     }
-    return `${toolbar}<div class="doc-file-pane"><div class="empty-state">No notes yet — use <strong>Ask AI</strong> to start.</div></div>`;
+    return `${toolbar}<div class="doc-file-pane doc-pane-clickable" ${openAttr} title="Click to open editor"><div class="empty-state">Click to add notes.</div></div>`;
   }
-  return `${toolbar}<div class="doc-file-pane empty-state">—</div>`;
+  return `${toolbar}<div class="doc-file-pane doc-pane-clickable" ${openAttr} title="Click to open editor">—</div>`;
 }
 
 async function writeRepoDocFile(r, fileName, content) {
@@ -3497,14 +4398,435 @@ async function writeRepoDocFile(r, fileName, content) {
   return res.json();
 }
 
-function buildMarkdownFileTree(repoName, paths) {
-  const lines = [`# File Tree — ${repoName}`, ''];
-  const sorted = [...paths].sort();
-  for (const p of sorted) {
-    const depth = (p.match(/\//g) || []).length;
-    lines.push('  '.repeat(depth) + '- ' + p.split('/').pop());
+const FILE_TREE_EXT_CLASS = {
+  md: 'ft-ext-md', mdx: 'ft-ext-md', markdown: 'ft-ext-md', txt: 'ft-ext-md', rst: 'ft-ext-md',
+  js: 'ft-ext-js', jsx: 'ft-ext-js', mjs: 'ft-ext-js', cjs: 'ft-ext-js',
+  ts: 'ft-ext-ts', tsx: 'ft-ext-ts', mts: 'ft-ext-ts', cts: 'ft-ext-ts',
+  json: 'ft-ext-json', jsonc: 'ft-ext-json', json5: 'ft-ext-json',
+  html: 'ft-ext-web', htm: 'ft-ext-web', vue: 'ft-ext-web', svelte: 'ft-ext-web', astro: 'ft-ext-web',
+  css: 'ft-ext-css', scss: 'ft-ext-css', sass: 'ft-ext-css', less: 'ft-ext-css',
+  py: 'ft-ext-py', pyw: 'ft-ext-py', ipynb: 'ft-ext-py',
+  go: 'ft-ext-go',
+  rs: 'ft-ext-rs',
+  java: 'ft-ext-java', kt: 'ft-ext-java', kts: 'ft-ext-java', scala: 'ft-ext-java', groovy: 'ft-ext-java',
+  c: 'ft-ext-c', h: 'ft-ext-c', cpp: 'ft-ext-c', cc: 'ft-ext-c', cxx: 'ft-ext-c', hpp: 'ft-ext-c',
+  cs: 'ft-ext-java', fs: 'ft-ext-java', fsx: 'ft-ext-java',
+  php: 'ft-ext-php', phtml: 'ft-ext-php',
+  rb: 'ft-ext-ruby', erb: 'ft-ext-ruby',
+  swift: 'ft-ext-swift',
+  dart: 'ft-ext-dart',
+  lua: 'ft-ext-code', r: 'ft-ext-data', R: 'ft-ext-data',
+  sql: 'ft-ext-data', mysql: 'ft-ext-data',
+  yml: 'ft-ext-yml', yaml: 'ft-ext-yml',
+  toml: 'ft-ext-yml', ini: 'ft-ext-yml', cfg: 'ft-ext-yml', conf: 'ft-ext-yml',
+  sh: 'ft-ext-sh', bash: 'ft-ext-sh', zsh: 'ft-ext-sh', fish: 'ft-ext-sh', ps1: 'ft-ext-sh',
+  pl: 'ft-ext-code', pm: 'ft-ext-code',
+  ex: 'ft-ext-ruby', exs: 'ft-ext-ruby', heex: 'ft-ext-ruby', eex: 'ft-ext-ruby',
+  zig: 'ft-ext-code', v: 'ft-ext-code', nim: 'ft-ext-code', cr: 'ft-ext-code',
+  hs: 'ft-ext-code', elm: 'ft-ext-code', clj: 'ft-ext-code', cljs: 'ft-ext-code',
+  tf: 'ft-ext-yml', hcl: 'ft-ext-yml',
+  xml: 'ft-ext-data', xsd: 'ft-ext-data', xsl: 'ft-ext-data',
+  csv: 'ft-ext-data', tsv: 'ft-ext-data',
+  graphql: 'ft-ext-code', gql: 'ft-ext-code', proto: 'ft-ext-code', prisma: 'ft-ext-code',
+  dockerfile: 'ft-ext-sh',
+  png: 'ft-ext-img', jpg: 'ft-ext-img', jpeg: 'ft-ext-img', gif: 'ft-ext-img', svg: 'ft-ext-img', webp: 'ft-ext-img', ico: 'ft-ext-img', avif: 'ft-ext-img',
+  lock: 'ft-ext-lock',
+  woff: 'ft-ext-lock', woff2: 'ft-ext-lock', ttf: 'ft-ext-lock', eot: 'ft-ext-lock',
+  pdf: 'ft-ext-lock', zip: 'ft-ext-lock', gz: 'ft-ext-lock', tar: 'ft-ext-lock', wasm: 'ft-ext-lock',
+};
+
+const FILE_TREE_CODE_EXTS = new Set(Object.keys(FILE_TREE_EXT_CLASS).filter((e) => !['png','jpg','jpeg','gif','svg','webp','ico','avif','lock','woff','woff2','ttf','eot','pdf','zip','gz','tar','wasm'].includes(e)));
+
+const FILE_TREE_SPECIAL_CODE_NAMES = new Set(['dockerfile', 'makefile', 'gemfile', 'rakefile', 'procfile', 'containerfile']);
+
+const FILE_TREE_FORCE_COLLAPSE_DIRS = new Set([
+  'node_modules', 'dist', 'build', 'out', '.git', '.svn', '.hg', 'vendor', '__pycache__',
+  '.next', '.nuxt', '.svelte-kit', 'coverage', 'target', '.turbo', '.cache', '.parcel-cache',
+  'bower_components', '.gradle', '.idea', '.vscode',
+]);
+
+/** GitHub / project language name → file extensions for tree expand rules. */
+const PROJECT_LANG_FILE_EXTS = {
+  python: ['py', 'pyw', 'ipynb'],
+  javascript: ['js', 'jsx', 'mjs', 'cjs'],
+  typescript: ['ts', 'tsx', 'mts', 'cts'],
+  go: ['go'],
+  rust: ['rs'],
+  java: ['java'],
+  'c++': ['cpp', 'cc', 'cxx', 'hpp', 'c', 'h'],
+  c: ['c', 'h'],
+  'c#': ['cs', 'fs', 'fsx'],
+  kotlin: ['kt', 'kts'],
+  swift: ['swift'],
+  ruby: ['rb', 'erb'],
+  php: ['php', 'phtml'],
+  scala: ['scala'],
+  r: ['r', 'R'],
+  julia: ['jl'],
+  shell: ['sh', 'bash', 'zsh', 'fish', 'ps1'],
+  dart: ['dart'],
+  elixir: ['ex', 'exs', 'heex', 'eex'],
+  haskell: ['hs'],
+  lua: ['lua'],
+  perl: ['pl', 'pm'],
+  solidity: ['sol'],
+  html: ['html', 'htm'],
+  css: ['css', 'scss', 'sass', 'less'],
+  vue: ['vue'],
+  zig: ['zig'],
+  cuda: ['cu', 'cuh'],
+  markdown: ['md', 'mdx', 'markdown', 'rst'],
+  groovy: ['groovy'],
+  objectivec: ['m', 'mm'],
+  'objective-c': ['m', 'mm'],
+};
+
+const FILE_TREE_MD_EXTS = new Set(['md', 'mdx', 'markdown', 'rst']);
+
+const FILE_TREE_IMAGE_EXTS = new Set(['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'ico', 'avif', 'bmp']);
+const FILE_TREE_BINARY_EXTS = new Set(['pdf', 'zip', 'gz', 'tar', 'wasm', 'woff', 'woff2', 'ttf', 'eot', 'exe', 'dll', 'so', 'dylib']);
+const FILE_TREE_MAX_PREVIEW_BYTES = 512000;
+
+function fileTreeFileExt(name) {
+  const lower = name.toLowerCase();
+  if (FILE_TREE_SPECIAL_CODE_NAMES.has(lower)) return lower;
+  if (!lower.includes('.')) return '';
+  return lower.split('.').pop();
+}
+
+function isFileTreeCodeFile(name) {
+  const lower = name.toLowerCase();
+  if (FILE_TREE_SPECIAL_CODE_NAMES.has(lower)) return true;
+  const ext = fileTreeFileExt(name);
+  return ext ? FILE_TREE_CODE_EXTS.has(ext) : false;
+}
+
+function isFileTreePreviewable(name) {
+  const ext = fileTreeFileExt(name);
+  if (FILE_TREE_IMAGE_EXTS.has(ext)) return true;
+  if (FILE_TREE_BINARY_EXTS.has(ext)) return false;
+  return true;
+}
+
+function fileTreeEntryClass(name, isDir) {
+  if (isDir) return 'ft-folder-label';
+  if (name.startsWith('.')) return 'ft-ext-dotfile';
+  const ext = fileTreeFileExt(name);
+  if (!ext) return 'ft-ext-default';
+  return FILE_TREE_EXT_CLASS[ext] || (isFileTreeCodeFile(name) ? 'ft-ext-code' : 'ft-ext-default');
+}
+
+function fileTreeDirDefaultCollapsed(dirName, hasRelevant) {
+  if (FILE_TREE_FORCE_COLLAPSE_DIRS.has(dirName.toLowerCase())) return true;
+  return !hasRelevant;
+}
+
+function getProjectFileTreeExts(repoLang) {
+  const exts = new Set(FILE_TREE_MD_EXTS);
+  const langs = new Set([
+    ...(S.projectLoaded?.languages || []),
+    ...(S.projectLoaded?.topLangs || []),
+  ]);
+  if (repoLang) langs.add(String(repoLang));
+  for (const lang of langs) {
+    const mapped = PROJECT_LANG_FILE_EXTS[String(lang).trim().toLowerCase()];
+    if (mapped) mapped.forEach((e) => exts.add(e));
   }
-  return lines.join('\n');
+  return exts;
+}
+
+function isFileTreeRelevantFile(name, relevantExts) {
+  const ext = fileTreeFileExt(name);
+  if (FILE_TREE_MD_EXTS.has(ext)) return true;
+  return ext ? relevantExts.has(ext) : false;
+}
+
+function annotateFileTreeMeta(node, relevantExts) {
+  let hasRelevant = false;
+  for (const [name, child] of node.children) {
+    const isDir = child.children.size > 0;
+    if (isDir) {
+      annotateFileTreeMeta(child, relevantExts);
+      child.hasRelevant = child._hasRelevant;
+    } else {
+      child.hasRelevant = isFileTreeRelevantFile(name, relevantExts);
+    }
+    if (child.hasRelevant) hasRelevant = true;
+  }
+  node._hasRelevant = hasRelevant;
+}
+
+function buildFileTreeRoot(paths) {
+  const root = { children: new Map(), path: '' };
+  for (const p of [...paths].sort()) {
+    const parts = p.split('/').filter(Boolean);
+    if (!parts.length) continue;
+    let node = root;
+    let acc = '';
+    for (const part of parts) {
+      acc = acc ? `${acc}/${part}` : part;
+      if (!node.children.has(part)) {
+        node.children.set(part, { children: new Map(), path: acc, name: part });
+      }
+      node = node.children.get(part);
+    }
+  }
+  return root;
+}
+
+function sortedFileTreeEntries(node) {
+  return [...node.children.entries()].sort(([aName, aNode], [bName, bNode]) => {
+    const aDir = aNode.children.size > 0;
+    const bDir = bNode.children.size > 0;
+    if (aDir !== bDir) return aDir ? -1 : 1;
+    return aName.localeCompare(bName, undefined, { sensitivity: 'base' });
+  });
+}
+
+function renderFileTreeTextLines(root) {
+  function renderNode(node, prefix) {
+    const lines = [];
+    const entries = sortedFileTreeEntries(node);
+    for (let i = 0; i < entries.length; i++) {
+      const [name, child] = entries[i];
+      const isLast = i === entries.length - 1;
+      const branch = isLast ? '└── ' : '├── ';
+      const isDir = child.children.size > 0;
+      lines.push(prefix + branch + (isDir ? name + '/' : name));
+      if (isDir) lines.push(...renderNode(child, prefix + (isLast ? '    ' : '│   ')));
+    }
+    return lines;
+  }
+  return renderNode(root, '');
+}
+
+function renderFileTreeChildrenHtml(node) {
+  const items = [];
+  for (const [name, child] of sortedFileTreeEntries(node)) {
+    const isDir = child.children.size > 0;
+    if (isDir) {
+      const collapsed = fileTreeDirDefaultCollapsed(name, !!child.hasRelevant);
+      const open = !collapsed;
+      items.push(
+        `<li class="ft-node ft-dir${collapsed ? ' ft-collapsed' : ''}" data-path="${escAttr(child.path)}">` +
+        `<div class="ft-row">` +
+        `<button type="button" class="ft-toggle" aria-expanded="${open ? 'true' : 'false'}" aria-label="Toggle folder">${open ? '▼' : '▶'}</button>` +
+        `<button type="button" class="ft-folder-label">${esc(name)}/</button>` +
+        `</div>` +
+        `<ul class="ft-tree">${renderFileTreeChildrenHtml(child)}</ul>` +
+        `</li>`
+      );
+    } else {
+      const cls = fileTreeEntryClass(name, false);
+      const previewable = isFileTreePreviewable(name);
+      items.push(
+        `<li class="ft-node ft-file" data-path="${escAttr(child.path)}">` +
+        `<div class="ft-row"><span class="ft-toggle-spacer"></span>` +
+        (previewable
+          ? `<button type="button" class="ft-file-btn ${cls}" data-path="${escAttr(child.path)}" title="Open file">${esc(name)}</button>`
+          : `<span class="${cls}" style="padding:0 2px">${esc(name)}</span>`) +
+        `</div></li>`
+      );
+    }
+  }
+  return items.join('');
+}
+
+function fileTreeCtxFromRepo(r, title) {
+  const ctx = r
+    ? { fullName: r.full_name, branch: r.default_branch || 'main' }
+    : { fullName: '', branch: 'main' };
+  if (!ctx.fullName && title) {
+    const m = String(title).match(/File Tree\s+—\s+(.+)/);
+    if (m) ctx.fullName = m[1].trim();
+  }
+  return ctx;
+}
+
+function renderFileTreeHtml(root, title, ctx, repoLang) {
+  annotateFileTreeMeta(root, getProjectFileTreeExts(repoLang));
+  const { fullName, branch } = ctx || {};
+  const titleHtml = title ? `<div class="ft-title">${esc(title)}</div>` : '';
+  const attrs = [
+    'class="file-tree-view file-tree-interactive"',
+    fullName ? ` data-repo="${escAttr(fullName)}"` : '',
+    branch ? ` data-branch="${escAttr(branch)}"` : '',
+  ].join('');
+  return (
+    `<div ${attrs}>` +
+    titleHtml +
+    `<div class="ft-body"><ul class="ft-tree">${renderFileTreeChildrenHtml(root)}</ul></div>` +
+    `</div>`
+  );
+}
+
+function parseFileTreeRootFromText(body) {
+  const root = { children: new Map(), path: '' };
+  const stack = [];
+  let parsed = false;
+
+  for (const line of body.split('\n')) {
+    if (!line.trim() || line.trim() === './') continue;
+    const branchIdx = line.indexOf('├──') >= 0 ? line.indexOf('├──') : line.indexOf('└──');
+    if (branchIdx < 0) continue;
+    parsed = true;
+    const prefix = line.slice(0, branchIdx);
+    const namePart = line.slice(branchIdx + 4).trim();
+    const isDir = namePart.endsWith('/');
+    const name = isDir ? namePart.slice(0, -1) : namePart;
+
+    let depth = 0;
+    for (let i = 0; i < prefix.length; ) {
+      if (prefix.startsWith('│   ', i)) { depth++; i += 4; }
+      else if (prefix.startsWith('    ', i)) { depth++; i += 4; }
+      else break;
+    }
+
+    while (stack.length > depth) stack.pop();
+    let node = root;
+    const parentPath = stack.join('/');
+    const fullPath = parentPath ? `${parentPath}/${name}` : name;
+    for (const seg of stack) node = node.children.get(seg);
+    if (!node.children.has(name)) {
+      node.children.set(name, { children: new Map(), path: fullPath, name });
+    }
+    const child = node.children.get(name);
+    if (isDir) stack.push(name);
+  }
+
+  if (!parsed) return null;
+  return root;
+}
+
+function renderFileTreePreview(markdown, r) {
+  const titleMatch = markdown.match(/^#\s+File Tree\s+—\s+(.+)$/m);
+  const title = titleMatch ? titleMatch[1].trim() : '';
+  const blockMatch = markdown.match(/```(?:text)?\n([\s\S]*?)```/);
+  const body = blockMatch ? blockMatch[1] : markdown;
+  let root = parseFileTreeRootFromText(body);
+  if (!root) {
+    const paths = pathsFromMarkdownFileTree(markdown);
+    if (paths.length) root = buildFileTreeRoot(paths);
+  }
+  if (!root) return `<div class="md-body">${parseMarkdown(markdown)}</div>`;
+  const ctx = fileTreeCtxFromRepo(r, title);
+  return renderFileTreeHtml(root, title ? `File Tree — ${title}` : '', ctx, r?.language);
+}
+
+function renderCoreDocBody(tabKey, content, r) {
+  if (tabKey === 'filetree') {
+    return tabFilePreviewHtml(fileTreeTextExcerpt(content), { hint: 'Click to open file tree' });
+  }
+  if (tabKey === 'stack') {
+    const text = String(content || '').trim() || stackPreviewText(r);
+    return tabFilePreviewHtml(text, { hint: 'Click to open stack' });
+  }
+  return tabFilePreviewHtml(content, { highlight: true, hint: 'Click to open full file' });
+}
+
+function pathsFromMarkdownFileTree(text) {
+  const paths = [];
+  const m = String(text || '').match(/```(?:text)?\n([\s\S]*?)```/);
+  if (!m) return paths;
+  const lines = m[1].split('\n');
+  const stack = [];
+  for (const line of lines) {
+    if (!line.trim() || line.trim() === './') continue;
+    const match = line.match(/^((?:(?:│   |    )*))([├└]── )(.+)$/);
+    if (!match) continue;
+    const depth = match[1].length / 4;
+    const name = match[3];
+    const isDir = name.endsWith('/');
+    stack.length = depth;
+    if (isDir) {
+      stack.push(name.slice(0, -1));
+    } else {
+      paths.push([...stack, name].join('/'));
+    }
+  }
+  return paths;
+}
+
+function buildMarkdownFileTree(repoName, paths) {
+  const root = buildFileTreeRoot(paths);
+  const treeLines = renderFileTreeTextLines(root);
+  return [
+    `# File Tree — ${repoName}`,
+    '',
+    '```text',
+    './',
+    ...treeLines,
+    '```',
+  ].join('\n');
+}
+
+function toggleFileTreeDir(dirNode) {
+  dirNode.classList.toggle('ft-collapsed');
+  const open = !dirNode.classList.contains('ft-collapsed');
+  const btn = dirNode.querySelector('.ft-toggle');
+  if (btn) {
+    btn.textContent = open ? '▼' : '▶';
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+}
+
+function closeFileTreeFileModal() {
+  const modal = document.getElementById('fileTreeFileModal');
+  modal.classList.remove('open', 'modal-above-doc');
+}
+
+function handleFileTreeFileBackdrop(e) {
+  if (e.target.id === 'fileTreeFileModal') closeFileTreeFileModal();
+}
+
+function renderFileTreeFileContent(text, path, terms) {
+  const hl = terms || getProjectHighlightTerms();
+  const lines = text.replace(/\r\n/g, '\n').split('\n');
+  const capped = lines.slice(0, 4000);
+  const truncated = lines.length > capped.length;
+  const body = capped.map((line, i) =>
+    `<span class="ftf-line"><span class="ftf-n">${i + 1}</span>${highlightPlainText(line, hl) || ' '}</span>`
+  ).join('');
+  const note = truncated ? `<p style="margin-top:var(--sp3);font-size:var(--text-xs);color:var(--text-muted)">Showing first ${capped.length} lines.</p>` : '';
+  return `<pre class="file-tree-file-pre">${body}</pre>${note}`;
+}
+
+async function openFileTreeFileModal(fullName, branch, filePath) {
+  if (!fullName || !filePath) return;
+  const modal = document.getElementById('fileTreeFileModal');
+  const bodyEl = document.getElementById('fileTreeFileModalBody');
+  const titleEl = document.getElementById('fileTreeFileModalTitle');
+  const subEl = document.getElementById('fileTreeFileModalSubtitle');
+  const ghLink = document.getElementById('fileTreeFileModalGhLink');
+  const fileName = filePath.split('/').pop() || filePath;
+  const ext = fileTreeFileExt(fileName);
+
+  titleEl.textContent = fileName;
+  subEl.textContent = `${fullName} · ${filePath}`;
+  ghLink.href = `https://github.com/${fullName}/blob/${branch || 'main'}/${filePath}`;
+  bodyEl.innerHTML = '<div style="display:flex;align-items:center;gap:8px;color:var(--text-muted)"><span class="spinner"></span> Loading…</div>';
+  modal.classList.toggle('modal-above-doc', !!document.getElementById('docEditorModal')?.classList.contains('open'));
+  modal.classList.add('open');
+
+  try {
+    if (FILE_TREE_IMAGE_EXTS.has(ext)) {
+      const imgUrl = `https://raw.githubusercontent.com/${fullName}/${branch || 'main'}/${filePath}`;
+      bodyEl.innerHTML = `<img class="file-tree-file-img" src="${escAttr(imgUrl)}" alt="${escAttr(fileName)}">`;
+      return;
+    }
+    if (FILE_TREE_BINARY_EXTS.has(ext)) {
+      bodyEl.innerHTML = '<p class="empty-state">Binary file — preview not available. Use “View on GitHub”.</p>';
+      return;
+    }
+    const text = await fetchGhRaw(fullName, branch || 'main', filePath);
+    if (text.length > FILE_TREE_MAX_PREVIEW_BYTES) {
+      bodyEl.innerHTML = `<p class="empty-state">File is too large to preview (${Math.round(text.length / 1024)} KB). Use “View on GitHub”.</p>`;
+      return;
+    }
+    bodyEl.innerHTML = renderFileTreeFileContent(text, filePath);
+  } catch (err) {
+    bodyEl.innerHTML = `<p class="empty-state">Could not load file: ${esc(String(err.message || err))}</p>`;
+  }
 }
 
 async function generateFileTreeForRow(row) {
@@ -3516,22 +4838,36 @@ async function generateFileTreeForRow(row) {
   if (btn) { btn.disabled = true; btn.textContent = '…'; }
   resetPaneAfterToolbar(pane, `<div class="doc-file-pane"><div style="display:flex;align-items:center;gap:8px;color:var(--text-muted);font-size:13px;padding:var(--sp3) 0"><span class="spinner"></span> Fetching file tree…</div></div>`);
   try {
-    const branch = r.default_branch || 'main';
-    const paths = await fetchRepoBlobPaths(r.full_name, branch);
-    if (!paths.length) throw new Error('No files found in repository tree');
-    const treeText = buildMarkdownFileTree(r.full_name, paths);
+    const { paths, branch, truncated } = await fetchRepoBlobPathsDetailed(
+      r.full_name,
+      r.default_branch || '',
+    );
+    if (!paths.length) {
+      throw new Error('Repository has no files on GitHub (empty tree or no access)');
+    }
+    if (branch && r.default_branch !== branch) {
+      r.default_branch = branch;
+    }
+    let treeText = buildMarkdownFileTree(r.full_name, paths);
+    if (truncated) {
+      treeText += `\n\n> Note: GitHub truncated this tree at ${paths.length.toLocaleString()} files (repo may have more).`;
+    }
     if (r.cloned) {
       await writeRepoDocFile(r, 'file-tree.md', treeText);
       if (!S.repoDocFileCache[String(r.id)]) S.repoDocFileCache[String(r.id)] = {};
       S.repoDocFileCache[String(r.id)]['file-tree.md'] = { loaded: true, content: treeText };
+    } else {
+      r.file_tree_text = treeText;
+      persistProjectRepos();
     }
-    resetPaneAfterToolbar(pane, `<div class="doc-file-pane"><div class="md-body">${parseMarkdown(treeText)}</div></div>`);
+    resetPaneAfterToolbar(pane, fileTreeTabPaneHtml(r, treeText));
   } catch (err) {
     resetPaneAfterToolbar(pane, `<div class="doc-file-pane"><div class="empty-state">Could not generate file tree: ${esc(String(err.message || err))}</div></div>`);
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = 'Generate'; }
   }
 }
+
 
 /* ── Build panes: README (lazy) ─────────────── */
 function buildReadmePane(r) {
@@ -3694,16 +5030,13 @@ async function loadStackPane(lazyEl) {
         rawReq.length ? enrichPypi(rawReq) : Promise.resolve([]),
         rawProj.length ? enrichPypi(rawProj) : Promise.resolve([]),
       ]);
-      lazyEl.innerHTML =
-        renderNpmStackSection(enrichedNpmProd, enrichedNpmDev) +
-        renderStackSection('pypi', enrichedReq, '🐍 requirements.txt (PyPI)') +
-        renderStackSection('pypi', enrichedProj, '🐍 pyproject.toml (PyPI)');
       r.packages = [
         ...enrichedNpmProd.map(d => ({ name: d.name, version: d.ver, registry: 'npm', description: d.desc || '', devDependency: false })),
         ...enrichedNpmDev.map(d => ({ name: d.name, version: d.ver, registry: 'npm', description: d.desc || '', devDependency: true })),
         ...enrichedReq.map(d => ({ name: d.name, version: d.ver, registry: 'pypi', description: d.desc || '' })),
         ...enrichedProj.map(d => ({ name: d.name, version: d.ver, registry: 'pypi', description: d.desc || '' })),
       ];
+      lazyEl.innerHTML = stackTabPaneHtml(r);
       r.stack_fetched = true;
       persistProjectRepos();
       return;
@@ -3714,9 +5047,7 @@ async function loadStackPane(lazyEl) {
       npmDev.length ? enrichNpm(npmDev) : Promise.resolve([]),
       pypiDeps.length ? enrichPypi(pypiDeps) : Promise.resolve([]),
     ]);
-    lazyEl.innerHTML =
-      renderNpmStackSection(enrichedNpmProd, enrichedNpmDev) +
-      renderStackSection('pypi', enrichedPypi, '🐍 PyPI (from tree / search)');
+    lazyEl.innerHTML = stackTabPaneHtml(r);
     r.stack_fetched = true;
     persistProjectRepos();
   } catch (e) {
@@ -3763,9 +5094,10 @@ function loadReadmeForRow(row) {
         S.repoDocFileCache[String(r.id)]['readme.md'] = { loaded: true, content };
       }
       persistProjectRepos();
+      const _openA = `data-doc-open="${escAttr(String(r.id))}" data-doc-tab="readme" data-doc-file="readme.md"`;
       resetPaneAfterToolbar(pane, content
-        ? `<div class="readme-wrap readme-preview" tabindex="0" role="button" data-readme-slug="${escAttr(r.full_name)}" title="Click to open full README"><div class="md-body">${parseMarkdown(content)}</div></div>`
-        : '<div class="doc-file-pane"><div class="empty-state">README not available for this repository.</div></div>');
+        ? `<div class="doc-file-pane doc-pane-clickable" ${_openA} tabindex="0" role="button" title="Click to open editor">${tabFilePreviewHtml(content, { highlight: true, hint: 'Click to open README' })}</div>`
+        : `<div class="doc-file-pane doc-pane-clickable" ${_openA} title="Click to open editor"><div class="empty-state">README not available — click to add content.</div></div>`);
     })
     .catch(() => {
       r.readme = '';
@@ -3872,10 +5204,12 @@ function ensureSearchFileLoadedForRow(row) {
       rec.search_file_text = text || '';
       rec.search_file_fetched = true;
       persistProjectRepos();
+      if (pane) pane.innerHTML = buildSearchFilePane(rec);
+    } else if (pane) {
+      pane.innerHTML = text
+        ? `<div class="empty-state">File loaded but repository record missing.</div>`
+        : '<div class="empty-state">Could not load file from GitHub.</div>';
     }
-    lazy.innerHTML = text
-      ? `<div class="search-file-wrap"><div class="search-file-path">${esc(path)}</div>${renderSearchFileContent(path, text)}</div>`
-      : '<div class="empty-state">Could not load file from GitHub.</div>';
   }).catch(() => {
     const rec = S.repos.find(x => x.full_name === slug);
     if (rec) {
@@ -3888,20 +5222,41 @@ function ensureSearchFileLoadedForRow(row) {
   });
 }
 
-function deleteDocTabFromRow(row, tabKey, docFile) {
+async function deleteDocTabFromRow(row, tabKey, docFile) {
   const id = row.dataset.id;
   const r = S.repos.find(x => String(x.id) === id);
-  if (!r) return;
-  // Remove from docs cache so it no longer appears in repoDocTabFiles
-  if (docFile) {
-    if (S.repoDocsListCache[id]?.files) {
-      S.repoDocsListCache[id].files = S.repoDocsListCache[id].files.filter(f => f.name !== docFile);
-    }
-    delete (S.repoDocFileCache[id] || {})[docFile];
+  if (!r || !docFile) return;
+  const isCoreTab = !!CORE_DOC_FILE_MAP[tabKey];
+  // Delete file from server for cloned repos
+  if (r.cloned) {
+    try {
+      await fetch(apiUrl('/api/repos/docs/file'), {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fullName: r.full_name, file: docFile, collection: r.github_collection || '' }),
+      });
+    } catch { /* ignore — cache cleared regardless */ }
   }
-  // Switch active tab if we just deleted the current one
-  if (S.openTabs[id] === tabKey) delete S.openTabs[id];
-  renderTable({ keepListChunk: true });
+  // Clear from cache
+  if (S.repoDocsListCache[id]?.files) {
+    S.repoDocsListCache[id].files = S.repoDocsListCache[id].files.filter(f => f.name !== docFile);
+  }
+  delete (S.repoDocFileCache[id] || {})[docFile];
+  if (isCoreTab) {
+    // Core tabs stay visible — just re-render the pane to show empty state
+    const pane = row.querySelector(`.tab-pane[data-pane="${CSS.escape(tabKey)}"]`);
+    if (pane) {
+      const wasActive = pane.classList.contains('active');
+      pane.innerHTML = buildCoreTabPane(r, tabKey);
+      if (wasActive) pane.classList.add('active');
+    }
+    // Re-render tab buttons to remove the delete ×
+    const tabList = row.querySelector('.tab-list');
+    if (tabList) renderTable({ keepListChunk: true });
+  } else {
+    if (S.openTabs[id] === tabKey) delete S.openTabs[id];
+    renderTable({ keepListChunk: true });
+  }
 }
 
 function maxOpenRowIndexInList(repos) {
@@ -3932,12 +5287,13 @@ function updateRepoListCountLabels(repos) {
   if (elLoaded) elLoaded.textContent = String(loaded);
   if (elFiltered) elFiltered.textContent = String(repos.length);
   const tc = document.getElementById('totalCount');
-  if (tc) tc.textContent = String(S.repos.length);
+  const activeTotal = activeRepoCount(S.repos);
+  if (tc) tc.textContent = String(activeTotal);
   const statShown = document.getElementById('statShown');
   if (statShown) statShown.textContent = String(loaded);
-  document.getElementById('statTotal').textContent = String(S.repos.length);
+  document.getElementById('statTotal').textContent = String(activeTotal);
   document.getElementById('statAI').textContent = String(
-    S.repos.filter((repo) => repoDocFileCount(repo) > 0).length
+    activeRepos(S.repos).filter((repo) => repoDocFileCount(repo) > 0).length
   );
 }
 
@@ -4070,7 +5426,7 @@ function renderTable(options) {
   teardownRepoListObserver();
   if (!repos.length) {
     const msg =
-      S.repos.length === 0
+      activeRepoCount(S.repos) === 0 && !S.repos.some(isRepoDeleted)
         ? 'No repositories yet. Use Add search in the header to find and add repos.'
         : 'No projects match your filters.';
     list.innerHTML = `<div class="no-results">${esc(msg)}</div>`;
@@ -4089,7 +5445,7 @@ function renderTable(options) {
 /* ── Language filter ────────────────────────── */
 function renderLangFilter() {
   const map = {};
-  S.repos.forEach(r => { if(r.language) map[r.language]=(map[r.language]||0)+1; });
+  activeRepos(S.repos).forEach(r => { if(r.language) map[r.language]=(map[r.language]||0)+1; });
   const langs = Object.entries(map).sort((a,b)=>b[1]-a[1]);
   const body = document.getElementById('fbody-lang');
   body.innerHTML = langs.map(([lang,count]) => {
@@ -4123,6 +5479,7 @@ function buildLayout() {
     </div>
     <div class="list-tabs-bar">
       <div class="list-tabs" id="repoListTabs" aria-label="Repository lists"></div>
+      <div class="list-tabs-actions" id="repoListTabActions" aria-label="Collection actions"></div>
     </div>
     <div class="table-header">
       <div></div>
@@ -4186,17 +5543,32 @@ function updateModelMeta() {
   document.getElementById('mdOut').textContent=opt?.dataset.out||'—';
 }
 
-const DEFAULT_AI_SKILL_TEMPLATE = `# GitHub OSS Skill
+const aiSkillEditorState = { name: '', isNew: false, savedSnapshot: '' };
 
-Use this skill when the user wants help with a GitHub OSS project.
+function buildAiSkillTemplate(folderName) {
+  const n = sanitizeSkillFolderName(folderName) || 'new-skill';
+  return `---
+name: ${n}
+description: Describe when Claude should use this skill.
+argument-hint: '"[prompt]"'
+user-invocable: true
+model: claude-haiku-4-6
+effort: low
+context: fork
+agent: ""
+paths: []
+shell: bash
+hooks: {}
+---
+
+# ${n}
 
 ## Instructions
 
-- Read the user's prompt carefully.
-- Use the repository context when it is available.
-- Be concise, practical, and specific.
-- Call out assumptions and missing information.
+- Add skill instructions here.
+- Use repository context when it is available.
 `;
+}
 
 function sanitizeSkillFolderName(raw) {
   return String(raw || '')
@@ -4215,6 +5587,34 @@ function setAiSkillStatus(message, isError = false) {
     : message;
 }
 
+function syncAiSkillPreviewUI() {
+  const text = document.getElementById('aiSkillText');
+  const preview = document.getElementById('aiSkillPreview');
+  const placeholder = document.getElementById('aiSkillPlaceholder');
+  const content = text?.value?.trim() || '';
+  if (!content) {
+    if (preview) { preview.innerHTML = ''; preview.style.display = 'none'; }
+    if (placeholder) placeholder.style.display = '';
+    return;
+  }
+  if (placeholder) placeholder.style.display = 'none';
+  if (preview) {
+    preview.innerHTML = parseMarkdown(content);
+    preview.style.display = '';
+  }
+}
+
+function renderAiSkillChips() {
+  const wrap = document.getElementById('aiSkillChips');
+  if (!wrap) return;
+  const active = S.activeAiSkillName || '';
+  const chips = S.aiSkills.map((sk) => {
+    const cls = active === sk.name ? 'ai-skill-chip active' : 'ai-skill-chip';
+    return `<button type="button" class="${cls}" data-skill-name="${escAttr(sk.name)}" title="${escAttr(sk.relativePath || sk.name)}">${esc(sk.title || sk.name)}</button>`;
+  });
+  wrap.innerHTML = chips.join('') || '<span class="skill-editor-placeholder" style="padding:4px 0">No skills yet — add one below.</span>';
+}
+
 function populateAiSkillSelect() {
   const sel = document.getElementById('aiSkillSelect');
   if (!sel) return;
@@ -4226,12 +5626,13 @@ function populateAiSkillSelect() {
   if (current && Array.from(sel.options).some((o) => o.value === current)) {
     sel.value = current;
   }
+  renderAiSkillChips();
 }
 
 async function loadAiSkills(force = false) {
   if (S.aiSkillsLoaded && !force) return;
-  const sel = document.getElementById('aiSkillSelect');
-  if (sel) sel.innerHTML = '<option value="">Loading skills…</option>';
+  const wrap = document.getElementById('aiSkillChips');
+  if (wrap) wrap.innerHTML = '<span class="skill-editor-placeholder" style="padding:4px 0">Loading skills…</span>';
   try {
     const res = await fetch(`${API_BASE}/api/ai/skills`);
     const data = await res.json();
@@ -4240,7 +5641,7 @@ async function loadAiSkills(force = false) {
     S.aiSkillsLoaded = true;
     S.aiSkillsError = null;
     populateAiSkillSelect();
-    setAiSkillStatus('Only skills from <code>.claude/skills/github-oss</code> are listed. The editable text is included before your prompt.');
+    setAiSkillStatus('Skills live in <code>.claude/skills/github-oss</code>. Click a skill to open preview/edit; its text is prepended to your prompt.');
   } catch (err) {
     S.aiSkills = [];
     S.aiSkillsLoaded = true;
@@ -4250,65 +5651,152 @@ async function loadAiSkills(force = false) {
   }
 }
 
+function selectAiSkill(name, { openEditor = false } = {}) {
+  S.activeAiSkillName = name || '';
+  const sel = document.getElementById('aiSkillSelect');
+  if (sel) sel.value = name || '';
+  renderAiSkillChips();
+  if (!name) {
+    const text = document.getElementById('aiSkillText');
+    if (text) text.value = '';
+    syncAiSkillPreviewUI();
+    return Promise.resolve();
+  }
+  return loadAiSkillContent(name).then(() => {
+    if (openEditor) openAiSkillEditorModal(name, { isNew: false });
+  });
+}
+
 async function loadAiSkillContent(name) {
   const text = document.getElementById('aiSkillText');
-  const nameRow = document.getElementById('aiSkillNameRow');
-  const nameInput = document.getElementById('aiSkillNameInput');
   S.activeAiSkillName = name || '';
-  if (nameRow) nameRow.classList.remove('open');
-  if (nameInput) nameInput.value = name || '';
   if (!name) {
     if (text) text.value = '';
+    syncAiSkillPreviewUI();
+    renderAiSkillChips();
     return;
   }
   if (text) text.value = 'Loading skill…';
+  syncAiSkillPreviewUI();
   try {
     const res = await fetch(`${API_BASE}/api/ai/skills/${encodeURIComponent(name)}`);
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'skill');
     if (text) text.value = data.content || '';
-    setAiSkillStatus(`Loaded <code>${esc(data.relativePath || name)}</code>. Edit the text before asking if needed.`);
+    aiSkillEditorState.savedSnapshot = text?.value || '';
+    setAiSkillStatus(`Active: <code>${esc(data.relativePath || name)}</code> — click preview to edit. Save writes to disk; Ask AI uses your latest text.`);
+    syncAiSkillPreviewUI();
+    renderAiSkillChips();
   } catch (err) {
     if (text) text.value = '';
+    syncAiSkillPreviewUI();
     setAiSkillStatus(`Could not load skill: ${err.message}`, true);
   }
 }
 
-function startNewAiSkill() {
-  S.activeAiSkillName = '';
-  const sel = document.getElementById('aiSkillSelect');
-  const nameRow = document.getElementById('aiSkillNameRow');
-  const nameInput = document.getElementById('aiSkillNameInput');
-  const text = document.getElementById('aiSkillText');
-  if (sel) sel.value = '';
-  if (nameRow) nameRow.classList.add('open');
-  if (nameInput) {
-    nameInput.value = 'new-skill';
-    nameInput.focus();
-    nameInput.select();
+function setAiSkillEditorMode(mode) {
+  const preview = document.getElementById('aiSkillEditorPreview');
+  const textarea = document.getElementById('aiSkillEditorTextarea');
+  const previewBtn = document.getElementById('aiSkillEditorPreviewBtn');
+  const editBtn = document.getElementById('aiSkillEditorEditBtn');
+  if (mode === 'preview') {
+    preview.innerHTML = parseMarkdown(textarea.value || '_No content yet._');
+    preview.style.display = '';
+    textarea.style.display = 'none';
+    previewBtn.classList.add('active');
+    editBtn.classList.remove('active');
+  } else {
+    preview.style.display = 'none';
+    textarea.style.display = '';
+    textarea.focus();
+    previewBtn.classList.remove('active');
+    editBtn.classList.add('active');
   }
-  if (text) text.value = DEFAULT_AI_SKILL_TEMPLATE;
-  setAiSkillStatus('Edit the template, choose a folder name, then Save to <code>.claude/skills/github-oss</code>.');
 }
 
-async function saveAiSkill() {
-  const text = document.getElementById('aiSkillText');
-  const nameInput = document.getElementById('aiSkillNameInput');
-  const saveBtn = document.getElementById('aiSaveSkillBtn');
-  const selectName = document.getElementById('aiSkillSelect')?.value || '';
+function applySkillEditorToSession() {
+  const editor = document.getElementById('aiSkillEditorTextarea');
+  const hidden = document.getElementById('aiSkillText');
+  if (editor && hidden) hidden.value = editor.value;
+  syncAiSkillPreviewUI();
+}
+
+function isSkillEditorDirty() {
+  const editor = document.getElementById('aiSkillEditorTextarea');
+  if (!editor) return false;
+  return editor.value !== aiSkillEditorState.savedSnapshot;
+}
+
+function closeAiSkillEditorModal() {
+  const modal = document.getElementById('aiSkillEditorModal');
+  if (modal?.classList.contains('open')) applySkillEditorToSession();
+  modal.classList.remove('open');
+  document.getElementById('aiSkillEditorPreview').innerHTML = '';
+  if (isSkillEditorDirty()) {
+    setAiSkillStatus('Skill updated for this question (not saved to disk). Click Save in the editor to persist to <code>.claude/skills/github-oss</code>.');
+  }
+}
+
+async function openAiSkillEditorModal(name, { isNew = false } = {}) {
+  aiSkillEditorState.name = name || '';
+  aiSkillEditorState.isNew = isNew;
+  const folderRow = document.getElementById('aiSkillEditorFolderRow');
+  const nameInput = document.getElementById('aiSkillEditorNameInput');
+  const textarea = document.getElementById('aiSkillEditorTextarea');
+  const titleEl = document.getElementById('aiSkillEditorTitle');
+  const statusEl = document.getElementById('aiSkillEditorSaveStatus');
+  if (statusEl) statusEl.textContent = '';
+  if (folderRow) folderRow.classList.toggle('open', isNew);
+  if (isNew) {
+    const n = 'new-skill';
+    if (nameInput) { nameInput.value = n; }
+    if (textarea) textarea.value = buildAiSkillTemplate(n);
+    aiSkillEditorState.savedSnapshot = '';
+    if (titleEl) titleEl.textContent = 'New skill';
+    setAiSkillEditorMode('edit');
+    document.getElementById('aiSkillEditorModal').classList.add('open');
+    if (nameInput) { nameInput.focus(); nameInput.select(); }
+    return;
+  }
+  if (nameInput) nameInput.value = name || '';
+  if (titleEl) titleEl.textContent = name ? `${name} — SKILL.md` : 'Skill';
+  document.getElementById('aiSkillEditorModal').classList.add('open');
+  const hidden = document.getElementById('aiSkillText');
+  const reuseSession = S.activeAiSkillName === name && hidden?.value && hidden.value !== 'Loading skill…';
+  if (reuseSession) {
+    if (textarea) textarea.value = hidden.value;
+  } else {
+    if (textarea) textarea.value = 'Loading…';
+    await loadAiSkillContent(name);
+    if (textarea) textarea.value = hidden?.value || '';
+  }
+  setAiSkillEditorMode('preview');
+}
+
+function startNewAiSkill() {
+  void openAiSkillEditorModal('', { isNew: true });
+}
+
+async function saveAiSkillFromEditor() {
+  const textarea = document.getElementById('aiSkillEditorTextarea');
+  const nameInput = document.getElementById('aiSkillEditorNameInput');
+  const saveBtn = document.getElementById('aiSkillEditorSaveBtn');
+  const statusEl = document.getElementById('aiSkillEditorSaveStatus');
+  const selectName = document.getElementById('aiSkillSelect')?.value || aiSkillEditorState.name || '';
   const name = sanitizeSkillFolderName(nameInput?.value || selectName);
-  const content = text?.value || '';
+  const content = textarea?.value || '';
   if (!name) {
     if (nameInput) nameInput.focus();
-    setAiSkillStatus('Enter a valid skill folder name.', true);
+    if (statusEl) statusEl.textContent = 'Enter a valid folder name.';
     return;
   }
   if (!content.trim()) {
-    if (text) text.focus();
-    setAiSkillStatus('Skill content is required.', true);
+    if (textarea) textarea.focus();
+    if (statusEl) statusEl.textContent = 'Skill content is required.';
     return;
   }
   if (saveBtn) saveBtn.disabled = true;
+  if (statusEl) statusEl.textContent = 'Saving…';
   try {
     const res = await fetch(`${API_BASE}/api/ai/skills`, {
       method: 'POST',
@@ -4320,24 +5808,42 @@ async function saveAiSkill() {
     S.aiSkills = Array.isArray(data.skills) ? data.skills : S.aiSkills;
     S.aiSkillsLoaded = true;
     S.activeAiSkillName = data.name || name;
+    aiSkillEditorState.name = S.activeAiSkillName;
+    aiSkillEditorState.isNew = false;
     populateAiSkillSelect();
     const sel = document.getElementById('aiSkillSelect');
     if (sel) sel.value = S.activeAiSkillName;
-    const nameRow = document.getElementById('aiSkillNameRow');
-    if (nameRow) nameRow.classList.remove('open');
     if (nameInput) nameInput.value = S.activeAiSkillName;
-    setAiSkillStatus(`Saved <code>${esc(data.relativePath || `${S.activeAiSkillName}/SKILL.md`)}</code>.`);
+    const folderRow = document.getElementById('aiSkillEditorFolderRow');
+    if (folderRow) folderRow.classList.remove('open');
+    const text = document.getElementById('aiSkillText');
+    if (text) text.value = content;
+    aiSkillEditorState.savedSnapshot = content;
+    syncAiSkillPreviewUI();
+    if (statusEl) statusEl.textContent = 'Saved!';
+    setAiSkillStatus(`Saved to <code>${esc(data.relativePath || `.claude/skills/github-oss/${S.activeAiSkillName}/SKILL.md`)}</code> on disk.`);
+    setAiSkillEditorMode('preview');
   } catch (err) {
+    if (statusEl) statusEl.textContent = err.message || 'Save failed';
     setAiSkillStatus(`Could not save skill: ${err.message}`, true);
   } finally {
     if (saveBtn) saveBtn.disabled = false;
   }
 }
 
+function getActiveSkillText() {
+  const modal = document.getElementById('aiSkillEditorModal');
+  if (modal?.classList.contains('open')) {
+    return document.getElementById('aiSkillEditorTextarea')?.value.trim() || '';
+  }
+  return document.getElementById('aiSkillText')?.value.trim() || '';
+}
+
 function promptWithSelectedSkill(prompt) {
-  const skillText = document.getElementById('aiSkillText')?.value.trim() || '';
+  applySkillEditorToSession();
+  const skillText = getActiveSkillText();
   if (!skillText) return prompt;
-  const skillName = document.getElementById('aiSkillSelect')?.value || document.getElementById('aiSkillNameInput')?.value || 'inline-skill';
+  const skillName = S.activeAiSkillName || document.getElementById('aiSkillSelect')?.value || 'inline-skill';
   return [
     `## Skill: ${skillName}`,
     '',
@@ -4500,12 +6006,10 @@ function openModal(repoId, opts = {}) {
   S.activeAiSkillName = '';
   const skillSelect = document.getElementById('aiSkillSelect');
   const skillText = document.getElementById('aiSkillText');
-  const skillNameRow = document.getElementById('aiSkillNameRow');
-  const skillNameInput = document.getElementById('aiSkillNameInput');
   if (skillSelect) skillSelect.value = '';
   if (skillText) skillText.value = '';
-  if (skillNameRow) skillNameRow.classList.remove('open');
-  if (skillNameInput) skillNameInput.value = '';
+  syncAiSkillPreviewUI();
+  renderAiSkillChips();
   document.getElementById('askBtn').disabled = false;
   const resBox = document.getElementById('aiModalResult');
   if (resBox) {
@@ -4546,7 +6050,7 @@ function syncCollectionAiProviderUI() {
 function openCollectionAiModal() {
   const coll = activeCollectionName();
   if (!coll) {
-    window.alert('Select a collection tab first (e.g. Favourite).');
+    window.alert('Select a collection tab first (e.g. Favorite).');
     return;
   }
   S.collectionAiCollection = coll;
@@ -4807,12 +6311,32 @@ function setupEvents() {
   });
   document.getElementById('modelSelect').addEventListener('change', updateModelMeta);
   document.getElementById('aiSkillSelect').addEventListener('change', e => {
-    void loadAiSkillContent(e.target.value);
+    void selectAiSkill(e.target.value);
   });
-  document.getElementById('aiAddSkillBtn').addEventListener('click', startNewAiSkill);
-  document.getElementById('aiSaveSkillBtn').addEventListener('click', () => {
-    void saveAiSkill();
+  document.getElementById('aiSkillChips').addEventListener('click', e => {
+    const chip = e.target.closest('.ai-skill-chip[data-skill-name]');
+    if (!chip) return;
+    e.preventDefault();
+    e.stopPropagation();
+    void selectAiSkill(chip.dataset.skillName, { openEditor: true });
   });
+  document.getElementById('aiAddSkillBtn').addEventListener('click', (e) => {
+    e.preventDefault();
+    startNewAiSkill();
+  });
+  const aiSkillPreviewWrap = document.getElementById('aiSkillPreviewWrap');
+  if (aiSkillPreviewWrap) {
+    aiSkillPreviewWrap.addEventListener('click', () => {
+      if (S.activeAiSkillName) void openAiSkillEditorModal(S.activeAiSkillName, { isNew: false });
+      else startNewAiSkill();
+    });
+    aiSkillPreviewWrap.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        aiSkillPreviewWrap.click();
+      }
+    });
+  }
   document.querySelectorAll('input[name="aiProvider"]').forEach(rad => {
     rad.addEventListener('change', () => syncAiProviderUI());
   });
@@ -4821,6 +6345,21 @@ function setupEvents() {
   });
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
+      const jsonEd = document.getElementById('projectJsonEditorModal');
+      if (jsonEd && jsonEd.classList.contains('open')) {
+        closeProjectJsonEditorModal();
+        return;
+      }
+      const skillEd = document.getElementById('aiSkillEditorModal');
+      if (skillEd && skillEd.classList.contains('open')) {
+        closeAiSkillEditorModal();
+        return;
+      }
+      const docEd = document.getElementById('docEditorModal');
+      if (docEd && docEd.classList.contains('open')) {
+        closeDocEditorModal();
+        return;
+      }
       const rs = document.getElementById('readmeFullscreenModal');
       if (rs && rs.classList.contains('open')) {
         closeReadmeFullscreenModal();
@@ -4850,13 +6389,22 @@ function setupEvents() {
     }
     if (e.key !== 'Enter' && e.key !== ' ') return;
     if (e.target.closest && e.target.closest('a')) return;
-    const prev = e.target.closest('.readme-preview');
-    if (!prev || !document.getElementById('repoList').contains(prev)) return;
+    const docP = e.target.closest('.doc-pane-clickable');
+    if (!docP || !document.getElementById('repoList').contains(docP)) return;
+    if (e.target.closest('.file-tree-interactive')) return;
     e.preventDefault();
-    const slug = prev.dataset.readmeSlug;
-    const r = S.repos.find(x => x.full_name === slug);
-    if (r && r.readme) openReadmeFullscreenModal(slug, r.readme);
+    const repoId = docP.dataset.docOpen;
+    const tabKey = docP.dataset.docTab;
+    const docFile = docP.dataset.docFile || '';
+    const r = S.repos.find(x => String(x.id) === repoId);
+    if (!r) return;
+    const content = CORE_DOC_FILE_MAP[tabKey] ? getDocContent(r, tabKey) : getDocContentForDocTab(r, docFile);
+    openDocEditorModal(r, tabKey, docFile, content);
   });
+  document.getElementById('editProjectJsonBtn')?.addEventListener('click', () => openProjectJsonEditorModal());
+  document.getElementById('projectJsonEditorSaveBtn')?.addEventListener('click', () => void saveProjectJsonFromEditor());
+  document.getElementById('projectJsonEditorReloadBtn')?.addEventListener('click', () => reloadProjectJsonEditorFromState());
+  document.getElementById('projectJsonEditorFormatBtn')?.addEventListener('click', () => formatProjectJsonEditor());
   document.getElementById('extendSearchHeaderBtn').addEventListener('click', () => openExtendSearchModal());
   document.getElementById('extendKeywordInput').addEventListener('keydown', e => {
     if (e.key === 'Enter' || e.key === ',') {
@@ -4893,6 +6441,7 @@ function setupEvents() {
     }
   });
   document.getElementById('repoList').addEventListener('click', handleRepoListClick);
+  document.getElementById('docEditorPreview').addEventListener('click', handleDocEditorModalClick);
 }
 
 /* \u2500\u2500 INIT \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 */
@@ -4932,6 +6481,19 @@ async function init() {
     return;
   }
 
+  if (project.deleted) {
+    loadEl.innerHTML = `
+      <div style="font-family:var(--font-mono);padding:3rem 2rem;text-align:center">
+        <div style="font-size:2rem;margin-bottom:1rem">\ud83d\uddd1\ufe0f</div>
+        <div style="color:var(--red);font-size:14px;margin-bottom:.5rem">Project \u201c${esc(fname)}\u201d was deleted</div>
+        <div style="color:var(--text-muted);font-size:12px;margin-bottom:1.5rem">It no longer appears on the home page. Save a new project with the same file name to replace it.</div>
+        <a href="/" style="display:inline-flex;align-items:center;gap:.5rem;background:var(--accent);color:white;padding:.5rem 1.25rem;border-radius:.375rem;font-size:12px;font-weight:700">
+          \u2190 Back to Projects
+        </a>
+      </div>`;
+    return;
+  }
+
   // Update header
   document.title = `${project.name} \u2014 OSS Intelligence`;
   document.getElementById('projectTitle').textContent = project.name;
@@ -4941,6 +6503,8 @@ async function init() {
   const repos = normalizeRepoList(project.repos || []);
   project.repos = repos;
   project.schemaVersion = Number(project.schemaVersion) || 1;
+  project.keywords = mergeProjectKeywords(project.keywords || [], [], project.searchOptions || {});
+  project.repoCount = activeRepoCount(repos);
 
   S.projectFname = project._fname || fname;
   S.searchProjectSlug = slugFromProjectFname(S.projectFname);
@@ -4949,7 +6513,7 @@ async function init() {
 
   await loadGithubCollections();
 
-  if (!S.repos.length) {
+  if (!activeRepoCount(S.repos)) {
     await hydrateRepoListBucket(S.projectFname);
     const tab0 = getRepoListBucket().activeTab;
     if (tab0.startsWith(REPO_LIST_GP_PREFIX)) {
